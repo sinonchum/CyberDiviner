@@ -128,6 +128,8 @@ adb install -t -r app/build/outputs/apk/debug/app-debug.apk
 | Phase 3 | CameraX + MediaPipe 面部扫描 | 2 并行 |
 | Phase 4 | 海报生成 + 桌面小组件 | 2 并行 |
 
+**总挂钟时间：约 25 分钟**（规划 + 自主执行 + 真机验证）。从空目录到安装 APK 在小米 12 Pro 上运行。
+
 ---
 
 ## 项目结构

@@ -154,6 +154,8 @@ This project was built using the [Autonomous AI Development Framework](https://g
 | Phase 3 | CameraX + MediaPipe face scanning | 2 parallel |
 | Phase 4 | Poster generator + Desktop widget | 2 parallel |
 
+**Total wall-clock time: ~25 minutes** (planning + autonomous execution + device verification). From empty directory to installed APK on a Xiaomi 12 Pro.
+
 ---
 
 ## License
