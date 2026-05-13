@@ -41,10 +41,10 @@ fun AROverlay(
         ), label = "grid_scroll"
     )
 
-    val cyanColor = NeonCyan
-    val magentaColor = NeonMagenta
-    val greenColor = NeonGreen
-    val purpleColor = NeonPurple
+    val cyanColor = AccentVision
+    val magentaColor = CyberSecondary
+    val greenColor = AccentVision
+    val purpleColor = CyberSecondary
 
     Canvas(modifier = modifier.fillMaxSize()) {
         val w = size.width

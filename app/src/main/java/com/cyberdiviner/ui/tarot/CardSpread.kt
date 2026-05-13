@@ -5,6 +5,12 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AttachMoney
+import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.FlashOn
+import androidx.compose.material.icons.filled.Gavel
+import androidx.compose.material3.Icon
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -58,22 +64,18 @@ fun TarotCardView(
 @Composable
 private fun CardFront(card: TarotCard) {
     val borderColor = when (card.suit) {
-        "major" -> NeonMagenta
-        "wands" -> NeonOrange
+        "major" -> AccentTarot
+        "wands" -> CyberTertiary
         "cups" -> NeonBlue
-        "swords" -> NeonCyan
-        "pentacles" -> NeonGreen
-        else -> NeonPurple
+        "swords" -> CyberPrimary
+        "pentacles" -> AccentVision
+        else -> CyberSecondary
     }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(CyberDark, CyberBlack)
-                )
-            )
+            .background(CyberDark)
             .border(1.5.dp, borderColor, RoundedCornerShape(8.dp)),
         contentAlignment = Alignment.Center
     ) {
@@ -83,15 +85,14 @@ private fun CardFront(card: TarotCard) {
             modifier = Modifier.padding(6.dp)
         ) {
             // Suit icon
-            val icon = when (card.suit) {
-                "major" -> "★"
-                "wands" -> "🪄"
-                "cups" -> "🏆"
-                "swords" -> "⚔️"
-                "pentacles" -> "💰"
-                else -> "✦"
+            when (card.suit) {
+                "major" -> Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = borderColor, modifier = Modifier.size(20.dp))
+                "wands" -> Icon(Icons.Default.FlashOn, contentDescription = null, tint = borderColor, modifier = Modifier.size(20.dp))
+                "cups" -> Icon(Icons.Default.EmojiEvents, contentDescription = null, tint = borderColor, modifier = Modifier.size(20.dp))
+                "swords" -> Icon(Icons.Default.Gavel, contentDescription = null, tint = borderColor, modifier = Modifier.size(20.dp))
+                "pentacles" -> Icon(Icons.Default.AttachMoney, contentDescription = null, tint = borderColor, modifier = Modifier.size(20.dp))
+                else -> Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = borderColor, modifier = Modifier.size(20.dp))
             }
-            Text(icon, fontSize = 20.sp)
 
             Spacer(modifier = Modifier.height(4.dp))
 
@@ -127,23 +128,19 @@ private fun CardBack() {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(Color(0xFF1A0A2E), Color(0xFF0A0A1A))
-                )
-            )
-            .border(1.5.dp, NeonPurple.copy(alpha = 0.5f), RoundedCornerShape(8.dp)),
+            .background(CyberDark)
+            .border(1.5.dp, CyberSecondary.copy(alpha = 0.5f), RoundedCornerShape(8.dp)),
         contentAlignment = Alignment.Center
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Text("✦", fontSize = 28.sp, color = NeonPurple.copy(alpha = 0.6f))
+            Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = CyberSecondary.copy(alpha = 0.6f), modifier = Modifier.size(28.dp))
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 "CYBER\nDIVINER",
-                color = NeonPurple.copy(alpha = 0.4f),
+                color = CyberSecondary.copy(alpha = 0.4f),
                 fontSize = 7.sp,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,

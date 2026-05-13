@@ -14,8 +14,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
@@ -126,16 +124,11 @@ fun VisionScreen(navController: NavController) {
             .fillMaxSize()
             .background(CyberBlack)
     ) {
-        // ── Dark gradient simulating camera feed ──
+        // ── Camera feed background ──
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(
-                    Brush.radialGradient(
-                        colors = listOf(CyberDark, CyberBlack),
-                        radius = 800f
-                    )
-                )
+                .background(CyberDark)
         )
 
         // ── AR Overlay ──
@@ -168,13 +161,13 @@ fun VisionScreen(navController: NavController) {
                 Icon(
                     Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Back",
-                    tint = NeonCyan
+                    tint = AccentVision
                 )
             }
             Spacer(Modifier.weight(1f))
             Text(
-                "VISION // 面相扫描",
-                color = NeonCyan,
+                "VISION // FACE SCAN",
+                color = AccentVision,
                 fontSize = 14.sp,
                 fontFamily = FontFamily.Monospace,
                 letterSpacing = 2.sp
@@ -185,7 +178,7 @@ fun VisionScreen(navController: NavController) {
                 Modifier
                     .size(10.dp)
                     .clip(RoundedCornerShape(50))
-                    .background(if (!showResult) NeonGreen else FortuneGold)
+                    .background(if (!showResult) AccentVision else FortuneGold)
             )
         }
 
@@ -206,7 +199,7 @@ fun VisionScreen(navController: NavController) {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    "🔮 面相分析完成",
+                    "✓ FACE ANALYSIS COMPLETE",
                     color = FortuneGold,
                     fontSize = 18.sp,
                     fontFamily = FontFamily.Monospace
@@ -223,16 +216,16 @@ fun VisionScreen(navController: NavController) {
                 )
                 Spacer(Modifier.height(16.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    StatBadge("评级", "S+", NeonCyan)
-                    StatBadge("气场", "432Hz", NeonMagenta)
-                    StatBadge("五行", "水旺", NeonGreen)
+                    StatBadge("RATING", "S+", AccentVision)
+                    StatBadge("FIELD", "432Hz", CyberSecondary)
+                    StatBadge("ELEMENT", "WATER", AccentVision)
                 }
                 Spacer(Modifier.height(16.dp))
                 Button(
                     onClick = { navController.popBackStack() },
-                    colors = ButtonDefaults.buttonColors(containerColor = NeonCyan)
+                    colors = ButtonDefaults.buttonColors(containerColor = AccentVision)
                 ) {
-                    Text("返回", color = CyberBlack, fontFamily = FontFamily.Monospace)
+                    Text("BACK", color = CyberBlack, fontFamily = FontFamily.Monospace)
                 }
             }
         }
@@ -269,7 +262,7 @@ private fun StatBadge(label: String, value: String, color: Color) {
 @Composable
 private fun HUDItem(label: String, value: String) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(value, color = NeonCyan, fontSize = 11.sp, fontFamily = FontFamily.Monospace)
+        Text(value, color = AccentVision, fontSize = 11.sp, fontFamily = FontFamily.Monospace)
         Text(label, color = TextMuted, fontSize = 8.sp, fontFamily = FontFamily.Monospace)
     }
 }

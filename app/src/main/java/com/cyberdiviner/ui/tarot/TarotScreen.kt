@@ -15,6 +15,9 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Lightbulb
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -23,7 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Brush
+
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
@@ -48,8 +51,8 @@ fun TarotScreen(
             TopAppBar(
                 title = {
                     Text(
-                        "🃏 塔罗占卜",
-                        color = NeonMagenta,
+                        "塔罗占卜",
+                        color = AccentTarot,
                         fontWeight = FontWeight.Bold
                     )
                 },
@@ -58,7 +61,7 @@ fun TarotScreen(
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "返回",
-                            tint = NeonMagenta
+                            tint = AccentTarot
                         )
                     }
                 },
@@ -71,11 +74,7 @@ fun TarotScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(CyberBlack, CyberDark, CyberBlack)
-                    )
-                )
+                .background(CyberBlack)
         ) {
             AnimatedContent(
                 targetState = uiState.phase,
@@ -133,9 +132,9 @@ private fun SelectSpreadPhase(
 
         // Header
         Text(
-            text = "✦",
+            text = "—",
             fontSize = 48.sp,
-            color = NeonMagenta,
+            color = AccentTarot,
             modifier = Modifier.padding(bottom = 8.dp)
         )
         Text(
@@ -163,9 +162,9 @@ private fun SelectSpreadPhase(
                 fontSize = 16.sp
             ),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = NeonMagenta,
+                focusedBorderColor = AccentTarot,
                 unfocusedBorderColor = CyberGray,
-                cursorColor = NeonMagenta,
+                cursorColor = AccentTarot,
                 focusedContainerColor = CyberDark,
                 unfocusedContainerColor = CyberDark
             ),
@@ -193,8 +192,8 @@ private fun SelectSpreadPhase(
         if (uiState.recommendedSpread != null) {
             val rec = uiState.recommendedSpread!!
             Text(
-                text = "💡 AI 推荐: ${rec.displayName}（${rec.cardCount}张牌）",
-                color = NeonMagenta.copy(alpha = 0.8f),
+                text = "AI 推荐: ${rec.displayName}（${rec.cardCount}张牌）",
+                color = AccentTarot.copy(alpha = 0.8f),
                 fontSize = 13.sp,
                 modifier = Modifier.padding(bottom = 12.dp)
             )
@@ -213,8 +212,8 @@ private fun SelectSpreadPhase(
 
         SpreadType.entries.forEach { spread ->
             val isSelected = spread == uiState.selectedSpread
-            val borderColor = if (isSelected) NeonMagenta else CyberGray
-            val bgColor = if (isSelected) NeonMagenta.copy(alpha = 0.1f) else CyberDark
+            val borderColor = if (isSelected) AccentTarot else CyberGray
+            val bgColor = if (isSelected) AccentTarot.copy(alpha = 0.1f) else CyberDark
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -230,7 +229,7 @@ private fun SelectSpreadPhase(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = spread.displayName,
-                        color = if (isSelected) NeonMagenta else TextPrimary,
+                        color = if (isSelected) AccentTarot else TextPrimary,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -241,7 +240,7 @@ private fun SelectSpreadPhase(
                     )
                 }
                 if (isSelected) {
-                    Text("●", color = NeonMagenta, fontSize = 12.sp)
+                    Text("●", color = AccentTarot, fontSize = 12.sp)
                 }
             }
         }
@@ -253,7 +252,7 @@ private fun SelectSpreadPhase(
             onClick = onStartReading,
             enabled = uiState.question.isNotBlank(),
             colors = ButtonDefaults.buttonColors(
-                containerColor = NeonMagenta,
+                containerColor = AccentTarot,
                 contentColor = CyberBlack,
                 disabledContainerColor = CyberGray,
                 disabledContentColor = TextMuted
@@ -272,7 +271,7 @@ private fun SelectSpreadPhase(
 
         Spacer(modifier = Modifier.height(12.dp))
         Text(
-            text = "✦ 赛博塔罗 · AI 增强解读",
+            text = "赛博塔罗 · AI 增强解读",
             color = TextMuted,
             fontSize = 11.sp,
             textAlign = TextAlign.Center
@@ -291,7 +290,7 @@ private fun DrawingPhase(uiState: TarotUiState) {
     ) {
         Text(
             text = uiState.progressMessage,
-            color = NeonMagenta,
+            color = AccentTarot,
             fontSize = 14.sp,
             fontWeight = FontWeight.Medium,
             modifier = Modifier.padding(bottom = 32.dp)
@@ -307,7 +306,7 @@ private fun DrawingPhase(uiState: TarotUiState) {
         if (uiState.phase == TarotPhase.DRAWING) {
             Spacer(modifier = Modifier.height(24.dp))
             CircularProgressIndicator(
-                color = NeonMagenta,
+                color = AccentTarot,
                 strokeWidth = 2.dp,
                 modifier = Modifier.size(24.dp)
             )
@@ -335,7 +334,7 @@ private fun InterpretingPhase(uiState: TarotUiState) {
 
         Text(
             text = uiState.progressMessage,
-            color = NeonMagenta,
+            color = AccentTarot,
             fontSize = 14.sp,
             fontWeight = FontWeight.Medium
         )
@@ -343,7 +342,7 @@ private fun InterpretingPhase(uiState: TarotUiState) {
         Spacer(modifier = Modifier.height(12.dp))
 
         CircularProgressIndicator(
-            color = NeonMagenta,
+            color = AccentTarot,
             strokeWidth = 2.dp,
             modifier = Modifier.size(24.dp)
         )
@@ -398,12 +397,12 @@ private fun ResultPhase(
             shape = RoundedCornerShape(16.dp),
             modifier = Modifier
                 .fillMaxWidth()
-                .border(1.dp, NeonMagenta.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
+                .border(1.dp, AccentTarot.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
         ) {
             Column(modifier = Modifier.padding(20.dp)) {
                 Text(
-                    text = "🔮 赛博先知解读",
-                    color = NeonMagenta,
+                    text = "赛博先知解读",
+                    color = AccentTarot,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(bottom = 12.dp)
@@ -437,7 +436,7 @@ private fun ResultPhase(
             Button(
                 onClick = onNewReading,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = NeonMagenta,
+                    containerColor = AccentTarot,
                     contentColor = CyberBlack
                 ),
                 shape = RoundedCornerShape(12.dp),
@@ -476,7 +475,7 @@ private fun ErrorPhase(message: String, onDismiss: () -> Unit) {
         Button(
             onClick = onDismiss,
             colors = ButtonDefaults.buttonColors(
-                containerColor = NeonMagenta,
+                containerColor = AccentTarot,
                 contentColor = CyberBlack
             ),
             shape = RoundedCornerShape(12.dp)
