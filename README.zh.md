@@ -47,20 +47,63 @@
 
 ## 技术架构
 
-```
-┌─────────────────────────────────────┐
-│  UI 层 (Compose + Rive)             │
-│  首页 · 六爻 · 塔罗 · 面相 · 木鱼    │
-├─────────────────────────────────────┤
-│  AI 层                              │
-│  LLMAdapter · PromptManager · PersonaEngine │
-├─────────────────────────────────────┤
-│  占卜引擎                            │
-│  LiuyaoEngine · TarotEngine · AlmanacEngine │
-├─────────────────────────────────────┤
-│  数据层                              │
-│  Room · DataStore · CameraX + MediaPipe │
-└─────────────────────────────────────┘
+```mermaid
+graph TB
+    subgraph "UI 层"
+        HOME[首页<br/>赛博黄历]
+        LIUYAO[六爻界面<br/>六爻占卜]
+        TAROT[塔罗界面<br/>动态塔罗]
+        VISION[面相界面<br/>科技看相]
+        MUYU[木鱼界面<br/>电子木鱼]
+        WIDGET[桌面小组件<br/>黄历 Widget]
+    end
+
+    subgraph "AI 层"
+        LLM[LLMService<br/>模型无关]
+        PROMPT[PromptManager<br/>场景 Prompt]
+        PERSONA[PersonaEngine<br/>3 种人格]
+    end
+
+    subgraph "占卜引擎"
+        LIUYAO_E[LiuyaoEngine<br/>64 卦 + 铜钱投掷]
+        TAROT_E[TarotEngine<br/>78 牌 + 5 阵法]
+        ALMANAC[AlmanacEngine<br/>干支 + 黄历]
+    end
+
+    subgraph "数据层"
+        ROOM[(Room DB<br/>测算历史)]
+        DS[DataStore<br/>用户偏好)]
+        CAMERA[CameraX<br/>+ MediaPipe]
+    end
+
+    subgraph "分享"
+        POSTER[PosterGenerator<br/>转运符海报]
+    end
+
+    HOME --> ALMANAC
+    HOME --> LLM
+    LIUYAO --> LIUYAO_E
+    LIUYAO --> LLM
+    TAROT --> TAROT_E
+    TAROT --> LLM
+    VISION --> CAMERA
+    VISION --> LLM
+    MUYU --> ROOM
+    LLM --> PROMPT
+    LLM --> PERSONA
+    LIUYAO --> ROOM
+    TAROT --> ROOM
+    VISION --> ROOM
+    HOME --> WIDGET
+    ALMANAC --> WIDGET
+    POSTER --> HOME
+
+    style HOME fill:#00FFCC,color:#000
+    style LIUYAO fill:#BF00FF,color:#fff
+    style TAROT fill:#FF00FF,color:#fff
+    style VISION fill:#39FF14,color:#000
+    style MUYU fill:#FFD700,color:#000
+    style LLM fill:#00BFFF,color:#000
 ```
 
 ### 技术选型
@@ -128,7 +171,7 @@ adb install -t -r app/build/outputs/apk/debug/app-debug.apk
 | Phase 3 | CameraX + MediaPipe 面部扫描 | 2 并行 |
 | Phase 4 | 海报生成 + 桌面小组件 | 2 并行 |
 
-**总挂钟时间：约 25 分钟**（规划 + 自主执行 + 真机验证）。从空目录到安装 APK 在小米 12 Pro 上运行。
+**总挂钟时间：49 分钟**（00:50 到 01:39）。从空目录到安装 APK 在小米 12 Pro 上运行。自主执行期间零人工干预。
 
 ---
 
