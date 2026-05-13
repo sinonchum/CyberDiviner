@@ -1,30 +1,21 @@
 package com.cyberdiviner.ui.home
 
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -45,7 +36,7 @@ import java.util.*
 
 private data class FeatureEntry(
     val route: String,
-    val icon: String,
+    val icon: ImageVector,
     val label: String,
     val englishLabel: String,
     val description: String,
@@ -54,23 +45,23 @@ private data class FeatureEntry(
 
 private val FEATURE_ENTRIES = listOf(
     FeatureEntry(
-        Routes.LIUYAO, "☯", "六爻", "Liu Yao",
-        "量子卜卦 · Quantum I Ching",
+        Routes.LIUYAO, Icons.Default.Explore, "\u516D\u7238", "Liu Yao",
+        "\u91CF\u5B50\u535C\u5366 \u00B7 Quantum I Ching",
         NeonCyan
     ),
     FeatureEntry(
-        Routes.TAROT, "🃏", "塔罗", "Tarot",
-        "赛博塔罗 · Neon Card Reading",
+        Routes.TAROT, Icons.Default.Style, "\u5854\u7F57", "Tarot",
+        "\u8D5B\u535A\u5854\u7F57 \u00B7 Neon Card Reading",
         NeonMagenta
     ),
     FeatureEntry(
-        Routes.VISION, "👁️", "面相", "Vision",
-        "面相扫描 · Neural Physiognomy",
+        Routes.VISION, Icons.Default.Visibility, "\u9762\u76F8", "Vision",
+        "\u9762\u76F8\u626B\u63CF \u00B7 Neural Physiognomy",
         NeonGreen
     ),
     FeatureEntry(
-        Routes.MUYU, "🔔", "木鱼", "Muyu",
-        "电子木鱼 · Digital Zen",
+        Routes.MUYU, Icons.Default.Vibration, "\u6728\u9C7C", "Muyu",
+        "\u7535\u5B50\u6728\u9C7C \u00B7 Digital Zen",
         NeonOrange
     ),
 )
@@ -90,86 +81,75 @@ fun HomeScreen(
     val totalCount by viewModel.totalCount.collectAsState()
     val greeting by viewModel.greeting.collectAsState()
 
-    Box(modifier = Modifier.fillMaxSize().background(CyberBlack)) {
-        // Animated acid background
-        AcidBackground(modifier = Modifier.fillMaxSize())
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(CyberBlack)
+            .padding(horizontal = 16.dp),
+        contentPadding = PaddingValues(top = 48.dp, bottom = 32.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp)
+    ) {
+        // ── Header ──
+        item {
+            HeaderSection(currentDateFormatted)
+        }
 
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp),
-            contentPadding = PaddingValues(top = 48.dp, bottom = 32.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            // ── Header: App Title + Binary Clock ──
+        // ── Ganzhi + Shichen ──
+        item {
+            GanzhiInfoCard(ganzhiDate, shichenName)
+        }
+
+        // ── Greeting ──
+        item {
+            GreetingCard(greeting)
+        }
+
+        // ── Daily Almanac ──
+        dayReading?.let { reading ->
             item {
-                HeaderSection(currentDateFormatted)
+                DailyAlmanacCard(reading)
             }
+        }
 
-            // ── Ganzhi + Shichen Info ──
+        // ── Feature Navigation ──
+        item {
+            SectionHeader("\u5360\u535C\u534F\u8BAE", "DIVINATION PROTOCOLS")
+        }
+        item {
+            FeatureGrid(navController)
+        }
+
+        // ── Energy + Lucky ──
+        dayReading?.let { reading ->
             item {
-                GanzhiInfoCard(ganzhiDate, shichenName)
+                DailyInsightsCard(reading)
             }
+        }
 
-            // ── Greeting ──
+        // ── Recent Readings ──
+        if (recentReadings.isNotEmpty()) {
             item {
-                CyberGreetingCard(greeting)
+                SectionHeader("\u8FD1\u671F\u8BB0\u5F55", "RECENT READINGS", "\u603B\u8BA1 $totalCount")
             }
+            items(recentReadings, key = { it.id }) { reading ->
+                RecentReadingCard(reading, onClick = {
+                    navController.navigate(reading.type.toRoute())
+                })
+            }
+        }
 
-            // ── Daily Almanac: 宜 / 忌 ──
-            dayReading?.let { reading ->
+        // ── Warnings ──
+        dayReading?.let { reading ->
+            if (reading.warnings.isNotEmpty() || reading.currentSolarTerm != null) {
                 item {
-                    DailyActivitiesSection(reading)
+                    WarningsSection(reading)
                 }
             }
+        }
 
-            // ── Feature Navigation Grid ──
-            item {
-                SectionHeader("占卜协议", "DIVINATION PROTOCOLS")
-            }
-            item {
-                FeatureGrid(navController)
-            }
-
-            // ── Daily Energy + Advice ──
-            dayReading?.let { reading ->
-                item {
-                    EnergyCard(reading)
-                }
-            }
-
-            // ── Lucky Colors & Numbers ──
-            dayReading?.let { reading ->
-                item {
-                    LuckySection(reading)
-                }
-            }
-
-            // ── Recent Readings ──
-            if (recentReadings.isNotEmpty()) {
-                item {
-                    SectionHeader("近期记录", "RECENT READINGS", "总计 $totalCount")
-                }
-                items(recentReadings, key = { it.id }) { reading ->
-                    RecentReadingCard(reading, onClick = {
-                        navController.navigate(reading.type.toRoute())
-                    })
-                }
-            }
-
-            // ── Solar Term / Warnings ──
-            dayReading?.let { reading ->
-                if (reading.warnings.isNotEmpty() || reading.currentSolarTerm != null) {
-                    item {
-                        WarningsSection(reading)
-                    }
-                }
-            }
-
-            // ── Footer ──
-            item {
-                FooterSection()
-            }
+        // ── Footer ──
+        item {
+            FooterSection()
         }
     }
 }
@@ -182,35 +162,29 @@ private fun HeaderSection(dateFormatted: String) {
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // App title with neon glow effect
         Text(
-            text = "赛博黄历",
-            color = NeonCyan,
-            fontSize = 32.sp,
-            fontWeight = FontWeight.Black,
+            text = "\u8D5B\u535A\u9EC4\u5386",
+            color = TextPrimary,
+            fontSize = 28.sp,
+            fontWeight = FontWeight.Bold,
+            fontFamily = FontFamily.Monospace,
+            letterSpacing = 4.sp
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = "CYBER ALMANAC",
+            color = TextMuted,
+            fontSize = 11.sp,
             fontFamily = FontFamily.Monospace,
             letterSpacing = 6.sp
         )
-        Text(
-            text = "CYBER ALMANAC",
-            color = NeonCyan.copy(alpha = 0.5f),
-            fontSize = 12.sp,
-            fontFamily = FontFamily.Monospace,
-            letterSpacing = 8.sp
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // Binary clock
+        Spacer(modifier = Modifier.height(10.dp))
         BinaryClock()
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Current date
+        Spacer(modifier = Modifier.height(6.dp))
         Text(
             text = dateFormatted,
             color = TextSecondary,
-            fontSize = 14.sp,
+            fontSize = 13.sp,
             fontFamily = FontFamily.Monospace
         )
     }
@@ -220,93 +194,41 @@ private fun HeaderSection(dateFormatted: String) {
 private fun GanzhiInfoCard(ganzhiDate: String, shichenName: String) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = CyberGray.copy(alpha = 0.7f)),
-        shape = RoundedCornerShape(12.dp)
+        colors = CardDefaults.cardColors(containerColor = CyberGray),
+        shape = RoundedCornerShape(10.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(14.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column {
-                Text(
-                    text = "干支纪时",
-                    color = TextMuted,
-                    fontSize = 11.sp,
-                    fontFamily = FontFamily.Monospace,
-                    letterSpacing = 2.sp
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = ganzhiDate,
-                    color = NeonCyan,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = FontFamily.Monospace
-                )
+                Text("\u5E72\u652F\u7EAA\u65F6", color = TextMuted, fontSize = 10.sp, fontFamily = FontFamily.Monospace)
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(ganzhiDate, color = NeonCyan, fontSize = 15.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
             }
-
-            // Vertical divider
-            Box(
-                modifier = Modifier
-                    .width(1.dp)
-                    .height(40.dp)
-                    .background(NeonCyan.copy(alpha = 0.3f))
-            )
-
+            Box(modifier = Modifier.width(1.dp).height(36.dp).background(TextMuted.copy(alpha = 0.3f)))
             Column(horizontalAlignment = Alignment.End) {
-                Text(
-                    text = "当前时辰",
-                    color = TextMuted,
-                    fontSize = 11.sp,
-                    fontFamily = FontFamily.Monospace,
-                    letterSpacing = 2.sp
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = shichenName,
-                    color = NeonMagenta,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = FontFamily.Monospace
-                )
+                Text("\u5F53\u524D\u65F6\u8FB0", color = TextMuted, fontSize = 10.sp, fontFamily = FontFamily.Monospace)
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(shichenName, color = NeonMagenta, fontSize = 15.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
             }
         }
     }
 }
 
 @Composable
-private fun CyberGreetingCard(greeting: String) {
-    val infiniteTransition = rememberInfiniteTransition()
-    val borderAlpha by infiniteTransition.animateFloat(
-        initialValue = 0.3f,
-        targetValue = 0.7f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(2000, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse
-        )
-    )
-
+private fun GreetingCard(greeting: String) {
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .drawBehind {
-                // Animated border glow
-                drawRoundRect(
-                    color = NeonCyan.copy(alpha = borderAlpha * 0.4f),
-                    size = size,
-                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(12.dp.toPx()),
-                    style = Stroke(width = 1.dp.toPx())
-                )
-            },
-        colors = CardDefaults.cardColors(containerColor = CyberDark.copy(alpha = 0.8f)),
-        shape = RoundedCornerShape(12.dp)
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = CyberDark),
+        shape = RoundedCornerShape(10.dp)
     ) {
         Text(
             text = greeting,
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(14.dp),
             color = TextPrimary,
             fontSize = 13.sp,
             lineHeight = 20.sp,
@@ -315,81 +237,47 @@ private fun CyberGreetingCard(greeting: String) {
     }
 }
 
-@Composable
-private fun DailyActivitiesSection(reading: AlmanacEngine.DayReading) {
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        // Auspicious activities
-        ActivityCard(
-            title = "今日宜",
-            titleEn = "AUSPICIOUS",
-            icon = "✅",
-            activities = reading.auspiciousActivities.take(8),
-            accentColor = AuspiciousGreen
-        )
-
-        // Inauspicious activities
-        ActivityCard(
-            title = "今日忌",
-            titleEn = "INAUSPICIOUS",
-            icon = "❌",
-            activities = reading.inauspiciousActivities.take(6),
-            accentColor = InauspiciousRed
-        )
-    }
-}
+// ── Combined daily almanac card (auspicious + inauspicious) ──────────────
 
 @Composable
-private fun ActivityCard(
-    title: String,
-    titleEn: String,
-    icon: String,
-    activities: List<AlmanacEngine.DailyActivity>,
-    accentColor: Color,
-) {
+private fun DailyAlmanacCard(reading: AlmanacEngine.DayReading) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = CyberGray.copy(alpha = 0.6f)),
-        shape = RoundedCornerShape(12.dp)
+        colors = CardDefaults.cardColors(containerColor = CyberGray),
+        shape = RoundedCornerShape(10.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            // Header
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text(text = icon, fontSize = 16.sp)
-                Text(
-                    text = title,
-                    color = accentColor,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = FontFamily.Monospace
-                )
-                Text(
-                    text = titleEn,
-                    color = accentColor.copy(alpha = 0.5f),
-                    fontSize = 10.sp,
-                    fontFamily = FontFamily.Monospace,
-                    letterSpacing = 2.sp
-                )
+        Column(modifier = Modifier.padding(14.dp)) {
+            // Auspicious
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Icon(Icons.Default.Check, contentDescription = null, tint = AuspiciousGreen, modifier = Modifier.size(16.dp))
+                Text("\u4ECA\u65E5\u5B9C", color = AuspiciousGreen, fontSize = 15.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
+                Text("AUSPICIOUS", color = AuspiciousGreen.copy(alpha = 0.4f), fontSize = 9.sp, fontFamily = FontFamily.Monospace, letterSpacing = 2.sp)
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                reading.auspiciousActivities.take(8).forEach { activity ->
+                    ActivityChip(activity, AuspiciousGreen)
+                }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
-            // Activity chips in a flow-like layout
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                activities.forEach { activity ->
-                    ActivityChip(activity, accentColor)
+            // Inauspicious
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Icon(Icons.Default.Close, contentDescription = null, tint = InauspiciousRed, modifier = Modifier.size(16.dp))
+                Text("\u4ECA\u65E5\u5FCC", color = InauspiciousRed, fontSize = 15.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
+                Text("INAUSPICIOUS", color = InauspiciousRed.copy(alpha = 0.4f), fontSize = 9.sp, fontFamily = FontFamily.Monospace, letterSpacing = 2.sp)
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                reading.inauspiciousActivities.take(6).forEach { activity ->
+                    ActivityChip(activity, InauspiciousRed)
                 }
             }
         }
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun FlowRow(
     modifier: Modifier = Modifier,
@@ -397,7 +285,6 @@ private fun FlowRow(
     verticalArrangement: Arrangement.Vertical = Arrangement.Top,
     content: @Composable () -> Unit,
 ) {
-    // Simple flow implementation using multiple rows
     androidx.compose.foundation.layout.FlowRow(
         modifier = modifier,
         horizontalArrangement = horizontalArrangement,
@@ -410,392 +297,178 @@ private fun FlowRow(
 private fun ActivityChip(activity: AlmanacEngine.DailyActivity, accentColor: Color) {
     Surface(
         modifier = Modifier.animateContentSize(),
-        shape = RoundedCornerShape(8.dp),
+        shape = RoundedCornerShape(6.dp),
         color = accentColor.copy(alpha = 0.08f),
         contentColor = accentColor
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            Text(
-                text = activity.name,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Medium,
-                fontFamily = FontFamily.Monospace,
-                color = accentColor
-            )
-            Text(
-                text = activity.englishName,
-                fontSize = 10.sp,
-                color = accentColor.copy(alpha = 0.6f),
-                fontFamily = FontFamily.Monospace
-            )
+            Text(activity.name, fontSize = 12.sp, fontWeight = FontWeight.Medium, fontFamily = FontFamily.Monospace, color = accentColor)
+            Text(activity.englishName, fontSize = 9.sp, color = accentColor.copy(alpha = 0.5f), fontFamily = FontFamily.Monospace)
         }
     }
 }
+
+// ── Feature Grid ─────────────────────────────────────────────────────────
 
 @Composable
 private fun FeatureGrid(navController: NavController) {
-    Column(
-        verticalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        // 2x2 grid
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            FeatureEntryCard(
-                entry = FEATURE_ENTRIES[0],
-                modifier = Modifier.weight(1f),
-                onClick = { navController.navigate(FEATURE_ENTRIES[0].route) }
-            )
-            FeatureEntryCard(
-                entry = FEATURE_ENTRIES[1],
-                modifier = Modifier.weight(1f),
-                onClick = { navController.navigate(FEATURE_ENTRIES[1].route) }
-            )
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FeatureEntryCard(FEATURE_ENTRIES[0], Modifier.weight(1f)) { navController.navigate(FEATURE_ENTRIES[0].route) }
+            FeatureEntryCard(FEATURE_ENTRIES[1], Modifier.weight(1f)) { navController.navigate(FEATURE_ENTRIES[1].route) }
         }
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            FeatureEntryCard(
-                entry = FEATURE_ENTRIES[2],
-                modifier = Modifier.weight(1f),
-                onClick = { navController.navigate(FEATURE_ENTRIES[2].route) }
-            )
-            FeatureEntryCard(
-                entry = FEATURE_ENTRIES[3],
-                modifier = Modifier.weight(1f),
-                onClick = { navController.navigate(FEATURE_ENTRIES[3].route) }
-            )
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FeatureEntryCard(FEATURE_ENTRIES[2], Modifier.weight(1f)) { navController.navigate(FEATURE_ENTRIES[2].route) }
+            FeatureEntryCard(FEATURE_ENTRIES[3], Modifier.weight(1f)) { navController.navigate(FEATURE_ENTRIES[3].route) }
         }
     }
 }
 
 @Composable
-private fun FeatureEntryCard(
-    entry: FeatureEntry,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit
-) {
+private fun FeatureEntryCard(entry: FeatureEntry, modifier: Modifier = Modifier, onClick: () -> Unit) {
     Card(
-        modifier = modifier
-            .height(110.dp)
-            .clickable(onClick = onClick),
-        colors = CardDefaults.cardColors(containerColor = CyberDark.copy(alpha = 0.9f)),
-        shape = RoundedCornerShape(12.dp)
+        modifier = modifier.height(100.dp).clickable(onClick = onClick),
+        colors = CardDefaults.cardColors(containerColor = CyberDark),
+        shape = RoundedCornerShape(10.dp)
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(12.dp),
+            modifier = Modifier.fillMaxSize().padding(12.dp),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            // Icon
-            Text(
-                text = entry.icon,
-                fontSize = 28.sp
+            Icon(
+                imageVector = entry.icon,
+                contentDescription = entry.label,
+                tint = entry.accentColor,
+                modifier = Modifier.size(24.dp)
             )
-
-            // Labels
             Column {
-                Row(
-                    verticalAlignment = Alignment.Bottom,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    Text(
-                        text = entry.label,
-                        color = entry.accentColor,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        fontFamily = FontFamily.Monospace
-                    )
-                    Text(
-                        text = entry.englishLabel,
-                        color = entry.accentColor.copy(alpha = 0.4f),
-                        fontSize = 10.sp,
-                        fontFamily = FontFamily.Monospace,
-                        modifier = Modifier.padding(bottom = 2.dp)
-                    )
+                Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(entry.label, color = entry.accentColor, fontSize = 17.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
+                    Text(entry.englishLabel, color = entry.accentColor.copy(alpha = 0.4f), fontSize = 9.sp, fontFamily = FontFamily.Monospace, modifier = Modifier.padding(bottom = 2.dp))
                 }
-                Text(
-                    text = entry.description,
-                    color = TextMuted,
-                    fontSize = 10.sp,
-                    fontFamily = FontFamily.Monospace,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+                Text(entry.description, color = TextMuted, fontSize = 9.sp, fontFamily = FontFamily.Monospace, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
         }
     }
 }
 
+// ── Combined energy + lucky insights card ─────────────────────────────────
+
 @Composable
-private fun EnergyCard(reading: AlmanacEngine.DayReading) {
+private fun DailyInsightsCard(reading: AlmanacEngine.DayReading) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = CyberGray.copy(alpha = 0.6f)),
-        shape = RoundedCornerShape(12.dp)
+        colors = CardDefaults.cardColors(containerColor = CyberGray),
+        shape = RoundedCornerShape(10.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text(text = "⚡", fontSize = 16.sp)
-                Text(
-                    text = "能量分析",
-                    color = NeonYellow,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = FontFamily.Monospace
-                )
-                Text(
-                    text = "ENERGY ANALYSIS",
-                    color = NeonYellow.copy(alpha = 0.4f),
-                    fontSize = 10.sp,
-                    fontFamily = FontFamily.Monospace,
-                    letterSpacing = 1.sp
-                )
+        Column(modifier = Modifier.padding(14.dp)) {
+            // Energy section
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Icon(Icons.Default.Bolt, contentDescription = null, tint = NeonYellow, modifier = Modifier.size(16.dp))
+                Text("\u80FD\u91CF\u5206\u6790", color = NeonYellow, fontSize = 15.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
+                Text("ENERGY", color = NeonYellow.copy(alpha = 0.4f), fontSize = 9.sp, fontFamily = FontFamily.Monospace, letterSpacing = 1.sp)
             }
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            // Energy level
-            Text(
-                text = reading.dailyEnergy,
-                color = TextPrimary,
-                fontSize = 14.sp,
-                fontFamily = FontFamily.Monospace,
-                lineHeight = 20.sp
-            )
-
             Spacer(modifier = Modifier.height(8.dp))
+            Text(reading.dailyEnergy, color = TextPrimary, fontSize = 13.sp, fontFamily = FontFamily.Monospace, lineHeight = 18.sp)
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(reading.elementAdvice, color = TextSecondary, fontSize = 12.sp, fontFamily = FontFamily.Monospace, lineHeight = 16.sp)
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(reading.overview, color = NeonCyan.copy(alpha = 0.7f), fontSize = 11.sp, fontFamily = FontFamily.Monospace, lineHeight = 16.sp)
 
-            // Element advice
-            Text(
-                text = reading.elementAdvice,
-                color = TextSecondary,
-                fontSize = 13.sp,
-                fontFamily = FontFamily.Monospace,
-                lineHeight = 18.sp
-            )
+            Spacer(modifier = Modifier.height(14.dp))
+            HorizontalDivider(color = TextMuted.copy(alpha = 0.2f), thickness = 1.dp)
+            Spacer(modifier = Modifier.height(14.dp))
 
-            Spacer(modifier = Modifier.height(10.dp))
-
-            // Overview
-            Text(
-                text = reading.overview,
-                color = NeonCyan.copy(alpha = 0.8f),
-                fontSize = 12.sp,
-                fontFamily = FontFamily.Monospace,
-                lineHeight = 18.sp
-            )
-        }
-    }
-}
-
-@Composable
-private fun LuckySection(reading: AlmanacEngine.DayReading) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = CyberGray.copy(alpha = 0.6f)),
-        shape = RoundedCornerShape(12.dp)
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text(text = "🎯", fontSize = 16.sp)
-                Text(
-                    text = "今日吉祥",
-                    color = FortuneGold,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = FontFamily.Monospace
-                )
-                Text(
-                    text = "LUCKY SIGNALS",
-                    color = FortuneGold.copy(alpha = 0.4f),
-                    fontSize = 10.sp,
-                    fontFamily = FontFamily.Monospace,
-                    letterSpacing = 1.sp
-                )
+            // Lucky section
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Icon(Icons.Default.Star, contentDescription = null, tint = FortuneGold, modifier = Modifier.size(16.dp))
+                Text("\u4ECA\u65E5\u5409\u7965", color = FortuneGold, fontSize = 15.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
+                Text("LUCKY", color = FortuneGold.copy(alpha = 0.4f), fontSize = 9.sp, fontFamily = FontFamily.Monospace, letterSpacing = 1.sp)
             }
-
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             // Lucky colors
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text(
-                    text = "吉祥色:",
-                    color = TextMuted,
-                    fontSize = 12.sp,
-                    fontFamily = FontFamily.Monospace
-                )
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text("\u5409\u7965\u8272:", color = TextMuted, fontSize = 11.sp, fontFamily = FontFamily.Monospace)
                 reading.luckyColors.forEach { color ->
-                    Surface(
-                        shape = RoundedCornerShape(6.dp),
-                        color = CyberDark
-                    ) {
-                        Text(
-                            text = color,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                            color = FortuneGold,
-                            fontSize = 12.sp,
-                            fontFamily = FontFamily.Monospace
-                        )
+                    Surface(shape = RoundedCornerShape(5.dp), color = CyberDark) {
+                        Text(color, modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp), color = FortuneGold, fontSize = 11.sp, fontFamily = FontFamily.Monospace)
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(6.dp))
 
             // Lucky numbers
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text(
-                    text = "吉祥数:",
-                    color = TextMuted,
-                    fontSize = 12.sp,
-                    fontFamily = FontFamily.Monospace
-                )
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text("\u5409\u7965\u6570:", color = TextMuted, fontSize = 11.sp, fontFamily = FontFamily.Monospace)
                 reading.luckyNumbers.forEach { num ->
-                    Surface(
-                        shape = CircleShape,
-                        color = NeonCyan.copy(alpha = 0.15f)
-                    ) {
-                        Text(
-                            text = "$num",
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                            color = NeonCyan,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold,
-                            fontFamily = FontFamily.Monospace
-                        )
+                    Surface(shape = CircleShape, color = NeonCyan.copy(alpha = 0.12f)) {
+                        Text("$num", modifier = Modifier.padding(horizontal = 9.dp, vertical = 3.dp), color = NeonCyan, fontSize = 13.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
                     }
                 }
             }
         }
     }
 }
+
+// ── Recent Reading Card ──────────────────────────────────────────────────
 
 @Composable
 private fun RecentReadingCard(reading: DivinationReading, onClick: () -> Unit) {
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
-        colors = CardDefaults.cardColors(containerColor = CyberDark.copy(alpha = 0.7f)),
-        shape = RoundedCornerShape(10.dp)
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
+        colors = CardDefaults.cardColors(containerColor = CyberDark),
+        shape = RoundedCornerShape(8.dp)
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
+            modifier = Modifier.fillMaxWidth().padding(12.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            // Type icon
-            Surface(
-                shape = CircleShape,
-                color = NeonCyan.copy(alpha = 0.1f)
-            ) {
-                Text(
-                    text = reading.type.icon,
-                    modifier = Modifier.padding(8.dp),
-                    fontSize = 20.sp
+            Surface(shape = CircleShape, color = NeonCyan.copy(alpha = 0.08f)) {
+                Icon(
+                    imageVector = reading.type.toIcon(),
+                    contentDescription = null,
+                    tint = NeonCyan,
+                    modifier = Modifier.padding(8.dp).size(18.dp)
                 )
             }
-
-            // Content
             Column(modifier = Modifier.weight(1f)) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    Text(
-                        text = reading.type.displayName,
-                        color = NeonCyan,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold,
-                        fontFamily = FontFamily.Monospace
-                    )
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(reading.type.displayName, color = NeonCyan, fontSize = 12.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
                     if (reading.isFavorited) {
-                        Icon(
-                            imageVector = Icons.Default.Favorite,
-                            contentDescription = null,
-                            tint = NeonMagenta,
-                            modifier = Modifier.size(12.dp)
-                        )
+                        Icon(Icons.Default.Favorite, contentDescription = null, tint = NeonMagenta, modifier = Modifier.size(10.dp))
                     }
                 }
-                Text(
-                    text = reading.question,
-                    color = TextSecondary,
-                    fontSize = 12.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    fontFamily = FontFamily.Default
-                )
-                Text(
-                    text = formatTimestamp(reading.timestamp),
-                    color = TextMuted,
-                    fontSize = 10.sp,
-                    fontFamily = FontFamily.Monospace
-                )
+                Text(reading.question, color = TextSecondary, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(formatTimestamp(reading.timestamp), color = TextMuted, fontSize = 9.sp, fontFamily = FontFamily.Monospace)
             }
-
-            // Arrow
-            Text(
-                text = "›",
-                color = TextMuted,
-                fontSize = 20.sp,
-                fontFamily = FontFamily.Monospace
-            )
+            Icon(Icons.Default.ChevronRight, contentDescription = null, tint = TextMuted, modifier = Modifier.size(18.dp))
         }
     }
 }
 
+// ── Warnings ─────────────────────────────────────────────────────────────
+
 @Composable
 private fun WarningsSection(reading: AlmanacEngine.DayReading) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         reading.currentSolarTerm?.let { term ->
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = NeonPurple.copy(alpha = 0.1f)),
-                shape = RoundedCornerShape(10.dp)
+                colors = CardDefaults.cardColors(containerColor = NeonPurple.copy(alpha = 0.08f)),
+                shape = RoundedCornerShape(8.dp)
             ) {
-                Row(
-                    modifier = Modifier.padding(12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text(text = "🌀", fontSize = 16.sp)
+                Row(modifier = Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Icon(Icons.Default.Autorenew, contentDescription = null, tint = NeonPurple, modifier = Modifier.size(16.dp))
                     Column {
-                        Text(
-                            text = "节气: ${term.name}",
-                            color = NeonPurple,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold,
-                            fontFamily = FontFamily.Monospace
-                        )
-                        Text(
-                            text = "${term.englishName} · ${term.element}气",
-                            color = NeonPurple.copy(alpha = 0.6f),
-                            fontSize = 11.sp,
-                            fontFamily = FontFamily.Monospace
-                        )
+                        Text("\u8282\u6C14: ${term.name}", color = NeonPurple, fontSize = 13.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
+                        Text("${term.englishName} \u00B7 ${term.element}\u6C14", color = NeonPurple.copy(alpha = 0.6f), fontSize = 10.sp, fontFamily = FontFamily.Monospace)
                     }
                 }
             }
@@ -804,107 +477,49 @@ private fun WarningsSection(reading: AlmanacEngine.DayReading) {
         reading.warnings.forEach { warning ->
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = InauspiciousRed.copy(alpha = 0.08f)),
-                shape = RoundedCornerShape(10.dp)
+                colors = CardDefaults.cardColors(containerColor = InauspiciousRed.copy(alpha = 0.06f)),
+                shape = RoundedCornerShape(8.dp)
             ) {
-                Row(
-                    modifier = Modifier.padding(12.dp),
-                    verticalAlignment = Alignment.Top,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text(text = "⚠️", fontSize = 14.sp)
-                    Text(
-                        text = warning,
-                        color = InauspiciousRed.copy(alpha = 0.9f),
-                        fontSize = 12.sp,
-                        lineHeight = 18.sp,
-                        fontFamily = FontFamily.Monospace
-                    )
+                Row(modifier = Modifier.padding(10.dp), verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Icon(Icons.Default.Warning, contentDescription = null, tint = InauspiciousRed, modifier = Modifier.size(14.dp))
+                    Text(warning, color = InauspiciousRed.copy(alpha = 0.9f), fontSize = 11.sp, lineHeight = 16.sp, fontFamily = FontFamily.Monospace)
                 }
             }
         }
     }
 }
 
+// ── Section Header ───────────────────────────────────────────────────────
+
 @Composable
 private fun SectionHeader(chineseTitle: String, englishTitle: String, badge: String? = null) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
+        modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        // Accent line
-        Box(
-            modifier = Modifier
-                .width(3.dp)
-                .height(16.dp)
-                .clip(RoundedCornerShape(2.dp))
-                .background(NeonCyan)
-        )
-
-        Text(
-            text = chineseTitle,
-            color = TextPrimary,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Bold,
-            fontFamily = FontFamily.Monospace
-        )
-        Text(
-            text = englishTitle,
-            color = TextMuted,
-            fontSize = 10.sp,
-            fontFamily = FontFamily.Monospace,
-            letterSpacing = 2.sp
-        )
-
+        Box(modifier = Modifier.width(3.dp).height(14.dp).clip(RoundedCornerShape(2.dp)).background(NeonCyan))
+        Text(chineseTitle, color = TextPrimary, fontSize = 15.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
+        Text(englishTitle, color = TextMuted, fontSize = 9.sp, fontFamily = FontFamily.Monospace, letterSpacing = 2.sp)
         badge?.let {
             Spacer(modifier = Modifier.weight(1f))
-            Text(
-                text = it,
-                color = NeonCyan.copy(alpha = 0.5f),
-                fontSize = 10.sp,
-                fontFamily = FontFamily.Monospace
-            )
+            Text(it, color = TextMuted, fontSize = 9.sp, fontFamily = FontFamily.Monospace)
         }
     }
 }
 
+// ── Footer ───────────────────────────────────────────────────────────────
+
 @Composable
 private fun FooterSection() {
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 16.dp),
+        modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        HorizontalDivider(
-            modifier = Modifier.padding(horizontal = 32.dp),
-            color = NeonCyan.copy(alpha = 0.15f),
-            thickness = 1.dp
-        )
-        Spacer(modifier = Modifier.height(12.dp))
-        Text(
-            text = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
-            color = NeonCyan.copy(alpha = 0.1f),
-            fontSize = 10.sp,
-            fontFamily = FontFamily.Monospace
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = "赛博黄历 v0.1 · CyberAlmanac",
-            color = TextMuted.copy(alpha = 0.4f),
-            fontSize = 10.sp,
-            fontFamily = FontFamily.Monospace,
-            letterSpacing = 2.sp
-        )
-        Text(
-            text = "数据仅供参考 · For entertainment only",
-            color = TextMuted.copy(alpha = 0.3f),
-            fontSize = 9.sp,
-            fontFamily = FontFamily.Monospace
-        )
+        HorizontalDivider(modifier = Modifier.padding(horizontal = 40.dp), color = TextMuted.copy(alpha = 0.15f), thickness = 1.dp)
+        Spacer(modifier = Modifier.height(10.dp))
+        Text("\u8D5B\u535A\u9EC4\u5386 v0.1 \u00B7 CyberAlmanac", color = TextMuted.copy(alpha = 0.35f), fontSize = 9.sp, fontFamily = FontFamily.Monospace, letterSpacing = 2.sp)
+        Text("\u6570\u636E\u4EC5\u4F9B\u53C2\u8003 \u00B7 For entertainment only", color = TextMuted.copy(alpha = 0.25f), fontSize = 8.sp, fontFamily = FontFamily.Monospace)
     }
 }
 
@@ -920,4 +535,11 @@ private fun DivinationType.toRoute(): String = when (this) {
     DivinationType.TAROT -> Routes.TAROT
     DivinationType.VISION -> Routes.VISION
     DivinationType.MUYU -> Routes.MUYU
+}
+
+private fun DivinationType.toIcon(): ImageVector = when (this) {
+    DivinationType.LIUYAO -> Icons.Default.Explore
+    DivinationType.TAROT -> Icons.Default.Style
+    DivinationType.VISION -> Icons.Default.Visibility
+    DivinationType.MUYU -> Icons.Default.Vibration
 }

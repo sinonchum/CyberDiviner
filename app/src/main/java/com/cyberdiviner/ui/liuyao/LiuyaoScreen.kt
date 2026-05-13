@@ -13,6 +13,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.SwapHoriz
+import androidx.compose.material.icons.filled.Explore
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.QuestionAnswer
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,7 +23,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
@@ -64,7 +66,7 @@ fun LiuyaoScreen(
             TopAppBar(
                 title = {
                     Text(
-                        "☯ 六爻起卦",
+                        "六爻起卦",
                         color = NeonCyan,
                         fontWeight = FontWeight.Bold
                     )
@@ -90,9 +92,7 @@ fun LiuyaoScreen(
                 .fillMaxSize()
                 .padding(padding)
                 .background(
-                    Brush.verticalGradient(
-                        colors = listOf(CyberBlack, CyberDark, CyberBlack)
-                    )
+                    CyberBlack
                 )
         ) {
             when (uiState.phase) {
@@ -142,12 +142,14 @@ private fun InputPhase(
             .padding(32.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        // Yin-Yang symbol / decorative header
-        Text(
-            text = "☯",
-            fontSize = 64.sp,
-            color = NeonCyan,
-            modifier = Modifier.padding(bottom = 16.dp)
+        // Decorative header
+        Icon(
+            imageVector = Icons.Default.Explore,
+            contentDescription = null,
+            tint = NeonCyan,
+            modifier = Modifier
+                .size(64.dp)
+                .padding(bottom = 16.dp)
         )
 
         Text(
@@ -304,10 +306,13 @@ private fun ErrorPhase(
             .fillMaxSize()
             .padding(32.dp)
     ) {
-        Text(
-            text = "⚠",
-            fontSize = 48.sp,
-            modifier = Modifier.padding(bottom = 16.dp)
+        Icon(
+            imageVector = Icons.Default.Warning,
+            contentDescription = null,
+            tint = InauspiciousRed,
+            modifier = Modifier
+                .size(48.dp)
+                .padding(bottom = 16.dp)
         )
 
         Text(

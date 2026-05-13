@@ -10,6 +10,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -54,7 +57,7 @@ fun LiuyaoResultScreen(
             TopAppBar(
                 title = {
                     Text(
-                        "☯ 卦象解读",
+                        "卦象解读",
                         color = NeonCyan,
                         fontWeight = FontWeight.Bold
                     )
@@ -103,9 +106,7 @@ fun LiuyaoResultScreen(
                 .fillMaxSize()
                 .padding(padding)
                 .background(
-                    Brush.verticalGradient(
-                        colors = listOf(CyberBlack, CyberDark, CyberBlack)
-                    )
+                    CyberBlack
                 )
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp)
@@ -184,7 +185,7 @@ private fun QuestionBanner(question: String) {
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text("📋 问事", color = NeonCyan, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            Text("问事", color = NeonCyan, fontSize = 12.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(4.dp))
             Text(question, color = TextPrimary, fontSize = 16.sp)
         }
@@ -689,7 +690,7 @@ private fun LlmInterpretationSection(interpretation: String) {
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                "🔮 赛博先知的解读",
+                "赛博先知的解读",
                 color = NeonCyan,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold
