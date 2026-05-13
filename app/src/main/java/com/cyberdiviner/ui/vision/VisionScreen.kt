@@ -31,6 +31,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import android.graphics.PointF
 import com.cyberdiviner.ui.shared.CyberButton
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import com.cyberdiviner.ui.theme.*
 import kotlinx.coroutines.delay
 
@@ -87,6 +92,21 @@ fun VisionScreen(
     // ── Scan trigger state ──
     var scanStarted by remember { mutableStateOf(false) }
     var cameraFailed by remember { mutableStateOf(false) }
+    var hasCameraPermission by remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) ==
+                    PackageManager.PERMISSION_GRANTED
+        )
+    }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        hasCameraPermission = granted
+        if (granted) {
+            scanStarted = true
+        }
+    }
 
     // Whether the ViewModel camera pipeline is active
     val cameraActive = scanStarted
@@ -455,7 +475,11 @@ fun VisionScreen(
             CyberButton(
                 text = "[ START SCAN ]",
                 onClick = {
-                    scanStarted = true
+                    if (hasCameraPermission) {
+                        scanStarted = true
+                    } else {
+                        permissionLauncher.launch(Manifest.permission.CAMERA)
+                    }
                 },
                 modifier = Modifier
                     .fillMaxWidth(0.5f)
