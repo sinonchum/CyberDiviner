@@ -26,6 +26,9 @@ val CyberSurface = GraySurface
 val CyberGray = GraySurface
 val CyberDark = CyberBlack
 
+// ── Bridgewater accent ─────────────────────────────────────────────────────
+val AccentRed = Color(0xFF80241E)     // Bridgewater deep red — section labels, category text
+
 // ── Legacy accent aliases (for existing screens) ───────────────────────────
 val AccentVision = CyberWhite
 val AccentLiuYao = CyberWhite

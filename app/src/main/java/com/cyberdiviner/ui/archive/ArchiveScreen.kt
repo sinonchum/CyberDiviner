@@ -75,11 +75,13 @@ private val mockArchive = listOf(
 /**
  * ArchiveScreen -- Elegant card stream layout.
  *
+ * Bridgewater-inspired: red accent on section labels, larger serif titles,
+ * thinner borders, more generous padding (24dp internal).
  * Each record is a card with thin white border, featuring:
  * - Top: lunar date + type
- * - Center: AI summary in 汇文明朝体 (large)
+ * - Center: AI summary in 汇文明朝体 (large, 32sp)
  * - Body: plain text interpretation
- * - Bottom-right: hash watermark (8sp, dark gray)
+ * - Bottom-right: hash watermark (7sp, dark gray)
  */
 @Composable
 fun ArchiveScreen(onBack: () -> Unit) {
@@ -89,7 +91,7 @@ fun ArchiveScreen(onBack: () -> Unit) {
         modifier = Modifier
             .fillMaxSize()
             .background(CyberBlack)
-            .padding(horizontal = 24.dp, vertical = 32.dp)
+            .padding(horizontal = 32.dp, vertical = 32.dp)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             // ── Header ──────────────────────────────
@@ -101,20 +103,20 @@ fun ArchiveScreen(onBack: () -> Unit) {
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 4.sp
             )
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(6.dp))
             Text(
                 text = "CAUSAL LEDGER",
-                color = GrayCaption,
-                fontSize = 11.sp,
+                color = AccentRed,
+                fontSize = 12.sp,
                 fontFamily = FontFamily.Monospace,
                 letterSpacing = 3.sp
             )
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(48.dp))
 
             // ── Card stream ─────────────────────────
             LazyColumn(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
                 items(mockArchive.size) { index ->
                     val entry = mockArchive[index]
@@ -158,7 +160,7 @@ private fun ArchiveCard(
                 indication = null,
                 interactionSource = remember { MutableInteractionSource() }
             ) { onClick() }
-            .padding(20.dp)
+            .padding(24.dp)
     ) {
         Column {
             // ── Top: lunar date + type ──────────────
@@ -174,8 +176,8 @@ private fun ArchiveCard(
                 )
                 Text(
                     text = entry.type,
-                    color = GrayCaption,
-                    fontSize = 12.sp,
+                    color = AccentRed,
+                    fontSize = 11.sp,
                     fontFamily = FontFamily.Monospace,
                     letterSpacing = 1.sp
                 )
@@ -187,7 +189,7 @@ private fun ArchiveCard(
             Text(
                 text = entry.title,
                 color = GrayTitle,
-                fontSize = 28.sp,
+                fontSize = 32.sp,
                 fontFamily = FontFamily.Serif,
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 6.sp,
@@ -229,7 +231,7 @@ private fun ArchiveCard(
                 Text(
                     text = entry.hash,
                     color = GrayMuted,
-                    fontSize = 8.sp,
+                    fontSize = 7.sp,
                     fontFamily = FontFamily.Monospace
                 )
             }

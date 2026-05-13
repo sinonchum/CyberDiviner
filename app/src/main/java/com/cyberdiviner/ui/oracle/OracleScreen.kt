@@ -26,7 +26,7 @@ import com.cyberdiviner.ui.theme.*
 /**
  * OracleScreen -- Immersive chat with Eastern aesthetics.
  *
- * AI messages: left-aligned, serif font, with a thin vertical anchor line.
+ * AI messages: left-aligned, serif font, plain layout.
  * User messages: right-aligned, monospace, wrapped in a 1dp white border box.
  * Input: VoiceInputField (shared component) with hold-to-record voice input.
  *
@@ -61,7 +61,7 @@ fun OracleScreen(
             .background(CyberBlack)
             .imePadding()
             .systemBarsPadding()
-            .padding(horizontal = 24.dp, vertical = 32.dp)
+            .padding(horizontal = 32.dp, vertical = 32.dp)
     ) {
         // -- Header ----------------------------------------------------------
         Text(
@@ -72,15 +72,15 @@ fun OracleScreen(
             fontWeight = FontWeight.Bold,
             letterSpacing = 4.sp
         )
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(6.dp))
         Text(
             text = "ROUND ${round}/${viewModel.maxRounds}",
-            color = GrayCaption,
-            fontSize = 11.sp,
+            color = AccentRed,
+            fontSize = 12.sp,
             fontFamily = FontFamily.Monospace,
             letterSpacing = 2.sp
         )
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(32.dp))
 
         // -- Chat messages ---------------------------------------------------
         LazyColumn(
@@ -113,25 +113,15 @@ fun OracleScreen(
     }
 }
 
-// ── AI Bubble: left-aligned with vertical anchor ───────────────────────────
+// ── AI Bubble: left-aligned, plain serif ──────────────────────────────────
 
 @Composable
 private fun AiBubble(text: String) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.Top
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 0.dp)
     ) {
-        // Thin vertical anchor line (2dp, height matches text)
-        Box(
-            modifier = Modifier
-                .width(2.dp)
-                .height(24.dp)
-                .background(GrayBorder)
-        )
-
-        Spacer(modifier = Modifier.width(16.dp))
-
-        // AI message text (serif font)
         TypewriterText(
             text = text,
             style = TextStyle(
@@ -139,8 +129,7 @@ private fun AiBubble(text: String) {
                 fontSize = 15.sp,
                 fontFamily = FontFamily.Serif,
                 lineHeight = 24.sp
-            ),
-            modifier = Modifier.weight(1f)
+            )
         )
     }
 }
