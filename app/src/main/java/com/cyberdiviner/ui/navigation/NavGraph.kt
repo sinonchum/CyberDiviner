@@ -5,76 +5,68 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.cyberdiviner.ui.archive.ArchiveScreen
-import com.cyberdiviner.ui.consult.ConsultScreen
-import com.cyberdiviner.ui.epiphany.EpiphanyScreen
+import com.cyberdiviner.ui.home.HomeScreen
 import com.cyberdiviner.ui.liuyao.LiuyaoResultScreen
 import com.cyberdiviner.ui.liuyao.LiuyaoScreen
-import com.cyberdiviner.ui.settings.SettingsScreen
+import com.cyberdiviner.ui.oracle.OracleScreen
+import com.cyberdiviner.ui.rituals.RitualsMenuScreen
+import com.cyberdiviner.ui.splash.SplashScreen
 import com.cyberdiviner.ui.tarot.TarotScreen
-import com.cyberdiviner.ui.terminal.TerminalScreen
 import com.cyberdiviner.ui.vision.VisionScreen
 
 /**
- * v5.0 Navigation: Flat route map with ritual sub-paths.
+ * v5.1 Navigation: Clean single-page route hierarchy.
  *
- * Splash → Terminal hub → feature screens.
- * Ritual entry points route to specific feature screens directly.
+ * splash -> home -> oracle | rituals_menu -> ritual/iching|tarot|vision | archive
  */
-
 object Routes {
     const val SPLASH = "splash"
-    const val TERMINAL = "terminal"
-    const val AGENT_CHAT = "agent_chat"
+    const val HOME = "home"
+    const val ORACLE = "oracle"
+    const val RITUALS_MENU = "rituals_menu"
     const val RITUAL_ICHING = "ritual/iching"
     const val RITUAL_TAROT = "ritual/tarot"
     const val RITUAL_VISION = "ritual/vision"
-    const val ARCHIVE_LIST = "archive_list"
-    const val LIUYAO = "liuyao"
-    const val LIUYAO_RESULT = "liuyao_result"
-    const val SETTINGS = "settings"
-    // Legacy routes kept for HomeScreen compatibility (dead code)
-    const val TAROT = "ritual/tarot"
-    const val VISION = "ritual/vision"
-    const val MUYU = "muyu"
+    const val ARCHIVE = "archive"
 }
 
 @Composable
 fun CyberDivinerNavGraph(navController: NavHostController) {
     NavHost(navController = navController, startDestination = Routes.SPLASH) {
 
-        // Splash / Epiphany entry
         composable(Routes.SPLASH) {
-            EpiphanyScreen(
-                onEnter = {
-                    navController.navigate(Routes.TERMINAL) {
+            SplashScreen(
+                onTimeout = {
+                    navController.navigate(Routes.HOME) {
                         popUpTo(Routes.SPLASH) { inclusive = true }
                     }
                 }
             )
         }
 
-        // Terminal hub
-        composable(Routes.TERMINAL) {
-            TerminalScreen(
-                onConsult = { navController.navigate(Routes.AGENT_CHAT) },
-                onRitual = { navController.navigate(Routes.RITUAL_ICHING) },
-                onArchive = { navController.navigate(Routes.ARCHIVE_LIST) }
+        composable(Routes.HOME) {
+            HomeScreen(
+                onOracle = { navController.navigate(Routes.ORACLE) },
+                onRituals = { navController.navigate(Routes.RITUALS_MENU) },
+                onArchive = { navController.navigate(Routes.ARCHIVE) }
             )
         }
 
-        // Agent chat (consultation interview)
-        composable(Routes.AGENT_CHAT) {
-            ConsultScreen(
-                onComplete = { soulHash ->
-                    navController.navigate(Routes.TERMINAL) {
-                        popUpTo(Routes.AGENT_CHAT) { inclusive = true }
-                    }
-                },
+        composable(Routes.ORACLE) {
+            OracleScreen(
                 onBack = { navController.popBackStack() }
             )
         }
 
-        // Ritual sub-paths — each routes to its specific feature screen
+        composable(Routes.RITUALS_MENU) {
+            RitualsMenuScreen(
+                onIChing = { navController.navigate(Routes.RITUAL_ICHING) },
+                onTarot = { navController.navigate(Routes.RITUAL_TAROT) },
+                onVision = { navController.navigate(Routes.RITUAL_VISION) },
+                onBack = { navController.popBackStack() }
+            )
+        }
+
         composable(Routes.RITUAL_ICHING) {
             LiuyaoScreen(navController = navController)
         }
@@ -87,25 +79,10 @@ fun CyberDivinerNavGraph(navController: NavHostController) {
             VisionScreen(navController = navController)
         }
 
-        // Archive list
-        composable(Routes.ARCHIVE_LIST) {
+        composable(Routes.ARCHIVE) {
             ArchiveScreen(
                 onBack = { navController.popBackStack() }
             )
-        }
-
-        // Internal navigation targets (Liuyao flow)
-        composable(Routes.LIUYAO) {
-            LiuyaoScreen(navController = navController)
-        }
-
-        composable(Routes.LIUYAO_RESULT) {
-            LiuyaoResultScreen(navController = navController)
-        }
-
-        // Settings
-        composable(Routes.SETTINGS) {
-            SettingsScreen(navController = navController)
         }
     }
 }

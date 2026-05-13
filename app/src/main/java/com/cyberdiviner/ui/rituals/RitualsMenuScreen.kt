@@ -1,4 +1,4 @@
-package com.cyberdiviner.ui.home
+package com.cyberdiviner.ui.rituals
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -9,19 +9,23 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.cyberdiviner.ui.shared.CyberButton
 import com.cyberdiviner.ui.shared.CyberMenuItem
 import com.cyberdiviner.ui.theme.CyberBlack
+import com.cyberdiviner.ui.theme.TextMuted
 
 /**
- * HomeScreen -- The central hub. Three Chinese-only menu entries.
+ * RitualsMenuScreen -- Intermediate menu for ritual selection.
  *
- * Left-aligned, vertically centered. No English. No footer.大面积黑色留白.
+ * Three options: 周易六爻, 赛博塔罗, 视界摸骨.
+ * Left-aligned, same layout as HomeScreen.
  */
 @Composable
-fun HomeScreen(
-    onOracle: () -> Unit,
-    onRituals: () -> Unit,
-    onArchive: () -> Unit
+fun RitualsMenuScreen(
+    onIChing: () -> Unit,
+    onTarot: () -> Unit,
+    onVision: () -> Unit,
+    onBack: () -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -35,27 +39,36 @@ fun HomeScreen(
             horizontalAlignment = Alignment.Start
         ) {
             CyberMenuItem(
-                title = "叩问天机",
+                title = "周易六爻",
                 subtitle = "",
                 description = "",
-                onClick = onOracle
+                onClick = onIChing
             )
             Spacer(modifier = Modifier.height(24.dp))
 
             CyberMenuItem(
-                title = "术数推演",
+                title = "赛博塔罗",
                 subtitle = "",
                 description = "",
-                onClick = onRituals
+                onClick = onTarot
             )
             Spacer(modifier = Modifier.height(24.dp))
 
             CyberMenuItem(
-                title = "因果命簿",
+                title = "视界摸骨",
                 subtitle = "",
                 description = "",
-                onClick = onArchive
+                onClick = onVision
             )
         }
+
+        // Bottom back button
+        CyberButton(
+            text = "[ 返回 ]",
+            onClick = onBack,
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(bottom = 48.dp)
+        )
     }
 }
