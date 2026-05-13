@@ -31,10 +31,10 @@ class LlmConfigManager(private val context: Context) {
 
     // ── Reactive streams (for UI) ───────────────────────────────────────────
 
-    val apiKey: Flow<String> = context.dataStore.data.map { it[KEY_API_KEY] ?: "sk-REDACTEDorCUXBFpD7CBN0KSppvfEfF6xpXHq3fBEZ0rXBIeaRJL6" }
+    val apiKey: Flow<String> = context.dataStore.data.map { it[KEY_API_KEY] ?: "" }
     val provider: Flow<String> = context.dataStore.data.map { it[KEY_PROVIDER] ?: LlmProvider.OPENAI_COMPATIBLE.name }
-    val modelId: Flow<String> = context.dataStore.data.map { it[KEY_MODEL_ID] ?: "gpt-5.4-mini" }
-    val baseUrl: Flow<String> = context.dataStore.data.map { it[KEY_BASE_URL] ?: "https://api.shqbb.com/v1" }
+    val modelId: Flow<String> = context.dataStore.data.map { it[KEY_MODEL_ID] ?: "deepseek-chat" }
+    val baseUrl: Flow<String> = context.dataStore.data.map { it[KEY_BASE_URL] ?: "https://api.deepseek.com/v1" }
     val personaId: Flow<String> = context.dataStore.data.map { it[KEY_PERSONA_ID] ?: Persona.DEFAULT.id }
     val temperature: Flow<Double> = context.dataStore.data.map {
         it[KEY_TEMPERATURE]?.toDoubleOrNull() ?: 0.7

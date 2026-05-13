@@ -2,6 +2,7 @@ package com.cyberdiviner.ui.home
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.clickable
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -11,6 +12,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cyberdiviner.ui.shared.CyberMenuItem
 import com.cyberdiviner.ui.theme.CyberBlack
+import com.cyberdiviner.ui.theme.GrayCaption
 
 /**
  * HomeScreen -- The central hub. Three Chinese-only menu entries.
@@ -21,7 +23,8 @@ import com.cyberdiviner.ui.theme.CyberBlack
 fun HomeScreen(
     onOracle: () -> Unit,
     onRituals: () -> Unit,
-    onArchive: () -> Unit
+    onArchive: () -> Unit,
+    onConfig: () -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -29,6 +32,19 @@ fun HomeScreen(
             .background(CyberBlack)
             .padding(start = 32.dp, top = 0.dp, end = 32.dp, bottom = 0.dp)
     ) {
+        // CONFIG button — top-right
+        Text(
+            text = "[ CONFIG ]",
+            color = GrayCaption,
+            fontFamily = FontFamily.Monospace,
+            fontSize = 11.sp,
+            letterSpacing = 1.sp,
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(top = 16.dp)
+                .clickable { onConfig() }
+        )
+
         Column(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.Center,

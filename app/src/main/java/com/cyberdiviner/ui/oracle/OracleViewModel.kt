@@ -33,6 +33,13 @@ class OracleViewModel @Inject constructor() : ViewModel() {
     private val _isProcessing = MutableStateFlow(false)
     val isProcessing: StateFlow<Boolean> = _isProcessing.asStateFlow()
 
+    // ── Input state (hoisted from Composable) ──────────────────────────────
+    private val _inputText = MutableStateFlow("")
+    val inputText: StateFlow<String> = _inputText.asStateFlow()
+
+    private val _isRecording = MutableStateFlow(false)
+    val isRecording: StateFlow<Boolean> = _isRecording.asStateFlow()
+
     init {
         // Auto-insert initial AI message
         _messages.value = listOf(
@@ -41,6 +48,18 @@ class OracleViewModel @Inject constructor() : ViewModel() {
                 isAgent = true
             )
         )
+    }
+
+    fun updateInputText(text: String) {
+        _inputText.value = text
+    }
+
+    fun clearInput() {
+        _inputText.value = ""
+    }
+
+    fun setRecording(recording: Boolean) {
+        _isRecording.value = recording
     }
 
     fun sendMessage(text: String) {

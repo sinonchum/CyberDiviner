@@ -1,18 +1,42 @@
 package com.cyberdiviner.ui.oracle
 
+import android.content.Context
+import android.content.Intent
+import android.os.Bundle
+import android.speech.RecognitionListener
+import android.speech.RecognizerIntent
+import android.speech.SpeechRecognizer
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -21,12 +45,20 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.cyberdiviner.ui.shared.TypewriterText
 import com.cyberdiviner.ui.theme.*
 
+
 /**
  * OracleScreen -- Immersive chat with Eastern aesthetics.
  *
- * AI messages: left-aligned, 汇文明朝体, with a thin vertical anchor line.
- * User messages: right-aligned, JetBrainsMono, wrapped in a 1dp white border box.
- * Input: bottom bar with send button (white triangle).
+ * AI messages: left-aligned, serif font, with a thin vertical anchor line.
+ * User messages: right-aligned, monospace, wrapped in a 1dp white border box.
+ * Input: bottom bar with mic button (hold to record) and send button.
+ *
+ * Keyboard bugs fixed:
+ *  - imePadding + systemBarsPadding on outer Column
+ *  - Input text hoisted to ViewModel
+ *  - Keyboard dismissed on send
+ *  - Hold-to-record voice input with offline SpeechRecognizer
+ *  - Canvas wave animation during recording
  */
 @Composable
 fun OracleScreen(
@@ -36,8 +68,31 @@ fun OracleScreen(
     val messages by viewModel.messages.collectAsState()
     val round by viewModel.round.collectAsState()
     val isProcessing by viewModel.isProcessing.collectAsState()
+    val inputText by viewModel.inputText.collectAsState()
+    val isRecording by viewModel.isRecording.collectAsState()
     val listState = rememberLazyListState()
-    var inputText by remember { mutableStateOf("") }
+    val context = LocalContext.current
+    val keyboardController = LocalSoftwareKeyboardController.current
+
+    // ── Voice recognition setup ───────────────────────────────────────────
+    var speechRecognizer by remember { mutableStateOf<SpeechRecognizer?>(null) }
+    var recognizedText by remember { mutableStateOf("") }
+
+    DisposableEffect(Unit) {
+        val recognizer = SpeechRecognizer.createSpeechRecognizer(context)
+        speechRecognizer = recognizer
+        onDispose {
+            recognizer.destroy()
+        }
+    }
+
+    // Fill recognized text into input when recording stops
+    LaunchedEffect(isRecording) {
+        if (!isRecording && recognizedText.isNotBlank()) {
+            viewModel.updateInputText(recognizedText)
+            recognizedText = ""
+        }
+    }
 
     // Auto-scroll to bottom
     LaunchedEffect(messages.size) {
@@ -50,9 +105,11 @@ fun OracleScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(CyberBlack)
+            .imePadding()
+            .systemBarsPadding()
             .padding(horizontal = 24.dp, vertical = 32.dp)
     ) {
-        // ── Header ──────────────────────────────────────
+        // -- Header ----------------------------------------------------------
         Text(
             text = "叩问天机",
             color = GrayTitle,
@@ -71,7 +128,7 @@ fun OracleScreen(
         )
         Spacer(modifier = Modifier.height(24.dp))
 
-        // ── Chat messages ───────────────────────────────
+        // -- Chat messages ---------------------------------------------------
         LazyColumn(
             modifier = Modifier.weight(1f),
             state = listState,
@@ -88,19 +145,19 @@ fun OracleScreen(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // ── Input bar ───────────────────────────────────
+        // -- Input bar -------------------------------------------------------
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             BasicTextField(
                 value = inputText,
-                onValueChange = { inputText = it },
+                onValueChange = { viewModel.updateInputText(it) },
                 modifier = Modifier
                     .weight(1f)
                     .background(CyberBlack)
                     .padding(vertical = 8.dp),
-                textStyle = androidx.compose.ui.text.TextStyle(
+                textStyle = TextStyle(
                     color = GrayTitle,
                     fontSize = 14.sp,
                     fontFamily = FontFamily.Serif,
@@ -124,17 +181,42 @@ fun OracleScreen(
                 }
             )
 
-            // Send button: white triangle
             Spacer(modifier = Modifier.width(12.dp))
+
+            // Mic button: hold to record
+            MicButton(
+                isRecording = isRecording,
+                onRecognitionResult = { text ->
+                    recognizedText = text
+                },
+                speechRecognizer = speechRecognizer,
+                context = context,
+                onRecordingStarted = { viewModel.setRecording(true) },
+                onRecordingStopped = { viewModel.setRecording(false) }
+            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            // Send button: white triangle
             Box(
                 modifier = Modifier
                     .size(36.dp)
                     .border(1.dp, GrayBorder)
                     .background(if (inputText.isNotBlank()) CyberWhite else CyberBlack)
-                    .padding(8.dp),
+                    .padding(8.dp)
+                    .pointerInput(inputText.isNotBlank()) {
+                        if (inputText.isNotBlank()) {
+                            detectTapGestures(
+                                onPress = {
+                                    keyboardController?.hide()
+                                    viewModel.sendMessage(inputText)
+                                    viewModel.clearInput()
+                                }
+                            )
+                        }
+                    },
                 contentAlignment = Alignment.Center
             ) {
-                // ▶ triangle drawn via Canvas would be ideal, but Text is simpler
                 Text(
                     text = "\u25B6",
                     color = if (inputText.isNotBlank()) CyberBlack else GrayCaption,
@@ -144,18 +226,162 @@ fun OracleScreen(
             }
         }
 
-        // Bottom line
+        // Bottom line (or recording wave)
         Spacer(modifier = Modifier.height(8.dp))
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(1.dp)
-                .background(GrayBorder)
+        if (isRecording) {
+            RecordingWaveLine(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(2.dp)
+            )
+        } else {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(1.dp)
+                    .background(GrayBorder)
+            )
+        }
+    }
+}
+
+// ── Mic button with hold-to-record gesture ──────────────────────────────────
+
+@Composable
+private fun MicButton(
+    isRecording: Boolean,
+    onRecognitionResult: (String) -> Unit,
+    speechRecognizer: SpeechRecognizer?,
+    context: Context,
+    onRecordingStarted: () -> Unit,
+    onRecordingStopped: () -> Unit
+) {
+    val buttonColor = if (isRecording) CyberWhite else GrayCaption
+
+    IconButton(
+        onClick = { /* No-op: use press gesture below */ },
+        modifier = Modifier
+            .size(36.dp)
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onPress = {
+                        onRecordingStarted()
+                        speechRecognizer?.startListening(
+                            buildRecognitionIntent()
+                        )
+
+                        // Setup listener if not already set
+                        speechRecognizer?.setRecognitionListener(
+                            buildRecognitionListener(
+                                onResult = { text ->
+                                    onRecognitionResult(text)
+                                    onRecordingStopped()
+                                },
+                                onError = {
+                                    onRecordingStopped()
+                                }
+                            )
+                        )
+
+                        // Wait for finger lift
+                        tryAwaitRelease()
+
+                        // Stop if still recording
+                        if (isRecording) {
+                            speechRecognizer?.stopListening()
+                            onRecordingStopped()
+                        }
+                    }
+                )
+            },
+        enabled = !isRecording
+    ) {
+        Icon(
+            imageVector = Icons.Filled.Mic,
+            contentDescription = "Voice input",
+            tint = buttonColor
         )
     }
+}
 
-    // ── Handle send (wired to ViewModel) ─────────────────
-    // The send button click is handled inline above
+// ── Build the recognition intent for offline speech ─────────────────────────
+
+private fun buildRecognitionIntent(): Intent {
+    return Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+        putExtra(
+            RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+            RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
+        )
+        putExtra(RecognizerIntent.EXTRA_LANGUAGE, "zh-CN")
+        putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
+        putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
+    }
+}
+
+// ── Build a RecognitionListener that forwards results ───────────────────────
+
+private fun buildRecognitionListener(
+    onResult: (String) -> Unit,
+    onError: () -> Unit
+): RecognitionListener = object : RecognitionListener {
+    override fun onReadyForSpeech(params: Bundle?) {}
+    override fun onBeginningOfSpeech() {}
+    override fun onRmsChanged(rmsdB: Float) {}
+    override fun onBufferReceived(buffer: ByteArray?) {}
+    override fun onEndOfSpeech() {}
+    override fun onPartialResults(partialResults: Bundle?) {}
+    override fun onEvent(eventType: Int, params: Bundle?) {}
+
+    override fun onResults(results: Bundle?) {
+        val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+        val text = matches?.firstOrNull() ?: ""
+        onResult(text)
+    }
+
+    override fun onError(error: Int) {
+        onError()
+    }
+}
+
+// ── Recording wave animation (Canvas) ──────────────────────────────────────
+
+@Composable
+private fun RecordingWaveLine(modifier: Modifier = Modifier) {
+    val infiniteTransition = rememberInfiniteTransition(label = "wave")
+    val phase by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1200, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "wavePhase"
+    )
+
+    androidx.compose.foundation.Canvas(
+        modifier = modifier.clipToBounds()
+    ) {
+        val waveHeight = size.height / 2f
+        val waveWidth = size.width
+        val segments = 80
+        val segmentWidth = waveWidth / segments
+
+        for (i in 0 until segments) {
+            val x = i * segmentWidth
+            val progress = (i.toFloat() / segments) + phase
+            val yOffset = kotlin.math.sin(progress * 2 * Math.PI).toFloat() * waveHeight
+
+            drawLine(
+                color = CyberWhite,
+                start = Offset(x, size.height / 2f + yOffset),
+                end = Offset(x + segmentWidth, size.height / 2f +
+                    kotlin.math.sin(((i + 1).toFloat() / segments + phase) * 2 * Math.PI).toFloat() * waveHeight
+                ),
+                strokeWidth = 1.5.dp.toPx(),
+                cap = StrokeCap.Square
+            )
+        }
+    }
 }
 
 // ── AI Bubble: left-aligned with vertical anchor ───────────────────────────
@@ -176,10 +402,10 @@ private fun AiBubble(text: String) {
 
         Spacer(modifier = Modifier.width(16.dp))
 
-        // AI message text (汇文明朝体)
+        // AI message text (serif font)
         TypewriterText(
             text = text,
-            style = androidx.compose.ui.text.TextStyle(
+            style = TextStyle(
                 color = GrayTitle,
                 fontSize = 15.sp,
                 fontFamily = FontFamily.Serif,

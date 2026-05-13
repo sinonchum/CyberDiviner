@@ -5,6 +5,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.cyberdiviner.ui.archive.ArchiveScreen
+import com.cyberdiviner.ui.config.ConfigScreen
 import com.cyberdiviner.ui.home.HomeScreen
 import com.cyberdiviner.ui.liuyao.LiuyaoResultScreen
 import com.cyberdiviner.ui.liuyao.LiuyaoScreen
@@ -28,6 +29,7 @@ object Routes {
     const val RITUAL_TAROT = "ritual/tarot"
     const val RITUAL_VISION = "ritual/vision"
     const val ARCHIVE = "archive"
+    const val CONFIG = "config"
 }
 
 @Composable
@@ -48,7 +50,8 @@ fun CyberDivinerNavGraph(navController: NavHostController) {
             HomeScreen(
                 onOracle = { navController.navigate(Routes.ORACLE) },
                 onRituals = { navController.navigate(Routes.RITUALS_MENU) },
-                onArchive = { navController.navigate(Routes.ARCHIVE) }
+                onArchive = { navController.navigate(Routes.ARCHIVE) },
+                onConfig = { navController.navigate(Routes.CONFIG) }
             )
         }
 
@@ -83,6 +86,10 @@ fun CyberDivinerNavGraph(navController: NavHostController) {
             ArchiveScreen(
                 onBack = { navController.popBackStack() }
             )
+        }
+
+        composable(Routes.CONFIG) {
+            ConfigScreen(onBack = { navController.popBackStack() })
         }
     }
 }

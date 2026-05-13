@@ -2,31 +2,55 @@ package com.cyberdiviner.ui.tarot
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material3.Text
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material.icons.filled.Lightbulb
-import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
@@ -34,9 +58,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.cyberdiviner.ui.theme.*
+import com.cyberdiviner.ui.shared.CyberButton
+import com.cyberdiviner.ui.theme.CyberBlack
+import com.cyberdiviner.ui.theme.CyberWhite
+import com.cyberdiviner.ui.theme.GrayBody
+import com.cyberdiviner.ui.theme.GrayBorder
+import com.cyberdiviner.ui.theme.GrayCaption
+import com.cyberdiviner.ui.theme.GrayMuted
+import com.cyberdiviner.ui.theme.GrayTitle
+import com.cyberdiviner.ui.theme.SerifDisplay
 
-@OptIn(ExperimentalMaterial3Api::class)
+// ═══════════════════════════════════════════════════════════════════════════
+// TarotScreen — elegant B&W protocol-style layout
+// ═══════════════════════════════════════════════════════════════════════════
+
 @Composable
 fun TarotScreen(
     navController: NavController,
@@ -44,70 +79,72 @@ fun TarotScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        "塔罗占卜",
-                        color = AccentTarot,
-                        fontWeight = FontWeight.Bold
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "返回",
-                            tint = AccentTarot
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = CyberBlack)
-            )
-        },
-        containerColor = CyberBlack
-    ) { padding ->
-        Box(
+    // Plain Column — no Scaffold, no TopAppBar
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(CyberBlack)
+    ) {
+        // ── Minimal navigation bar ──────────────────────────────────────
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .background(CyberBlack)
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp, vertical = 16.dp)
         ) {
-            AnimatedContent(
-                targetState = uiState.phase,
-                transitionSpec = { fadeIn() togetherWith fadeOut() },
-                label = "tarot_phase"
-            ) { phase ->
-                when (phase) {
-                    TarotPhase.SELECT_SPREAD -> SelectSpreadPhase(
-                        uiState = uiState,
-                        onQuestionChange = viewModel::updateQuestion,
-                        onSelectSpread = viewModel::selectSpread,
-                        onStartReading = viewModel::startReading
-                    )
+            Text(
+                text = "<",
+                color = GrayCaption,
+                fontSize = 16.sp,
+                fontFamily = FontFamily.Monospace,
+                modifier = Modifier.clickable { navController.popBackStack() }
+            )
+            Spacer(modifier = Modifier.width(16.dp))
+            Text(
+                text = "TAROT PROTOCOL",
+                color = GrayCaption,
+                fontSize = 11.sp,
+                fontFamily = FontFamily.Monospace,
+                letterSpacing = 3.sp
+            )
+        }
 
-                    TarotPhase.DRAWING, TarotPhase.REVEALING -> DrawingPhase(uiState)
+        // ── Phase content ───────────────────────────────────────────────
+        AnimatedContent(
+            targetState = uiState.phase,
+            transitionSpec = { fadeIn() togetherWith fadeOut() },
+            label = "tarot_phase"
+        ) { phase ->
+            when (phase) {
+                TarotPhase.SELECT_SPREAD -> SelectSpreadPhase(
+                    uiState = uiState,
+                    onQuestionChange = viewModel::updateQuestion,
+                    onSelectSpread = viewModel::selectSpread,
+                    onStartReading = viewModel::startReading
+                )
 
-                    TarotPhase.INTERPRETING -> InterpretingPhase(uiState)
+                TarotPhase.DRAWING, TarotPhase.REVEALING -> DrawingPhase(uiState)
 
-                    TarotPhase.RESULT -> ResultPhase(
-                        uiState = uiState,
-                        onNewReading = viewModel::newReading,
-                        onBack = { navController.popBackStack() }
-                    )
+                TarotPhase.INTERPRETING -> InterpretingPhase(uiState)
 
-                    TarotPhase.ERROR -> ErrorPhase(
-                        message = uiState.errorMessage ?: "未知错误",
-                        onDismiss = viewModel::dismissError
-                    )
-                }
+                TarotPhase.RESULT -> ResultPhase(
+                    uiState = uiState,
+                    onNewReading = viewModel::newReading,
+                    onBack = { navController.popBackStack() }
+                )
+
+                TarotPhase.ERROR -> ErrorPhase(
+                    message = uiState.errorMessage ?: "未知错误",
+                    onDismiss = viewModel::dismissError
+                )
             }
         }
     }
 }
 
-// ── Phase composables ─────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// Phase composables
+// ═══════════════════════════════════════════════════════════════════════════
 
 @Composable
 private fun SelectSpreadPhase(
@@ -116,92 +153,91 @@ private fun SelectSpreadPhase(
     onSelectSpread: (SpreadType) -> Unit,
     onStartReading: () -> Unit
 ) {
-    val focusManager = LocalFocusManager.current
     val focusRequester = remember { FocusRequester() }
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp)
+            .padding(horizontal = 24.dp)
             .verticalScroll(rememberScrollState())
     ) {
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Header
-        Text(
-            text = "—",
-            fontSize = 48.sp,
-            color = AccentTarot,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
+        // ── Header ────────────────────────────────────────────────────
         Text(
             text = "聆听数据流中的神谕",
-            color = TextSecondary,
-            fontSize = 14.sp,
+            color = GrayCaption,
+            fontSize = 13.sp,
             letterSpacing = 2.sp,
             modifier = Modifier.padding(bottom = 4.dp)
         )
         Text(
             text = "静心凝神，然后输入你的问题",
-            color = TextMuted,
-            fontSize = 12.sp,
+            color = GrayMuted,
+            fontSize = 11.sp,
             modifier = Modifier.padding(bottom = 24.dp)
         )
 
-        // Question input
-        OutlinedTextField(
-            value = uiState.question,
-            onValueChange = onQuestionChange,
-            label = { Text("你想问什么？", color = TextSecondary) },
-            placeholder = { Text("例如：我的感情运势如何？", color = TextMuted) },
-            textStyle = LocalTextStyle.current.copy(
-                color = TextPrimary,
-                fontSize = 16.sp
-            ),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = AccentTarot,
-                unfocusedBorderColor = CyberGray,
-                cursorColor = AccentTarot,
-                focusedContainerColor = CyberDark,
-                unfocusedContainerColor = CyberDark
-            ),
-            shape = RoundedCornerShape(12.dp),
+        // ── Question input ────────────────────────────────────────────
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .focusRequester(focusRequester),
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-            maxLines = 3
-        )
+                .border(1.dp, GrayBorder, RoundedCornerShape(8.dp))
+                .background(CyberBlack)
+                .padding(16.dp)
+        ) {
+            if (uiState.question.isEmpty()) {
+                Text(
+                    text = "你想问什么？",
+                    color = GrayMuted,
+                    fontSize = 14.sp
+                )
+            }
+            BasicTextField(
+                value = uiState.question,
+                onValueChange = onQuestionChange,
+                textStyle = TextStyle(
+                    color = CyberWhite,
+                    fontSize = 14.sp
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .focusRequester(focusRequester),
+                cursorBrush = SolidColor(CyberWhite),
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                maxLines = 3
+            )
+        }
 
-        // Error
+        // ── Error ─────────────────────────────────────────────────────
         AnimatedVisibility(visible = uiState.errorMessage != null) {
             Text(
                 text = uiState.errorMessage ?: "",
-                color = InauspiciousRed,
-                fontSize = 13.sp,
+                color = GrayBody,
+                fontSize = 12.sp,
                 modifier = Modifier.padding(top = 8.dp)
             )
         }
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Spread recommendation
+        // ── Spread recommendation ─────────────────────────────────────
         if (uiState.recommendedSpread != null) {
             val rec = uiState.recommendedSpread!!
             Text(
-                text = "AI 推荐: ${rec.displayName}（${rec.cardCount}张牌）",
-                color = AccentTarot.copy(alpha = 0.8f),
-                fontSize = 13.sp,
+                text = "推荐: ${rec.displayName}（${rec.cardCount}张牌）",
+                color = GrayCaption,
+                fontSize = 12.sp,
                 modifier = Modifier.padding(bottom = 12.dp)
             )
         }
 
-        // Spread selection
+        // ── Spread selection ──────────────────────────────────────────
         Text(
             text = "选择牌阵",
-            color = TextSecondary,
-            fontSize = 14.sp,
+            color = GrayTitle,
+            fontSize = 13.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier
                 .fillMaxWidth()
@@ -210,75 +246,80 @@ private fun SelectSpreadPhase(
 
         SpreadType.entries.forEach { spread ->
             val isSelected = spread == uiState.selectedSpread
-            val borderColor = if (isSelected) AccentTarot else CyberGray
-            val bgColor = if (isSelected) AccentTarot.copy(alpha = 0.1f) else CyberDark
+            val borderColor = if (isSelected) CyberWhite else GrayBorder
+            val bgColor = if (isSelected) Color(0xFF111111) else CyberBlack
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 8.dp)
-                    .clip(RoundedCornerShape(12.dp))
+                    .clip(RoundedCornerShape(8.dp))
                     .background(bgColor)
-                    .border(1.dp, borderColor, RoundedCornerShape(12.dp))
+                    .border(1.dp, borderColor, RoundedCornerShape(8.dp))
                     .clickable { onSelectSpread(spread) }
                     .padding(16.dp)
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = spread.displayName,
-                        color = if (isSelected) AccentTarot else TextPrimary,
-                        fontSize = 15.sp,
+                        color = if (isSelected) CyberWhite else GrayBody,
+                        fontSize = 14.sp,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
                         text = "${spread.cardCount}张牌 · ${spread.positions.joinToString(", ")}",
-                        color = TextMuted,
-                        fontSize = 11.sp
+                        color = GrayMuted,
+                        fontSize = 10.sp
                     )
                 }
                 if (isSelected) {
-                    Text("●", color = AccentTarot, fontSize = 12.sp)
+                    Text(
+                        text = "|",
+                        color = CyberWhite,
+                        fontSize = 12.sp,
+                        fontFamily = FontFamily.Monospace
+                    )
                 }
             }
         }
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Start button
-        Button(
+        // ── Start button ──────────────────────────────────────────────
+        CyberButton(
+            text = "开始占卜",
             onClick = onStartReading,
             enabled = uiState.question.isNotBlank(),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = AccentTarot,
-                contentColor = CyberBlack,
-                disabledContainerColor = CyberGray,
-                disabledContentColor = TextMuted
-            ),
-            shape = RoundedCornerShape(12.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp)
-        ) {
-            Text(
-                "开始占卜",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold
-            )
-        }
+            modifier = Modifier.height(52.dp)
+        )
 
         Spacer(modifier = Modifier.height(12.dp))
         Text(
-            text = "赛博塔罗 · AI 增强解读",
-            color = TextMuted,
-            fontSize = 11.sp,
+            text = "CYBER DIVINER · AI ENHANCED READING",
+            color = GrayMuted,
+            fontSize = 9.sp,
+            fontFamily = FontFamily.Monospace,
+            letterSpacing = 2.sp,
             textAlign = TextAlign.Center
         )
+
+        Spacer(modifier = Modifier.height(24.dp))
     }
 }
 
+// ── Drawing / Revealing phase ─────────────────────────────────────────────
+
 @Composable
 private fun DrawingPhase(uiState: TarotUiState) {
+    val infiniteTransition = rememberInfiniteTransition(label = "pulse")
+    val pulseAlpha by infiniteTransition.animateFloat(
+        initialValue = 0.3f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(animation = tween(1000)),
+        label = "pulse_alpha"
+    )
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
@@ -288,14 +329,14 @@ private fun DrawingPhase(uiState: TarotUiState) {
     ) {
         Text(
             text = uiState.progressMessage,
-            color = AccentTarot,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Medium,
+            color = GrayBody,
+            fontSize = 13.sp,
+            fontFamily = FontFamily.Monospace,
+            letterSpacing = 1.sp,
             modifier = Modifier.padding(bottom = 32.dp)
         )
 
-        // Show spread with cards
-        SpreadLayout(
+        CanvasSpreadLayout(
             spread = uiState.selectedSpread,
             cards = uiState.drawnCards,
             revealedCount = uiState.revealedCount
@@ -303,14 +344,18 @@ private fun DrawingPhase(uiState: TarotUiState) {
 
         if (uiState.phase == TarotPhase.DRAWING) {
             Spacer(modifier = Modifier.height(24.dp))
-            CircularProgressIndicator(
-                color = AccentTarot,
-                strokeWidth = 2.dp,
-                modifier = Modifier.size(24.dp)
+            Text(
+                text = ". . .",
+                color = GrayCaption.copy(alpha = pulseAlpha),
+                fontSize = 18.sp,
+                fontFamily = FontFamily.Monospace,
+                letterSpacing = 8.sp
             )
         }
     }
 }
+
+// ── Interpreting phase ────────────────────────────────────────────────────
 
 @Composable
 private fun InterpretingPhase(uiState: TarotUiState) {
@@ -321,8 +366,7 @@ private fun InterpretingPhase(uiState: TarotUiState) {
             .fillMaxSize()
             .padding(24.dp)
     ) {
-        // Show revealed cards
-        SpreadLayout(
+        CanvasSpreadLayout(
             spread = uiState.selectedSpread,
             cards = uiState.drawnCards,
             revealedCount = uiState.drawnCards.size
@@ -332,40 +376,34 @@ private fun InterpretingPhase(uiState: TarotUiState) {
 
         Text(
             text = uiState.progressMessage,
-            color = AccentTarot,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Medium
+            color = GrayBody,
+            fontSize = 13.sp,
+            fontFamily = FontFamily.Monospace,
+            letterSpacing = 1.sp
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
-
-        CircularProgressIndicator(
-            color = AccentTarot,
-            strokeWidth = 2.dp,
-            modifier = Modifier.size(24.dp)
-        )
-
-        // Stream text preview
         if (uiState.streamText.isNotEmpty()) {
             Spacer(modifier = Modifier.height(20.dp))
-            Card(
-                colors = CardDefaults.cardColors(containerColor = CyberDark),
-                shape = RoundedCornerShape(12.dp),
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(max = 200.dp)
+                    .border(1.dp, GrayBorder)
+                    .padding(16.dp)
             ) {
                 Text(
                     text = uiState.streamText,
-                    color = TextSecondary,
+                    color = GrayBody,
                     fontSize = 12.sp,
-                    lineHeight = 18.sp,
-                    modifier = Modifier.padding(16.dp)
+                    lineHeight = 20.sp,
+                    fontFamily = SerifDisplay
                 )
             }
         }
     }
 }
+
+// ── Result phase ──────────────────────────────────────────────────────────
 
 @Composable
 private fun ResultPhase(
@@ -377,113 +415,538 @@ private fun ResultPhase(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(horizontal = 24.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        // Show cards at top
-        SpreadLayout(
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // ── Archive header ────────────────────────────────────────────
+        Text(
+            text = "[ ARCHIVE: TAROT PROTOCOL ]",
+            color = GrayCaption,
+            fontSize = 11.sp,
+            fontFamily = FontFamily.Monospace,
+            letterSpacing = 2.sp
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // ── Dashed separator ──────────────────────────────────────────
+        DashedSeparator()
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        // ── Geometric card spread ─────────────────────────────────────
+        CanvasSpreadLayout(
             spread = uiState.selectedSpread,
             cards = uiState.drawnCards,
             revealedCount = uiState.drawnCards.size
         )
 
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // ── Card titles in serif ──────────────────────────────────────
+        uiState.drawnCards.forEach { card ->
+            val orientation = if (card.isReversed) "逆位" else "正位"
+            Text(
+                text = "${card.nameZh} · $orientation",
+                color = GrayTitle,
+                fontSize = 18.sp,
+                fontFamily = SerifDisplay,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(vertical = 4.dp)
+            )
+            if (card.position.isNotEmpty()) {
+                Text(
+                    text = card.position,
+                    color = GrayMuted,
+                    fontSize = 10.sp,
+                    fontFamily = FontFamily.Monospace,
+                    letterSpacing = 2.sp,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // ── Dashed separator ──────────────────────────────────────────
+        DashedSeparator()
+
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Interpretation card
-        Card(
-            colors = CardDefaults.cardColors(containerColor = CyberDark),
-            shape = RoundedCornerShape(16.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(1.dp, AccentTarot.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
-        ) {
-            Column(modifier = Modifier.padding(20.dp)) {
-                Text(
-                    text = "赛博先知解读",
-                    color = AccentTarot,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 12.dp)
-                )
+        // ── Interpretation body ───────────────────────────────────────
+        Text(
+            text = uiState.interpretation,
+            color = GrayBody,
+            fontSize = 14.sp,
+            fontFamily = SerifDisplay,
+            lineHeight = 24.sp
+        )
 
-                Text(
-                    text = uiState.interpretation,
-                    color = TextPrimary,
-                    fontSize = 14.sp,
-                    lineHeight = 22.sp
-                )
-            }
-        }
+        Spacer(modifier = Modifier.height(32.dp))
 
-        Spacer(modifier = Modifier.height(24.dp))
+        // ── Action buttons ────────────────────────────────────────────
+        CyberButton(
+            text = "重新占卜",
+            onClick = onNewReading
+        )
 
-        // Action buttons
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            OutlinedButton(
-                onClick = onBack,
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = TextSecondary),
-                shape = RoundedCornerShape(12.dp),
-                modifier = Modifier.weight(1f).height(48.dp)
-            ) {
-                Text("返回首页")
-            }
+        Spacer(modifier = Modifier.height(12.dp))
 
-            Button(
-                onClick = onNewReading,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = AccentTarot,
-                    contentColor = CyberBlack
-                ),
-                shape = RoundedCornerShape(12.dp),
-                modifier = Modifier.weight(1f).height(48.dp)
-            ) {
-                Text("重新占卜", fontWeight = FontWeight.Bold)
-            }
-        }
+        CyberButton(
+            text = "返回",
+            onClick = onBack
+        )
 
         Spacer(modifier = Modifier.height(24.dp))
     }
 }
+
+// ── Error phase ───────────────────────────────────────────────────────────
 
 @Composable
 private fun ErrorPhase(message: String, onDismiss: () -> Unit) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
-        modifier = Modifier.fillMaxSize().padding(32.dp)
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(32.dp)
     ) {
-        Icon(
-            Icons.Default.Warning,
-            contentDescription = null,
-            tint = InauspiciousRed,
-            modifier = Modifier.size(48.dp).padding(bottom = 16.dp)
-        )
         Text(
-            text = "占卜失败",
-            color = InauspiciousRed,
-            fontSize = 20.sp,
+            text = "ERROR",
+            color = GrayBody,
+            fontSize = 24.sp,
+            fontFamily = FontFamily.Monospace,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 8.dp)
+            modifier = Modifier.padding(bottom = 16.dp)
         )
         Text(
             text = message,
-            color = TextSecondary,
-            fontSize = 14.sp,
+            color = GrayCaption,
+            fontSize = 13.sp,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(bottom = 24.dp)
         )
-        Button(
-            onClick = onDismiss,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = AccentTarot,
-                contentColor = CyberBlack
-            ),
-            shape = RoundedCornerShape(12.dp)
+        CyberButton(
+            text = "重新开始",
+            onClick = onDismiss
+        )
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Canvas geometric card rendering
+// ═══════════════════════════════════════════════════════════════════════════
+
+@Composable
+private fun GeometricTarotCard(
+    card: TarotCard,
+    isRevealed: Boolean,
+    modifier: Modifier = Modifier
+) {
+    val rotation by animateFloatAsState(
+        targetValue = if (isRevealed) 180f else 0f,
+        animationSpec = tween(durationMillis = 500),
+        label = "card_flip"
+    )
+    val isFront = rotation > 90f
+
+    Box(
+        modifier = modifier
+            .graphicsLayer {
+                rotationY = rotation
+                cameraDistance = 12f * density
+            }
+    ) {
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .clip(RoundedCornerShape(6.dp))
+                .border(1.dp, GrayBorder, RoundedCornerShape(6.dp))
+                .background(CyberBlack)
         ) {
-            Text("重新开始", fontWeight = FontWeight.Bold)
+            if (isFront) {
+                GeometricCardFront(card)
+            } else {
+                GeometricCardBack()
+            }
         }
+    }
+}
+
+@Composable
+private fun GeometricCardFront(card: TarotCard) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        Canvas(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(6.dp)
+        ) {
+            val cx = size.width / 2
+            val cy = size.height / 2
+            val scale = minOf(size.width, size.height) * 0.35f
+
+            if (card.isReversed) {
+                rotate(180f, Offset(cx, cy)) {
+                    drawSuitGeometry(card.suit, cx, cy, scale)
+                }
+            } else {
+                drawSuitGeometry(card.suit, cx, cy, scale)
+            }
+        }
+
+        // Card name at bottom
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Bottom,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(4.dp)
+        ) {
+            Text(
+                text = card.nameZh,
+                color = GrayBody,
+                fontSize = 8.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                maxLines = 1
+            )
+        }
+    }
+}
+
+/**
+ * Draw abstract geometric shapes based on card suit.
+ * Major = concentric circles + cross, Wands = upward triangle,
+ * Cups = inverted triangle, Swords = cross + diamond,
+ * Pentacles = circle + diamond.
+ */
+private fun DrawScope.drawSuitGeometry(
+    suit: String,
+    cx: Float,
+    cy: Float,
+    scale: Float
+) {
+    val shapeColor = GrayBody
+    val strokeWidth = 1.dp.toPx()
+    val stroke = Stroke(width = strokeWidth)
+
+    when (suit) {
+        "major" -> {
+            drawCircle(shapeColor, radius = scale, center = Offset(cx, cy), style = stroke)
+            drawCircle(shapeColor, radius = scale * 0.55f, center = Offset(cx, cy), style = stroke)
+            drawLine(shapeColor, Offset(cx, cy - scale * 0.3f), Offset(cx, cy + scale * 0.3f), strokeWidth)
+            drawLine(shapeColor, Offset(cx - scale * 0.3f, cy), Offset(cx + scale * 0.3f, cy), strokeWidth)
+        }
+        "wands" -> {
+            val path = Path().apply {
+                moveTo(cx, cy - scale)
+                lineTo(cx - scale * 0.87f, cy + scale * 0.5f)
+                lineTo(cx + scale * 0.87f, cy + scale * 0.5f)
+                close()
+            }
+            drawPath(path, shapeColor, style = stroke)
+        }
+        "cups" -> {
+            val path = Path().apply {
+                moveTo(cx, cy + scale)
+                lineTo(cx - scale * 0.87f, cy - scale * 0.5f)
+                lineTo(cx + scale * 0.87f, cy - scale * 0.5f)
+                close()
+            }
+            drawPath(path, shapeColor, style = stroke)
+        }
+        "swords" -> {
+            val arm = scale * 0.85f
+            drawLine(shapeColor, Offset(cx, cy - arm), Offset(cx, cy + arm), strokeWidth)
+            drawLine(shapeColor, Offset(cx - arm, cy), Offset(cx + arm, cy), strokeWidth)
+            val d = scale * 0.2f
+            val diamond = Path().apply {
+                moveTo(cx, cy - d)
+                lineTo(cx + d, cy)
+                lineTo(cx, cy + d)
+                lineTo(cx - d, cy)
+                close()
+            }
+            drawPath(diamond, shapeColor, style = stroke)
+        }
+        "pentacles" -> {
+            drawCircle(shapeColor, radius = scale * 0.8f, center = Offset(cx, cy), style = stroke)
+            val r = scale * 0.5f
+            val diamond = Path().apply {
+                moveTo(cx, cy - r)
+                lineTo(cx + r, cy)
+                lineTo(cx, cy + r)
+                lineTo(cx - r, cy)
+                close()
+            }
+            drawPath(diamond, shapeColor, style = stroke)
+        }
+    }
+}
+
+@Composable
+private fun GeometricCardBack() {
+    Canvas(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(6.dp)
+    ) {
+        val sw = 0.5.dp.toPx()
+        // Grid lines
+        val stepX = size.width / 4f
+        for (i in 1..3) {
+            drawLine(GrayMuted, Offset(stepX * i, 0f), Offset(stepX * i, size.height), sw)
+        }
+        val stepY = size.height / 6f
+        for (i in 1..5) {
+            drawLine(GrayMuted, Offset(0f, stepY * i), Offset(size.width, stepY * i), sw)
+        }
+        // Central diamond
+        val cx = size.width / 2
+        val cy = size.height / 2
+        val r = minOf(size.width, size.height) * 0.12f
+        val diamond = Path().apply {
+            moveTo(cx, cy - r)
+            lineTo(cx + r, cy)
+            lineTo(cx, cy + r)
+            lineTo(cx - r, cy)
+            close()
+        }
+        drawPath(diamond, GrayMuted, style = Stroke(sw))
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Canvas spread layouts
+// ═══════════════════════════════════════════════════════════════════════════
+
+@Composable
+private fun CanvasSpreadLayout(
+    spread: SpreadType,
+    cards: List<TarotCard>,
+    revealedCount: Int,
+    modifier: Modifier = Modifier
+) {
+    when (spread) {
+        SpreadType.SINGLE -> CanvasSingleSpread(cards, revealedCount, modifier)
+        SpreadType.THREE_CARD -> CanvasThreeCardSpread(cards, revealedCount, modifier)
+        SpreadType.CELTIC_CROSS -> CanvasCelticCrossSpread(cards, revealedCount, modifier)
+        SpreadType.HORSESHOE -> CanvasHorseshoeSpread(cards, revealedCount, modifier)
+    }
+}
+
+@Composable
+private fun CanvasSingleSpread(
+    cards: List<TarotCard>,
+    revealedCount: Int,
+    modifier: Modifier
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier.fillMaxWidth()
+    ) {
+        if (cards.isNotEmpty()) {
+            GeometricTarotCard(
+                card = cards[0],
+                isRevealed = revealedCount > 0,
+                modifier = Modifier
+                    .width(90.dp)
+                    .height(150.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun CanvasThreeCardSpread(
+    cards: List<TarotCard>,
+    revealedCount: Int,
+    modifier: Modifier
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier.fillMaxWidth()
+    ) {
+        // Position labels
+        Row(
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            cards.forEachIndexed { i, card ->
+                if (revealedCount > i) {
+                    Text(
+                        card.position,
+                        color = GrayMuted,
+                        fontSize = 9.sp,
+                        fontFamily = FontFamily.Monospace,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.width(90.dp)
+                    )
+                } else {
+                    Spacer(modifier = Modifier.width(90.dp))
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Cards
+        Row(
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            cards.forEachIndexed { i, card ->
+                GeometricTarotCard(
+                    card = card,
+                    isRevealed = revealedCount > i,
+                    modifier = Modifier
+                        .width(90.dp)
+                        .height(150.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun CanvasCelticCrossSpread(
+    cards: List<TarotCard>,
+    revealedCount: Int,
+    modifier: Modifier
+) {
+    val cardMod = Modifier
+        .width(70.dp)
+        .height(116.dp)
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier.fillMaxWidth()
+    ) {
+        // Card 4 (top of cross)
+        Row(horizontalArrangement = Arrangement.Center) {
+            Spacer(modifier = Modifier.width(80.dp))
+            if (cards.size > 4) {
+                GeometricTarotCard(cards[4], revealedCount > 4, cardMod)
+            }
+        }
+
+        // Cards 1, 2, 3
+        Row(
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            cards.take(3).forEachIndexed { i, card ->
+                GeometricTarotCard(card, revealedCount > i, cardMod)
+                if (i < 2) Spacer(modifier = Modifier.width(4.dp))
+            }
+        }
+
+        // Card 7 (bottom of cross)
+        Row(horizontalArrangement = Arrangement.Center) {
+            Spacer(modifier = Modifier.width(80.dp))
+            if (cards.size > 6) {
+                GeometricTarotCard(cards[6], revealedCount > 6, cardMod)
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Card 5 (staff)
+        if (cards.size > 5) {
+            GeometricTarotCard(cards[5], revealedCount > 5, cardMod)
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Cards 8, 9, 10
+        Row(
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            for (idx in 7..9) {
+                if (cards.size > idx) {
+                    GeometricTarotCard(cards[idx], revealedCount > idx, cardMod)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CanvasHorseshoeSpread(
+    cards: List<TarotCard>,
+    revealedCount: Int,
+    modifier: Modifier
+) {
+    val cardMod = Modifier
+        .width(72.dp)
+        .height(120.dp)
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier.fillMaxWidth()
+    ) {
+        // Row 1: cards 0, 3, 6
+        Row(
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            listOf(0, 3, 6).forEach { idx ->
+                if (cards.size > idx) {
+                    GeometricTarotCard(cards[idx], revealedCount > idx, cardMod)
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        // Row 2: cards 1, 5
+        Row(
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            listOf(1, 5).forEach { idx ->
+                if (cards.size > idx) {
+                    GeometricTarotCard(cards[idx], revealedCount > idx, cardMod)
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        // Row 3: cards 2, 4
+        Row(
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            listOf(2, 4).forEach { idx ->
+                if (cards.size > idx) {
+                    GeometricTarotCard(cards[idx], revealedCount > idx, cardMod)
+                }
+            }
+        }
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Shared UI elements
+// ═══════════════════════════════════════════════════════════════════════════
+
+@Composable
+private fun DashedSeparator() {
+    Canvas(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(1.dp)
+    ) {
+        drawLine(
+            color = GrayBorder,
+            start = Offset(0f, size.height / 2),
+            end = Offset(size.width, size.height / 2),
+            pathEffect = PathEffect.dashPathEffect(floatArrayOf(8f, 8f))
+        )
     }
 }
