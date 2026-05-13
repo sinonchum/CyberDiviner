@@ -48,7 +48,7 @@ private data class FeatureEntry(
 
 private val FEATURE_ENTRIES = listOf(
     FeatureEntry(
-        Routes.LIUYAO, Icons.Default.Explore, "\u516D\u7238", "Liu Yao",
+        Routes.LIUYAO, Icons.Default.Explore, "\u516D\u7237", "Liu Yao",
         "\u91CF\u5B50\u535C\u5366 \u00B7 Quantum I Ching",
         NeonCyan
     ),

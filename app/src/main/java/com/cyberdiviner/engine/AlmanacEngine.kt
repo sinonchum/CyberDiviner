@@ -62,6 +62,11 @@ object AlmanacEngine {
         "壬" to "Yang", "癸" to "Yin",
     )
 
+    val ELEMENT_CN = mapOf(
+        "Wood" to "\u6728", "Fire" to "\u706B", "Earth" to "\u571F",
+        "Metal" to "\u91D1", "Water" to "\u6C34"
+    )
+
     val BRANCH_ANIMAL_MAP = mapOf(
         "子" to "Rat", "丑" to "Ox", "寅" to "Tiger", "卯" to "Rabbit",
         "辰" to "Dragon", "巳" to "Snake", "午" to "Horse", "未" to "Goat",
@@ -197,6 +202,8 @@ object AlmanacEngine {
         val combined: String get() = "$stem$branch"
         val stemElement: String get() = STEM_WUXING[stem] ?: "Earth"
         val branchElement: String get() = BRANCH_WUXING[branch] ?: "Earth"
+        val stemElementCn: String get() = ELEMENT_CN[stemElement] ?: "\u571F"
+        val branchElementCn: String get() = ELEMENT_CN[branchElement] ?: "\u571F"
         val yinYang: String get() = STEM_YIN_YANG[stem] ?: "Yang"
     }
 
@@ -491,7 +498,7 @@ object AlmanacEngine {
             warnings.add("今日为${solarTerm.name}，阴阳转换之际，宜静不宜动")
         }
         if (dayGz.stem == "庚" || dayGz.stem == "辛") {
-            warnings.add("今日天干为${dayGz.stem}，属${dayGz.stemElement}气，需注意口舌是非")
+            warnings.add("今日天干为${dayGz.stem}，属${dayGz.stemElementCn}气，需注意口舌是非")
         }
 
         // Overview
@@ -548,7 +555,7 @@ object AlmanacEngine {
         val sb = StringBuilder()
 
         sb.append("今日${dayGz.combined}日，")
-        sb.append("${dayGz.branchElement}气当令。")
+        sb.append("${dayGz.branchElementCn}气当令。")
 
         solarTerm?.let {
             sb.append("正值${it.name}（${it.englishName}），")
