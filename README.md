@@ -53,35 +53,35 @@ Tap to accumulate merit. That's it. Sometimes the simplest features get the most
 
 ```mermaid
 graph TB
-    subgraph "UI Layer"
-        HOME[HomeScreen<br/>赛博黄历]
-        LIUYAO[LiuyaoScreen<br/>六爻占卜]
-        TAROT[TarotScreen<br/>动态塔罗]
-        VISION[VisionScreen<br/>科技看相]
-        MUYU[MuyuScreen<br/>电子木鱼]
-        WIDGET[AlmanacWidget<br/>桌面小组件]
+    subgraph UI["UI Layer"]
+        HOME["HomeScreen\n赛博黄历"]
+        LIUYAO["LiuyaoScreen\n六爻占卜"]
+        TAROT["TarotScreen\n动态塔罗"]
+        VISION["VisionScreen\n科技看相"]
+        MUYU["MuyuScreen\n电子木鱼"]
+        WIDGET["AlmanacWidget\n桌面小组件"]
     end
 
-    subgraph "AI Layer"
-        LLM[LLMService<br/>Model-Agnostic]
-        PROMPT[PromptManager<br/>场景 Prompt]
-        PERSONA[PersonaEngine<br/>3 种人格]
+    subgraph AI["AI Layer"]
+        LLM["LLMService\nModel-Agnostic"]
+        PROMPT["PromptManager\n场景 Prompt"]
+        PERSONA["PersonaEngine\n3 种人格"]
     end
 
-    subgraph "Divination Engine"
-        LIUYAO_E[LiuyaoEngine<br/>64 卦 + 铜钱投掷]
-        TAROT_E[TarotEngine<br/>78 牌 + 5 阵法]
-        ALMANAC[AlmanacEngine<br/>干支 + 黄历]
+    subgraph ENG["Divination Engine"]
+        LIUYAO_E["LiuyaoEngine\n64 卦 + 铜钱投掷"]
+        TAROT_E["TarotEngine\n78 牌 + 5 阵法"]
+        ALMANAC["AlmanacEngine\n干支 + 黄历"]
     end
 
-    subgraph "Data Layer"
-        ROOM[(Room DB<br/>测算历史)]
-        DS[DataStore<br/>用户偏好)]
-        CAMERA[CameraX<br/>+ MediaPipe]
+    subgraph DATA["Data Layer"]
+        ROOM["Room DB\n测算历史"]
+        DS["DataStore\n用户偏好"]
+        CAM["CameraX + MediaPipe"]
     end
 
-    subgraph "Sharing"
-        POSTER[PosterGenerator<br/>转运符海报]
+    subgraph SHARE["Sharing"]
+        POSTER["PosterGenerator\n转运符海报"]
     end
 
     HOME --> ALMANAC
@@ -90,7 +90,7 @@ graph TB
     LIUYAO --> LLM
     TAROT --> TAROT_E
     TAROT --> LLM
-    VISION --> CAMERA
+    VISION --> CAM
     VISION --> LLM
     MUYU --> ROOM
     LLM --> PROMPT
@@ -98,7 +98,6 @@ graph TB
     LIUYAO --> ROOM
     TAROT --> ROOM
     VISION --> ROOM
-    HOME --> WIDGET
     ALMANAC --> WIDGET
     POSTER --> HOME
 

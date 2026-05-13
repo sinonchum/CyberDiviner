@@ -49,35 +49,35 @@
 
 ```mermaid
 graph TB
-    subgraph "UI 层"
-        HOME[首页<br/>赛博黄历]
-        LIUYAO[六爻界面<br/>六爻占卜]
-        TAROT[塔罗界面<br/>动态塔罗]
-        VISION[面相界面<br/>科技看相]
-        MUYU[木鱼界面<br/>电子木鱼]
-        WIDGET[桌面小组件<br/>黄历 Widget]
+    subgraph UI["UI 层"]
+        HOME["首页\n赛博黄历"]
+        LIUYAO["六爻界面\n六爻占卜"]
+        TAROT["塔罗界面\n动态塔罗"]
+        VISION["面相界面\n科技看相"]
+        MUYU["木鱼界面\n电子木鱼"]
+        WIDGET["桌面小组件\n黄历 Widget"]
     end
 
-    subgraph "AI 层"
-        LLM[LLMService<br/>模型无关]
-        PROMPT[PromptManager<br/>场景 Prompt]
-        PERSONA[PersonaEngine<br/>3 种人格]
+    subgraph AI["AI 层"]
+        LLM["LLMService\n模型无关"]
+        PROMPT["PromptManager\n场景 Prompt"]
+        PERSONA["PersonaEngine\n3 种人格"]
     end
 
-    subgraph "占卜引擎"
-        LIUYAO_E[LiuyaoEngine<br/>64 卦 + 铜钱投掷]
-        TAROT_E[TarotEngine<br/>78 牌 + 5 阵法]
-        ALMANAC[AlmanacEngine<br/>干支 + 黄历]
+    subgraph ENG["占卜引擎"]
+        LIUYAO_E["LiuyaoEngine\n64 卦 + 铜钱投掷"]
+        TAROT_E["TarotEngine\n78 牌 + 5 阵法"]
+        ALMANAC["AlmanacEngine\n干支 + 黄历"]
     end
 
-    subgraph "数据层"
-        ROOM[(Room DB<br/>测算历史)]
-        DS[DataStore<br/>用户偏好)]
-        CAMERA[CameraX<br/>+ MediaPipe]
+    subgraph DATA["数据层"]
+        ROOM["Room DB\n测算历史"]
+        DS["DataStore\n用户偏好"]
+        CAM["CameraX + MediaPipe"]
     end
 
-    subgraph "分享"
-        POSTER[PosterGenerator<br/>转运符海报]
+    subgraph SHARE["分享"]
+        POSTER["PosterGenerator\n转运符海报"]
     end
 
     HOME --> ALMANAC
@@ -86,7 +86,7 @@ graph TB
     LIUYAO --> LLM
     TAROT --> TAROT_E
     TAROT --> LLM
-    VISION --> CAMERA
+    VISION --> CAM
     VISION --> LLM
     MUYU --> ROOM
     LLM --> PROMPT
@@ -94,7 +94,6 @@ graph TB
     LIUYAO --> ROOM
     TAROT --> ROOM
     VISION --> ROOM
-    HOME --> WIDGET
     ALMANAC --> WIDGET
     POSTER --> HOME
 
