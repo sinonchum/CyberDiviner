@@ -12,6 +12,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
@@ -316,12 +317,6 @@ fun SixTossAnimation(
             Spacer(modifier = Modifier.height(8.dp))
             for (i in tossResults.indices.reversed()) {
                 val state = tossResults[i]
-                val bar = when (state) {
-                    LineState.YOUNG_YANG -> "━━━━━"
-                    LineState.OLD_YANG -> "━━━━━"
-                    LineState.YOUNG_YIN -> "━   ━"
-                    LineState.OLD_YIN -> "━   ━"
-                }
                 val changeMark = when (state) {
                     LineState.OLD_YANG -> " ○"
                     LineState.OLD_YIN -> " ×"
@@ -333,13 +328,60 @@ fun SixTossAnimation(
                     LineState.YOUNG_YANG -> NeonCyan
                     LineState.YOUNG_YIN -> NeonBlue
                 }
-                Text(
-                    text = "  ${i + 1}爻 $bar$changeMark",
-                    color = stateColor,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium,
-                    letterSpacing = 2.sp
-                )
+                val isYang = state == LineState.YOUNG_YANG || state == LineState.OLD_YANG
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = "  ${i + 1}爻",
+                        color = stateColor,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Canvas(
+                        modifier = Modifier
+                            .width(80.dp)
+                            .height(8.dp)
+                    ) {
+                        val strokeWidth = 2.dp.toPx()
+                        val halfGap = 4.dp.toPx()
+                        val centerY = size.height / 2f
+                        if (isYang) {
+                            // Yang (solid) line
+                            drawLine(
+                                color = CyberWhite,
+                                start = Offset(0f, centerY),
+                                end = Offset(size.width, centerY),
+                                strokeWidth = strokeWidth,
+                                cap = StrokeCap.Square
+                            )
+                        } else {
+                            // Yin (broken) line with 8.dp gap
+                            val mid = size.width / 2f
+                            drawLine(
+                                color = CyberWhite,
+                                start = Offset(0f, centerY),
+                                end = Offset(mid - halfGap, centerY),
+                                strokeWidth = strokeWidth,
+                                cap = StrokeCap.Square
+                            )
+                            drawLine(
+                                color = CyberWhite,
+                                start = Offset(mid + halfGap, centerY),
+                                end = Offset(size.width, centerY),
+                                strokeWidth = strokeWidth,
+                                cap = StrokeCap.Square
+                            )
+                        }
+                    }
+                    Text(
+                        text = changeMark,
+                        color = stateColor,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
             }
         }
     }

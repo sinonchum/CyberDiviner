@@ -1,6 +1,7 @@
 package com.cyberdiviner.ui.liuyao
 
 import androidx.compose.animation.*
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -17,7 +18,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -281,102 +284,84 @@ private fun HexagramDiagram(result: LiuyaoEngine.DivinationResult) {
             )
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Draw lines from top (6th) to bottom (1st)
-            for (i in 5 downTo 0) {
-                val line = result.lines[i]
-                val isWorld = i == result.worldLine
-                val isResponse = i == result.responseLine
-                val isChanging = line.state == LineState.OLD_YANG || line.state == LineState.OLD_YIN
+            // Canvas-based hexagram diagram — draws all 6 lines bottom to top
+            Canvas(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+            ) {
+                val strokeWidth = 2.dp.toPx()
+                val lineLength = size.width * 0.75f
+                val centerGap = 8.dp.toPx()
+                val centerX = size.width / 2f
+                val lineCount = 6
+                val verticalMargin = size.height * 0.1f
+                val usableHeight = size.height - 2 * verticalMargin
+                val spacing = usableHeight / (lineCount - 1)
 
-                val lineColor = when {
-                    isChanging -> NeonOrange
-                    isWorld -> NeonCyan
-                    isResponse -> NeonMagenta
-                    line.isHidden -> TextMuted
-                    else -> TextPrimary
-                }
+                for (i in 0 until lineCount) {
+                    // y increases downward in Canvas; i=0 is top line (yao 6), i=5 is bottom line (yao 1)
+                    val y = verticalMargin + i * spacing
+                    val lineIndex = 5 - i  // lineIndex 5 = yao 1 (bottom), lineIndex 0 = yao 6 (top)
+                    val line = result.lines[lineIndex]
+                    val isYang = line.state == LineState.OLD_YANG || line.state == LineState.YOUNG_YANG
+                    val isChanging = line.state == LineState.OLD_YANG || line.state == LineState.OLD_YIN
 
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    // Position number
-                    Text(
-                        text = "${i + 1}",
-                        color = TextMuted,
-                        fontSize = 11.sp,
-                        modifier = Modifier.width(20.dp),
-                        textAlign = TextAlign.Center
-                    )
-
-                    // Branch
-                    Text(
-                        text = line.branch,
-                        color = lineColor,
-                        fontSize = 12.sp,
-                        modifier = Modifier.width(24.dp),
-                        textAlign = TextAlign.Center
-                    )
-
-                    // Relation
-                    Text(
-                        text = line.relation?.chinese ?: "",
-                        color = lineColor.copy(alpha = 0.7f),
-                        fontSize = 11.sp,
-                        modifier = Modifier.width(32.dp),
-                        textAlign = TextAlign.Center
-                    )
-
-                    // The actual line
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(3.dp)
-                            .background(lineColor)
-                    )
-
-                    // Changing mark
-                    Text(
-                        text = when (line.state) {
-                            LineState.OLD_YANG -> " ×"
-                            LineState.OLD_YIN -> " ○"
-                            else -> ""
-                        },
-                        color = NeonOrange,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-
-                    // Spirit
-                    Text(
-                        text = result.spirits[i].chinese,
-                        color = TextSecondary,
-                        fontSize = 11.sp,
-                        modifier = Modifier.width(36.dp),
-                        textAlign = TextAlign.Center
-                    )
-
-                    // 世/应 marker
-                    val 世应 = when {
-                        isWorld -> "世"
-                        isResponse -> "应"
-                        else -> ""
+                    val lineColor = when {
+                        isChanging -> NeonOrange
+                        lineIndex == result.worldLine -> NeonCyan
+                        lineIndex == result.responseLine -> NeonMagenta
+                        line.isHidden -> TextMuted
+                        else -> CyberWhite
                     }
-                    Text(
-                        text = 世应,
-                        color = when {
-                            isWorld -> NeonCyan
-                            isResponse -> NeonMagenta
-                            else -> Color.Transparent
-                        },
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.width(20.dp),
-                        textAlign = TextAlign.Center
-                    )
-                }
 
-                Spacer(modifier = Modifier.height(6.dp))
+                    if (isYang) {
+                        // Yang (solid) line — single贯通线
+                        drawLine(
+                            color = lineColor,
+                            start = Offset(centerX - lineLength / 2f, y),
+                            end = Offset(centerX + lineLength / 2f, y),
+                            strokeWidth = strokeWidth,
+                            cap = StrokeCap.Square
+                        )
+                    } else {
+                        // Yin (broken) line — two segments with centerGap
+                        val leftStart = centerX - lineLength / 2f
+                        val leftEnd = centerX - centerGap / 2f
+                        val rightStart = centerX + centerGap / 2f
+                        val rightEnd = centerX + lineLength / 2f
+
+                        drawLine(
+                            color = lineColor,
+                            start = Offset(leftStart, y),
+                            end = Offset(leftEnd, y),
+                            strokeWidth = strokeWidth,
+                            cap = StrokeCap.Square
+                        )
+                        drawLine(
+                            color = lineColor,
+                            start = Offset(rightStart, y),
+                            end = Offset(rightEnd, y),
+                            strokeWidth = strokeWidth,
+                            cap = StrokeCap.Square
+                        )
+                    }
+
+                    // Moving line indicator — small circles at line ends
+                    if (isChanging) {
+                        val markerRadius = 3.dp.toPx()
+                        drawCircle(
+                            color = lineColor,
+                            radius = markerRadius,
+                            center = Offset(centerX - lineLength / 2f - markerRadius * 2, y)
+                        )
+                        drawCircle(
+                            color = lineColor,
+                            radius = markerRadius,
+                            center = Offset(centerX + lineLength / 2f + markerRadius * 2, y)
+                        )
+                    }
+                }
             }
         }
     }
