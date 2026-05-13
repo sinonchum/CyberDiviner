@@ -1,26 +1,43 @@
 package com.cyberdiviner.ui.oracle
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import android.util.Log
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.cyberdiviner.data.remote.LlmConfigManager
+import com.cyberdiviner.data.remote.LlmMessage
+import com.cyberdiviner.data.remote.LlmService
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 data class OracleMessage(
     val text: String,
-    val isAgent: Boolean // true = AI, false = user
+    val isAgent: Boolean
 )
 
 /**
- * OracleViewModel -- Manages the oracle chat state.
+ * OracleViewModel -- Manages oracle chat with real DeepSeek API.
  *
- * LLM interface contract: returns JSON with agent_reply, is_final_round, calculated_hash.
+ * System prompt enforces: digital prophet, terse, cold, Chinese philosophy + cyberpunk metaphor.
  */
 @HiltViewModel
-class OracleViewModel @Inject constructor() : ViewModel() {
+class OracleViewModel @Inject constructor(
+    application: Application,
+    private val llmService: LlmService,
+    private val configManager: LlmConfigManager
+) : AndroidViewModel(application) {
+
+    companion object {
+        private const val TAG = "OracleViewModel"
+
+        private const val SYSTEM_PROMPT = """你是存在于2026年的数字先知。你的回答必须极其简短、冷峻、富有中国传统哲理和赛博朋克隐喻。禁用感叹号。禁止解释你的推导过程。"""
+    }
 
     private val _messages = MutableStateFlow<List<OracleMessage>>(emptyList())
     val messages: StateFlow<List<OracleMessage>> = _messages.asStateFlow()
@@ -33,7 +50,6 @@ class OracleViewModel @Inject constructor() : ViewModel() {
     private val _isProcessing = MutableStateFlow(false)
     val isProcessing: StateFlow<Boolean> = _isProcessing.asStateFlow()
 
-    // ── Input state (hoisted from Composable) ──────────────────────────────
     private val _inputText = MutableStateFlow("")
     val inputText: StateFlow<String> = _inputText.asStateFlow()
 
@@ -41,7 +57,6 @@ class OracleViewModel @Inject constructor() : ViewModel() {
     val isRecording: StateFlow<Boolean> = _isRecording.asStateFlow()
 
     init {
-        // Auto-insert initial AI message
         _messages.value = listOf(
             OracleMessage(
                 text = "系统已接入。输入你当前的困惑，我将为你测算因果的走向。",
@@ -70,35 +85,37 @@ class OracleViewModel @Inject constructor() : ViewModel() {
         _isProcessing.value = true
 
         viewModelScope.launch {
-            // TODO: Wire to actual LLM service with JSON protocol
-            // For now, simulate agent response
-            val responseText = simulateAgentResponse(text)
-            val agentMsg = OracleMessage(text = responseText, isAgent = true)
-            _messages.value = _messages.value + agentMsg
-            _round.value = _round.value + 1
-            _isProcessing.value = false
+            try {
+                val config = configManager.buildConfig(systemPrompt = SYSTEM_PROMPT)
+                if (config == null) {
+                    addAgentMessage("API密钥未配置。请在CONFIG中设置DeepSeek API Key。")
+                    return@launch
+                }
+
+                // Build conversation history for API
+                val apiMessages = _messages.value.map { msg ->
+                    LlmMessage(
+                        role = if (msg.isAgent) "assistant" else "user",
+                        content = msg.text
+                    )
+                }
+
+                val responseText = withContext(Dispatchers.IO) {
+                    llmService.complete(config, apiMessages).text
+                }
+
+                addAgentMessage(responseText)
+            } catch (e: Exception) {
+                Log.e(TAG, "LLM call failed", e)
+                addAgentMessage("因果链断裂。错误: ${e.message ?: "未知"}")
+            } finally {
+                _round.value = _round.value + 1
+                _isProcessing.value = false
+            }
         }
     }
 
-    private fun simulateAgentResponse(input: String): String {
-        return buildString {
-            appendLine("因果回路已建立。")
-            appendLine()
-            appendLine("你提出的问题在五行中属${determineElement(input)}气。")
-            appendLine("当前卦象暗示：前路有变数，但核心逻辑链完整。")
-            appendLine()
-            appendLine("请继续追问以深化测算。")
-        }
-    }
-
-    private fun determineElement(input: String): String {
-        val hash = input.hashCode()
-        return when (hash % 5) {
-            0 -> "木"
-            1 -> "火"
-            2 -> "土"
-            3 -> "金"
-            else -> "水"
-        }
+    private fun addAgentMessage(text: String) {
+        _messages.value = _messages.value + OracleMessage(text = text, isAgent = true)
     }
 }
