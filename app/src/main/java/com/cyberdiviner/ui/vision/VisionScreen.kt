@@ -1,12 +1,17 @@
 package com.cyberdiviner.ui.vision
 
+import android.view.ViewGroup
+import android.widget.LinearLayout
+import androidx.camera.view.PreviewView
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.*
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
@@ -15,16 +20,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import android.graphics.PointF
+import com.cyberdiviner.ui.shared.CyberButton
 import com.cyberdiviner.ui.theme.*
 import kotlinx.coroutines.delay
 
-// ─── Fake facial landmark points (normalised 0..1) ───
+// ─── Fake facial landmark points (normalised 0..1) — visual decoration only ───
 private val sampleFaceLandmarks = listOf(
     // Oval face outline
     PointF(0.50f, 0.18f), PointF(0.38f, 0.22f), PointF(0.30f, 0.30f),
@@ -51,72 +61,175 @@ private val sampleFaceLandmarks = listOf(
     PointF(0.56f, 0.30f), PointF(0.60f, 0.28f), PointF(0.64f, 0.30f),
 )
 
-private enum class ScanPhase(val label: String) {
-    INIT("INITIALIZING SENSOR ARRAY"),
-    DETECT("FACE DETECTION IN PROGRESS"),
-    MAPPING("MAPPING FACIAL TOPOLOGY"),
-    ANALYZING("ANALYZING ENERGY SIGNATURES"),
-    COMPLETE("DIVINATION COMPLETE"),
-}
-
 /**
  * Full-screen vision / face-scanning experience.
- * Combines [AROverlay] (HUD wireframe) with [ScanAnimation] (progress ring).
+ *
+ * Wires [VisionViewModel] for real CameraX + MediaPipe FaceLandmarker
+ * integration. When the camera is not yet initialised the screen falls
+ * back to the original simulated landmark animation so the UI is always
+ * functional.
+ *
+ * Flow:
+ * 1. Screen loads → idle state with [CyberButton] "START SCAN"
+ * 2. Button press → starts camera via ViewModel + simulated fallback
+ * 3. ViewModel auto-detects face → SCANNING → DETECTED → ANALYZING
+ * 4. Result card shows real [FacialFeatures] and LLM interpretation
  */
 @Composable
-fun VisionScreen(navController: NavController) {
-    var scanProgress by remember { mutableFloatStateOf(0f) }
-    var phase by remember { mutableStateOf(ScanPhase.INIT) }
-    var visibleLandmarks by remember { mutableStateOf<List<PointF>>(emptyList()) }
-    var statusLines by remember { mutableStateOf<List<String>>(emptyList()) }
-    var showResult by remember { mutableStateOf(false) }
+fun VisionScreen(
+    navController: NavController,
+    viewModel: VisionViewModel = hiltViewModel()
+) {
+    val uiState by viewModel.uiState.collectAsState()
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val context = LocalContext.current
 
-    // Simulated scan progression
+    // ── Scan trigger state ──
+    var scanStarted by remember { mutableStateOf(false) }
+    var cameraFailed by remember { mutableStateOf(false) }
+
+    // Whether the ViewModel camera pipeline is active
+    val cameraActive = scanStarted
+        && !cameraFailed
+        && uiState.phase != VisionPhase.IDLE
+        && uiState.phase != VisionPhase.ERROR
+
+    // ── CameraX PreviewView (created once, reused) ──
+    val previewView = remember {
+        PreviewView(context).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+            scaleType = PreviewView.ScaleType.FILL_CENTER
+            implementationMode = PreviewView.ImplementationMode.COMPATIBLE
+        }
+    }
+
+    // ── Initialise MediaPipe FaceLandmarker on screen entry ──
     LaunchedEffect(Unit) {
+        viewModel.initializeFaceLandmarker()
+    }
+
+    // ── Start camera when scan is triggered ──
+    LaunchedEffect(scanStarted) {
+        if (scanStarted && !cameraFailed) {
+            viewModel.startCamera(lifecycleOwner, previewView)
+        }
+    }
+
+    // ── Auto-trigger LLM analysis when face is captured ──
+    LaunchedEffect(uiState.phase) {
+        if (uiState.phase == VisionPhase.DETECTED) {
+            viewModel.analyzeFaceReading()
+        }
+    }
+
+    // ── Detect camera failure → fall back to simulation ──
+    LaunchedEffect(uiState.phase, uiState.errorMessage) {
+        if (scanStarted && uiState.phase == VisionPhase.ERROR) {
+            cameraFailed = true
+        }
+    }
+
+    // ── Simulated fallback state ──
+    var simProgress by remember { mutableFloatStateOf(0f) }
+    var simPhaseLabel by remember { mutableStateOf("INITIALIZING SENSOR ARRAY") }
+    var simLandmarks by remember { mutableStateOf<List<PointF>>(emptyList()) }
+    var simStatusLines by remember { mutableStateOf<List<String>>(emptyList()) }
+    var simComplete by remember { mutableStateOf(false) }
+
+    // Simulated scan progression (runs when camera is NOT active)
+    LaunchedEffect(scanStarted, cameraFailed) {
+        if (!scanStarted || cameraActive) return@LaunchedEffect
+
         // Phase 0 – init
+        simPhaseLabel = "INITIALIZING SENSOR ARRAY"
         delay(800)
-        phase = ScanPhase.DETECT
+        simPhaseLabel = "FACE DETECTION IN PROGRESS"
         delay(600)
 
         // Phase 1 – face detection: reveal landmarks gradually
         val landmarksPerStep = 3
         for (i in sampleFaceLandmarks.indices step landmarksPerStep) {
-            visibleLandmarks = sampleFaceLandmarks.take(i + landmarksPerStep)
-            scanProgress = (i.toFloat() / sampleFaceLandmarks.size).coerceIn(0f, 0.7f)
-            phase = ScanPhase.DETECT
+            simLandmarks = sampleFaceLandmarks.take(i + landmarksPerStep)
+            simProgress = (i.toFloat() / sampleFaceLandmarks.size).coerceIn(0f, 0.7f)
             delay(120)
         }
 
         // Phase 2 – mapping
-        phase = ScanPhase.MAPPING
-        statusLines = listOf(
+        simPhaseLabel = "MAPPING FACIAL TOPOLOGY"
+        simStatusLines = listOf(
             "FOREHEAD  ████████░░ 78%",
             "EYES      ██████████ 100%",
             "NOSE      ███████░░░ 72%",
             "MOUTH     █████████░ 95%",
         )
         for (p in 70..90) {
-            scanProgress = p / 100f
+            simProgress = p / 100f
             delay(80)
         }
 
         // Phase 3 – analysis
-        phase = ScanPhase.ANALYZING
-        statusLines = listOf(
+        simPhaseLabel = "ANALYZING ENERGY SIGNATURES"
+        simStatusLines = listOf(
             "五行平衡: 木=3 火=5 土=2 金=4 水=6",
             "气场频率: 432 Hz",
             "面相评级: S+",
         )
         for (p in 90..100) {
-            scanProgress = p / 100f
+            simProgress = p / 100f
             delay(100)
         }
 
         // Phase 4 – complete
-        phase = ScanPhase.COMPLETE
-        scanProgress = 1f
-        delay(400)
-        showResult = true
+        simPhaseLabel = "DIVINATION COMPLETE"
+        simProgress = 1f
+        simComplete = true
+    }
+
+    // ── Derived display values ──
+    val displayProgress: Float
+    val displayPhaseLabel: String
+    val displayLandmarks: List<PointF>
+    val displayStatusLines: List<String>
+    val isScanning: Boolean
+    val showResult: Boolean
+
+    if (cameraActive) {
+        // Real camera pipeline
+        displayProgress = uiState.scanProgress
+        displayPhaseLabel = when (uiState.phase) {
+            VisionPhase.IDLE -> "INITIALIZING SENSOR ARRAY"
+            VisionPhase.SCANNING -> "FACE DETECTION IN PROGRESS"
+            VisionPhase.DETECTED -> "FACE CAPTURED"
+            VisionPhase.CAPTURING -> "CAPTURING FACIAL DATA"
+            VisionPhase.ANALYZING -> "ANALYZING ENERGY SIGNATURES"
+            VisionPhase.RESULT -> "DIVINATION COMPLETE"
+            VisionPhase.ERROR -> "SYSTEM ERROR"
+        }
+        // Use simulated landmarks for visual overlay (MediaPipe 478-point
+        // data is processed internally by the ViewModel into FacialFeatures)
+        displayLandmarks = if (uiState.faceDetected) sampleFaceLandmarks else emptyList()
+        displayStatusLines = when {
+            uiState.faceDetected -> listOf(
+                "FACE  ██████████ DETECTED",
+                "CONF  ████████░░ ${String.format("%.0f", uiState.scanProgress * 100)}%"
+            )
+            uiState.progressMessage.isNotBlank() -> listOf(uiState.progressMessage)
+            else -> emptyList()
+        }
+        isScanning = uiState.phase == VisionPhase.SCANNING
+                || uiState.phase == VisionPhase.CAPTURING
+        showResult = uiState.phase == VisionPhase.RESULT
+    } else {
+        // Simulated fallback
+        displayProgress = simProgress
+        displayPhaseLabel = simPhaseLabel
+        displayLandmarks = simLandmarks
+        displayStatusLines = simStatusLines
+        isScanning = scanStarted && !simComplete
+        showResult = scanStarted && simComplete
     }
 
     Box(
@@ -125,24 +238,31 @@ fun VisionScreen(navController: NavController) {
             .background(CyberBlack)
     ) {
         // ── Camera feed background ──
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(CyberDark)
-        )
+        if (cameraActive) {
+            AndroidView(
+                factory = { previewView },
+                modifier = Modifier.fillMaxSize()
+            )
+        } else {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(CyberDark)
+            )
+        }
 
         // ── AR Overlay ──
         AROverlay(
-            scanProgress = scanProgress,
-            isScanning = !showResult,
-            detectedPoints = visibleLandmarks,
+            scanProgress = displayProgress,
+            isScanning = isScanning,
+            detectedPoints = displayLandmarks,
         )
 
         // ── Scan ring in center ──
         ScanAnimation(
-            progress = scanProgress,
-            phase = phase.label,
-            statusLines = statusLines,
+            progress = displayProgress,
+            phase = displayPhaseLabel,
+            statusLines = displayStatusLines,
             modifier = Modifier
                 .fillMaxWidth(0.7f)
                 .aspectRatio(1f)
@@ -157,7 +277,10 @@ fun VisionScreen(navController: NavController) {
                 .align(Alignment.TopCenter),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(onClick = { navController.popBackStack() }) {
+            IconButton(onClick = {
+                if (cameraActive) viewModel.resetScan()
+                navController.popBackStack()
+            }) {
                 Icon(
                     Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Back",
@@ -178,8 +301,53 @@ fun VisionScreen(navController: NavController) {
                 Modifier
                     .size(10.dp)
                     .clip(RoundedCornerShape(50))
-                    .background(if (!showResult) AccentVision else FortuneGold)
+                    .background(
+                        when {
+                            showResult -> FortuneGold
+                            cameraActive && uiState.faceDetected -> FortuneGold
+                            isScanning -> AccentVision
+                            else -> TextMuted
+                        }
+                    )
             )
+        }
+
+        // ── Error overlay (camera / MediaPipe failure) ──
+        if (cameraActive && uiState.phase == VisionPhase.ERROR) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.Center)
+                    .padding(32.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(CyberSurface.copy(alpha = 0.95f))
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    "⚠ SYSTEM ERROR",
+                    color = Color.Red,
+                    fontSize = 16.sp,
+                    fontFamily = FontFamily.Monospace
+                )
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    uiState.errorMessage ?: "Unknown error",
+                    color = TextPrimary,
+                    fontSize = 13.sp,
+                    textAlign = TextAlign.Center,
+                    fontFamily = FontFamily.Monospace
+                )
+                Spacer(Modifier.height(16.dp))
+                CyberButton(
+                    text = "[ RETRY ]",
+                    onClick = {
+                        viewModel.dismissError()
+                        cameraFailed = false
+                        scanStarted = false
+                    }
+                )
+            }
         }
 
         // ── Result card ──
@@ -195,7 +363,8 @@ fun VisionScreen(navController: NavController) {
                     .padding(20.dp)
                     .clip(RoundedCornerShape(16.dp))
                     .background(CyberSurface.copy(alpha = 0.92f))
-                    .padding(24.dp),
+                    .padding(24.dp)
+                    .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
@@ -205,29 +374,93 @@ fun VisionScreen(navController: NavController) {
                     fontFamily = FontFamily.Monospace
                 )
                 Spacer(Modifier.height(12.dp))
-                Text(
-                    "此面相气场充沛，五行水旺而木辅，\n"
-                        + "主智慧深远，贵人运旺。\n"
-                        + "近期宜静心修炼，把握机遇。",
-                    color = TextPrimary,
-                    fontSize = 14.sp,
-                    lineHeight = 22.sp,
-                    textAlign = TextAlign.Center
+
+                // ── Interpretation text ──
+                if (cameraActive && uiState.interpretation.isNotBlank()) {
+                    // Real LLM interpretation from VisionViewModel
+                    Text(
+                        uiState.interpretation,
+                        color = TextPrimary,
+                        fontSize = 14.sp,
+                        lineHeight = 22.sp,
+                        textAlign = TextAlign.Left,
+                        fontFamily = FontFamily.Monospace
+                    )
+                } else if (cameraActive && uiState.streamText.isNotBlank()) {
+                    // Streaming LLM text (in case interpretation isn't final yet)
+                    Text(
+                        uiState.streamText,
+                        color = TextPrimary,
+                        fontSize = 14.sp,
+                        lineHeight = 22.sp,
+                        textAlign = TextAlign.Left,
+                        fontFamily = FontFamily.Monospace
+                    )
+                } else {
+                    // Simulated fallback interpretation
+                    Text(
+                        "此面相气场充沛，五行水旺而木辅，\n"
+                                + "主智慧深远，贵人运旺。\n"
+                                + "近期宜静心修炼，把握机遇。",
+                        color = TextPrimary,
+                        fontSize = 14.sp,
+                        lineHeight = 22.sp,
+                        textAlign = TextAlign.Center
+                    )
+                }
+
+                Spacer(Modifier.height(16.dp))
+
+                // ── Feature badges ──
+                if (cameraActive && uiState.detectedFeatures != FacialFeatures()) {
+                    // Real extracted features from MediaPipe
+                    val features = uiState.detectedFeatures
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        StatBadge("FACE", features.faceOval.shape.uppercase(), AccentVision)
+                        StatBadge("EYES", features.eyes.eyeSize.uppercase(), CyberSecondary)
+                        StatBadge("NOSE", features.nose.shape.uppercase(), AccentVision)
+                    }
+                    Spacer(Modifier.height(8.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        StatBadge("MOUTH", features.mouth.shape.uppercase(), CyberSecondary)
+                        StatBadge("CHIN", features.chin.shape.uppercase(), AccentVision)
+                        StatBadge(
+                            "SYMMETRY",
+                            "${String.format("%.0f", features.faceOval.symmetry * 100)}%",
+                            FortuneGold
+                        )
+                    }
+                } else {
+                    // Simulated fallback badges
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        StatBadge("RATING", "S+", AccentVision)
+                        StatBadge("FIELD", "432Hz", CyberSecondary)
+                        StatBadge("ELEMENT", "WATER", AccentVision)
+                    }
+                }
+
+                Spacer(Modifier.height(16.dp))
+                CyberButton(
+                    text = "[ RETURN ]",
+                    onClick = {
+                        if (cameraActive) viewModel.resetScan()
+                        navController.popBackStack()
+                    }
                 )
-                Spacer(Modifier.height(16.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    StatBadge("RATING", "S+", AccentVision)
-                    StatBadge("FIELD", "432Hz", CyberSecondary)
-                    StatBadge("ELEMENT", "WATER", AccentVision)
-                }
-                Spacer(Modifier.height(16.dp))
-                Button(
-                    onClick = { navController.popBackStack() },
-                    colors = ButtonDefaults.buttonColors(containerColor = AccentVision)
-                ) {
-                    Text("BACK", color = CyberBlack, fontFamily = FontFamily.Monospace)
-                }
             }
+        }
+
+        // ── START SCAN button (idle state only) ──
+        if (!scanStarted && !showResult && uiState.phase != VisionPhase.ERROR) {
+            CyberButton(
+                text = "[ START SCAN ]",
+                onClick = {
+                    scanStarted = true
+                },
+                modifier = Modifier
+                    .fillMaxWidth(0.5f)
+                    .align(Alignment.Center)
+            )
         }
 
         // ── Bottom HUD bar ──
@@ -242,8 +475,8 @@ fun VisionScreen(navController: NavController) {
                     .padding(horizontal = 16.dp, vertical = 10.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                HUDItem("FRAME", "30 FPS")
-                HUDItem("SENSOR", "IR + UV")
+                HUDItem("FRAME", if (cameraActive) "60 FPS" else "30 FPS")
+                HUDItem("SENSOR", if (cameraActive) "CAMERA" else "IR + UV")
                 HUDItem("TEMP", "36.4°C")
                 HUDItem("MODE", "FORTUNE")
             }
