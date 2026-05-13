@@ -8,7 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.cyberdiviner.ui.theme.NeonCyan
+import com.cyberdiviner.ui.theme.CyberPrimary
 import com.cyberdiviner.ui.theme.TextMuted
 import kotlinx.coroutines.delay
 import java.util.*
@@ -34,7 +34,7 @@ fun BinaryClock(modifier: Modifier = Modifier) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         BinaryByte(value = hour, bits = 5)
-        Text(":", color = NeonCyan, fontSize = 16.sp, fontFamily = FontFamily.Monospace)
+        Text(":", color = CyberPrimary, fontSize = 16.sp, fontFamily = FontFamily.Monospace)
         BinaryByte(value = minute, bits = 6)
     }
 }
@@ -46,7 +46,7 @@ private fun BinaryByte(value: Int, bits: Int) {
             val bit = (value shr i) and 1
             Text(
                 text = "$bit",
-                color = if (bit == 1) NeonCyan else TextMuted,
+                color = if (bit == 1) CyberPrimary else TextMuted,
                 fontSize = 14.sp,
                 fontFamily = FontFamily.Monospace
             )

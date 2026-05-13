@@ -122,7 +122,7 @@ fun MuyuScreen(
                         brush = Brush.radialGradient(
                             colors = listOf(
                                 NeonCyan.copy(alpha = 0.3f),
-                                NeonPurple.copy(alpha = 0.15f),
+                                CyberSecondary.copy(alpha = 0.15f),
                                 Color.Transparent
                             ),
                             center = Offset(size.width / 2, size.height / 2),
@@ -217,7 +217,7 @@ fun MuyuScreen(
                             Brush.radialGradient(
                                 colors = listOf(
                                     NeonCyan.copy(alpha = 0.25f),
-                                    NeonPurple.copy(alpha = 0.15f),
+                                    CyberSecondary.copy(alpha = 0.15f),
                                     CyberDark
                                 )
                             )
@@ -288,7 +288,7 @@ fun MuyuScreen(
                     fontFamily = FontFamily.Monospace
                 )
                 TextButton(onClick = { viewModel.clearSession() }) {
-                    Text("清除本次", color = NeonOrange, fontSize = 12.sp)
+                    Text("清除本次", color = CyberTertiary, fontSize = 12.sp)
                 }
             }
         }

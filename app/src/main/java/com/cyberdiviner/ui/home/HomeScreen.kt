@@ -62,7 +62,7 @@ private val FEATURE_ENTRIES = listOf(
     FeatureEntry(
         Routes.MUYU, Icons.Default.Vibration, "\u6728\u9C7C", "Muyu",
         "\u7535\u5B50\u6728\u9C7C \u00B7 Digital Zen",
-        NeonOrange
+        CyberTertiary
     ),
 )
 
@@ -461,14 +461,14 @@ private fun WarningsSection(reading: AlmanacEngine.DayReading) {
         reading.currentSolarTerm?.let { term ->
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = NeonPurple.copy(alpha = 0.08f)),
+                colors = CardDefaults.cardColors(containerColor = CyberSecondary.copy(alpha = 0.08f)),
                 shape = RoundedCornerShape(8.dp)
             ) {
                 Row(modifier = Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Icon(Icons.Default.Autorenew, contentDescription = null, tint = NeonPurple, modifier = Modifier.size(16.dp))
+                    Icon(Icons.Default.Autorenew, contentDescription = null, tint = CyberSecondary, modifier = Modifier.size(16.dp))
                     Column {
-                        Text("\u8282\u6C14: ${term.name}", color = NeonPurple, fontSize = 13.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
-                        Text("${term.englishName} \u00B7 ${term.element}\u6C14", color = NeonPurple.copy(alpha = 0.6f), fontSize = 10.sp, fontFamily = FontFamily.Monospace)
+                        Text("\u8282\u6C14: ${term.name}", color = CyberSecondary, fontSize = 13.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
+                        Text("${term.englishName} \u00B7 ${term.element}\u6C14", color = CyberSecondary.copy(alpha = 0.6f), fontSize = 10.sp, fontFamily = FontFamily.Monospace)
                     }
                 }
             }

@@ -4,9 +4,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 
 private val CyberDarkColorScheme = darkColorScheme(
-    primary = NeonCyan,
-    secondary = NeonMagenta,
-    tertiary = NeonGreen,
+    primary = CyberPrimary,
+    secondary = CyberSecondary,
+    tertiary = CyberTertiary,
     background = CyberBlack,
     surface = CyberDark,
     surfaceVariant = CyberGray,

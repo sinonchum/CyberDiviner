@@ -1,36 +1,33 @@
 package com.cyberdiviner.ui.theme
 
-import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
-import kotlin.math.sin
 
+/**
+ * Subtle static radial gradient background.
+ * Replaces the old animated acid sweep gradient with a clean, professional dark gradient.
+ */
 @Composable
-fun AcidBackground(modifier: Modifier = Modifier) {
-    val infiniteTransition = rememberInfiniteTransition()
-    val phase by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = (2.0 * Math.PI).toFloat(),
-        animationSpec = infiniteRepeatable(
-            animation = tween(8000, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        )
-    )
-
+fun SubtleBackground(modifier: Modifier = Modifier) {
     Canvas(modifier = modifier) {
         drawRect(
-            brush = Brush.sweepGradient(
+            brush = Brush.radialGradient(
                 colors = listOf(
-                    NeonCyan.copy(alpha = 0.15f + 0.05f * sin(phase)),
-                    NeonMagenta.copy(alpha = 0.1f + 0.05f * sin(phase + 1f)),
-                    NeonGreen.copy(alpha = 0.08f + 0.04f * sin(phase + 2f)),
-                    NeonCyan.copy(alpha = 0.15f + 0.05f * sin(phase))
+                    CyberGray,
+                    CyberBlack
                 ),
-                center = Offset(size.width * 0.5f, size.height * 0.5f)
+                center = Offset(size.width * 0.5f, size.height * 0.3f),
+                radius = size.width * 0.8f
             )
         )
     }
+}
+
+// Backward-compat alias
+@Composable
+fun AcidBackground(modifier: Modifier = Modifier) {
+    SubtleBackground(modifier = modifier)
 }
