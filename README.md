@@ -101,12 +101,12 @@ graph TB
     ALMANAC --> WIDGET
     POSTER --> HOME
 
-    style HOME fill:#00FFCC,color:#000
-    style LIUYAO fill:#BF00FF,color:#fff
-    style TAROT fill:#FF00FF,color:#fff
-    style VISION fill:#39FF14,color:#000
-    style MUYU fill:#FFD700,color:#000
-    style LLM fill:#00BFFF,color:#000
+    style HOME fill:#2D9B83,color:#E0E0E0
+    style LIUYAO fill:#7B61FF,color:#E0E0E0
+    style TAROT fill:#E8B339,color:#E0E0E0
+    style VISION fill:#1A7A6A,color:#E0E0E0
+    style MUYU fill:#4A6670,color:#E0E0E0
+    style LLM fill:#7B61FF,color:#E0E0E0
 ```
 
 ### Tech Stack
