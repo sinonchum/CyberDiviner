@@ -94,7 +94,9 @@ fun HomeScreen(
     ) {
         // ── Header ──
         item {
-            HeaderSection(currentDateFormatted)
+            HeaderSection(currentDateFormatted) {
+                navController.navigate(Routes.SETTINGS)
+            }
         }
 
         // ── Ganzhi + Shichen ──
@@ -160,36 +162,50 @@ fun HomeScreen(
 // ── Section Components ───────────────────────────────────────────────────
 
 @Composable
-private fun HeaderSection(dateFormatted: String) {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = "\u8D5B\u535A\u9EC4\u5386",
-            color = TextPrimary,
-            fontSize = 28.sp,
-            fontWeight = FontWeight.Bold,
-            fontFamily = FontFamily.Monospace,
-            letterSpacing = 4.sp
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = "CYBER ALMANAC",
-            color = TextMuted,
-            fontSize = 11.sp,
-            fontFamily = FontFamily.Monospace,
-            letterSpacing = 6.sp
-        )
-        Spacer(modifier = Modifier.height(10.dp))
-        BinaryClock()
-        Spacer(modifier = Modifier.height(6.dp))
-        Text(
-            text = dateFormatted,
-            color = TextSecondary,
-            fontSize = 13.sp,
-            fontFamily = FontFamily.Monospace
-        )
+private fun HeaderSection(dateFormatted: String, onSettingsClick: () -> Unit = {}) {
+    Box(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "\u8D5B\u535A\u9EC4\u5386",
+                color = TextPrimary,
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = FontFamily.Monospace,
+                letterSpacing = 4.sp
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "CYBER ALMANAC",
+                color = TextMuted,
+                fontSize = 11.sp,
+                fontFamily = FontFamily.Monospace,
+                letterSpacing = 6.sp
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            BinaryClock()
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = dateFormatted,
+                color = TextSecondary,
+                fontSize = 13.sp,
+                fontFamily = FontFamily.Monospace
+            )
+        }
+        // Settings gear — top right
+        IconButton(
+            onClick = onSettingsClick,
+            modifier = Modifier.align(Alignment.TopEnd)
+        ) {
+            Icon(
+                Icons.Default.Settings,
+                contentDescription = "Settings",
+                tint = TextMuted,
+                modifier = Modifier.size(22.dp)
+            )
+        }
     }
 }
 
