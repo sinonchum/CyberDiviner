@@ -26,8 +26,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -457,7 +455,12 @@ private fun ErrorPhase(message: String, onDismiss: () -> Unit) {
         verticalArrangement = Arrangement.Center,
         modifier = Modifier.fillMaxSize().padding(32.dp)
     ) {
-        Text(text = "⚠", fontSize = 48.sp, modifier = Modifier.padding(bottom = 16.dp))
+        Icon(
+            Icons.Default.Warning,
+            contentDescription = null,
+            tint = InauspiciousRed,
+            modifier = Modifier.size(48.dp).padding(bottom = 16.dp)
+        )
         Text(
             text = "占卜失败",
             color = InauspiciousRed,
