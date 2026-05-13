@@ -1,7 +1,6 @@
 package com.cyberdiviner.ui.liuyao
 
-import androidx.compose.animation.*
-import androidx.compose.animation.core.*
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -10,20 +9,15 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.SwapHoriz
-import androidx.compose.material.icons.filled.Explore
-import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.*
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
@@ -31,18 +25,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.cyberdiviner.ui.shared.CyberButton
 import com.cyberdiviner.ui.theme.*
 
 /**
- * LiuyaoScreen — 六爻起卦 main screen.
+ * LiuyaoScreen -- I-Ching divination with geometric animation.
  *
- * Features:
- * - Question input with cyberpunk-styled text field
- * - Animated "起卦" button with neon glow
- * - Coin toss animation sequence (6 rounds)
- * - Progress indicator through tossing phases
+ * Clean B&W aesthetic. Generous padding. Gray hierarchy.
+ * No neon colors, no Material ripple, no emoji.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LiuyaoScreen(
     navController: NavController,
@@ -60,238 +51,184 @@ fun LiuyaoScreen(
         }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        "六爻起卦",
-                        color = NeonCyan,
-                        fontWeight = FontWeight.Bold
-                    )
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(CyberBlack)
+            .padding(horizontal = 24.dp, vertical = 32.dp)
+    ) {
+        when (uiState.phase) {
+            LiuyaoPhase.INPUT -> InputPhase(
+                question = uiState.question,
+                errorMessage = uiState.errorMessage,
+                onQuestionChange = viewModel::updateQuestion,
+                onStartDivination = {
+                    focusManager.clearFocus()
+                    viewModel.startDivination()
                 },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "返回",
-                            tint = NeonCyan
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = CyberBlack
-                )
+                onBack = { navController.popBackStack() }
             )
-        },
-        containerColor = CyberBlack
-    ) { padding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .background(
-                    CyberBlack
-                )
-        ) {
-            when (uiState.phase) {
-                LiuyaoPhase.INPUT -> InputPhase(
-                    question = uiState.question,
-                    errorMessage = uiState.errorMessage,
-                    onQuestionChange = viewModel::updateQuestion,
-                    onStartDivination = {
-                        focusManager.clearFocus()
-                        viewModel.startDivination()
-                    }
-                )
 
-                LiuyaoPhase.TOSSING, LiuyaoPhase.COMPUTING, LiuyaoPhase.INTERPRETING -> TossingPhase(
-                    uiState = uiState
-                )
-
-                LiuyaoPhase.ERROR -> ErrorPhase(
-                    message = uiState.errorMessage ?: "未知错误",
-                    onDismiss = viewModel::dismissError
-                )
-
-                LiuyaoPhase.RESULT -> {
-                    // Shouldn't reach here — LaunchedEffect handles navigation
+            LiuyaoPhase.TOSSING, LiuyaoPhase.COMPUTING, LiuyaoPhase.INTERPRETING -> {
+                // Map old CoinState to GeoCoinState for the new animation
+                val geoCoins = uiState.currentCoins.map { coin ->
+                    GeoCoinState(
+                        isYang = coin.isHeads,
+                        isRevealed = coin.isRevealed
+                    )
                 }
+                TossingPhase(
+                    uiState = uiState,
+                    geoCoins = geoCoins
+                )
+            }
+
+            LiuyaoPhase.ERROR -> ErrorPhase(
+                message = uiState.errorMessage ?: "未知错误",
+                onDismiss = viewModel::dismissError
+            )
+
+            LiuyaoPhase.RESULT -> {
+                // Handled by LaunchedEffect above
             }
         }
     }
 }
 
-// ── Input Phase ──────────────────────────────────────────────────────────
+// ── Input Phase ────────────────────────────────────────────────────────────
 
 @Composable
 private fun InputPhase(
     question: String,
     errorMessage: String?,
     onQuestionChange: (String) -> Unit,
-    onStartDivination: () -> Unit
+    onStartDivination: () -> Unit,
+    onBack: () -> Unit
 ) {
-    val focusRequester = remember { FocusRequester() }
-
     Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(32.dp)
-            .verticalScroll(rememberScrollState())
+        horizontalAlignment = Alignment.Start,
+        modifier = Modifier.fillMaxSize()
     ) {
-        // Decorative header
-        Icon(
-            imageVector = Icons.Default.Explore,
-            contentDescription = null,
-            tint = NeonCyan,
-            modifier = Modifier
-                .size(64.dp)
-                .padding(bottom = 16.dp)
+        // Header
+        Text(
+            text = "周易起卦",
+            color = GrayTitle,
+            fontSize = 24.sp,
+            fontFamily = FontFamily.Serif,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 4.sp
         )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = "三钱法 · 六次演算",
+            color = GrayCaption,
+            fontSize = 12.sp,
+            fontFamily = FontFamily.Serif
+        )
+        Spacer(modifier = Modifier.height(48.dp))
 
+        // Prompt
         Text(
             text = "心诚则灵",
-            color = TextSecondary,
+            color = GrayBody,
             fontSize = 16.sp,
-            letterSpacing = 4.sp,
-            modifier = Modifier.padding(bottom = 8.dp)
+            fontFamily = FontFamily.Serif,
+            letterSpacing = 4.sp
         )
-
+        Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = "静心冥想，然后输入你的问题",
-            color = TextMuted,
+            color = GrayCaption,
             fontSize = 13.sp,
-            modifier = Modifier.padding(bottom = 32.dp)
+            fontFamily = FontFamily.Serif
         )
+        Spacer(modifier = Modifier.height(24.dp))
 
-        // Question input
-        OutlinedTextField(
+        // Question input (minimal, bottom border only)
+        TextField(
             value = question,
             onValueChange = onQuestionChange,
-            label = {
-                Text("你想问什么？", color = TextSecondary)
-            },
             placeholder = {
-                Text("例如：我的事业前景如何？", color = TextMuted)
+                Text(
+                    "例如：我的事业前景如何？",
+                    color = GrayCaption,
+                    fontSize = 14.sp,
+                    fontFamily = FontFamily.Serif
+                )
             },
-            textStyle = LocalTextStyle.current.copy(
-                color = TextPrimary,
-                fontSize = 16.sp
+            textStyle = androidx.compose.ui.text.TextStyle(
+                color = GrayTitle,
+                fontSize = 16.sp,
+                fontFamily = FontFamily.Serif
             ),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = NeonCyan,
-                unfocusedBorderColor = CyberGray,
-                cursorColor = NeonCyan,
-                focusedContainerColor = CyberDark,
-                unfocusedContainerColor = CyberDark
+            colors = TextFieldDefaults.colors(
+                focusedTextColor = GrayTitle,
+                unfocusedTextColor = GrayTitle,
+                cursorColor = CyberWhite,
+                focusedContainerColor = Color.Transparent,
+                unfocusedContainerColor = Color.Transparent,
+                focusedIndicatorColor = CyberWhite,
+                unfocusedIndicatorColor = GrayBorder
             ),
-            shape = RoundedCornerShape(12.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .focusRequester(focusRequester),
+            modifier = Modifier.fillMaxWidth(),
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Go),
             keyboardActions = KeyboardActions(onGo = { onStartDivination() }),
             maxLines = 3
         )
 
-        // Error message
+        // Error
         AnimatedVisibility(visible = errorMessage != null) {
             Text(
                 text = errorMessage ?: "",
-                color = InauspiciousRed,
+                color = GrayBody,
                 fontSize = 13.sp,
                 modifier = Modifier.padding(top = 8.dp)
             )
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(32.dp))
 
         // Start button
-        Button(
+        CyberButton(
+            text = "起卦",
             onClick = onStartDivination,
-            enabled = question.isNotBlank(),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = NeonCyan,
-                contentColor = CyberBlack,
-                disabledContainerColor = CyberGray,
-                disabledContentColor = TextMuted
-            ),
-            shape = RoundedCornerShape(12.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp)
-        ) {
-            Icon(
-                Icons.Default.SwapHoriz,
-                contentDescription = null,
-                modifier = Modifier.size(20.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                "起卦",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold
-            )
-        }
+            modifier = Modifier.fillMaxWidth()
+        )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.weight(1f))
 
-        // Method description
-        Text(
-            text = "三钱法 · 六次抛掷 · 三枚铜钱",
-            color = TextMuted,
-            fontSize = 12.sp,
-            textAlign = TextAlign.Center
+        // Back
+        CyberButton(
+            text = "[ 返回 ]",
+            onClick = onBack,
+            modifier = Modifier.fillMaxWidth()
         )
     }
 }
 
-// ── Tossing Phase ────────────────────────────────────────────────────────
+// ── Tossing Phase ──────────────────────────────────────────────────────────
 
 @Composable
 private fun TossingPhase(
-    uiState: LiuyaoUiState
+    uiState: LiuyaoUiState,
+    geoCoins: List<GeoCoinState>
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp)
+        modifier = Modifier.fillMaxSize()
     ) {
-        // Status message
-        Text(
-            text = uiState.progressMessage,
-            color = NeonCyan,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Medium,
-            modifier = Modifier.padding(bottom = 32.dp)
-        )
-
-        // Coin animation
         SixTossAnimation(
             tossResults = uiState.tossResults,
             currentTossIndex = uiState.currentTossIndex,
-            currentCoins = uiState.currentCoins,
-            isAnimating = uiState.isCoinAnimating
+            currentCoins = geoCoins,
+            isAnimating = uiState.isCoinAnimating,
+            onToss = { /* Handled by ViewModel */ }
         )
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        // Computing / interpreting indicator
-        if (uiState.phase == LiuyaoPhase.COMPUTING || uiState.phase == LiuyaoPhase.INTERPRETING) {
-            CircularProgressIndicator(
-                color = NeonCyan,
-                strokeWidth = 2.dp,
-                modifier = Modifier.size(24.dp)
-            )
-        }
     }
 }
 
-// ── Error Phase ──────────────────────────────────────────────────────────
+// ── Error Phase ────────────────────────────────────────────────────────────
 
 @Composable
 private fun ErrorPhase(
@@ -301,44 +238,29 @@ private fun ErrorPhase(
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(32.dp)
+        modifier = Modifier.fillMaxSize()
     ) {
-        Icon(
-            imageVector = Icons.Default.Warning,
-            contentDescription = null,
-            tint = InauspiciousRed,
-            modifier = Modifier
-                .size(48.dp)
-                .padding(bottom = 16.dp)
-        )
-
         Text(
             text = "起卦失败",
-            color = InauspiciousRed,
+            color = GrayTitle,
             fontSize = 20.sp,
+            fontFamily = FontFamily.Serif,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(bottom = 8.dp)
         )
 
         Text(
             text = message,
-            color = TextSecondary,
+            color = GrayBody,
             fontSize = 14.sp,
+            fontFamily = FontFamily.Serif,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(bottom = 24.dp)
         )
 
-        Button(
-            onClick = onDismiss,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = NeonCyan,
-                contentColor = CyberBlack
-            ),
-            shape = RoundedCornerShape(12.dp)
-        ) {
-            Text("重新开始", fontWeight = FontWeight.Bold)
-        }
+        CyberButton(
+            text = "重新开始",
+            onClick = onDismiss
+        )
     }
 }
