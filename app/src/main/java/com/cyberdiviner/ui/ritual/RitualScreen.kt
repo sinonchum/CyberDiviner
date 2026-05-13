@@ -8,52 +8,30 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.cyberdiviner.ui.shared.CyberMenuItem
+import com.cyberdiviner.ui.shared.IChingIcon
+import com.cyberdiviner.ui.shared.TarotIcon
+import com.cyberdiviner.ui.shared.VisionIcon
 import com.cyberdiviner.ui.theme.CyberBlack
-import com.cyberdiviner.ui.theme.CyberWhite
 import com.cyberdiviner.ui.theme.TextMuted
 
 /**
  * RitualScreen -- Tool selection (Layer 3).
  *
  * Three ritual tools: I Ching, Tarot, Vision.
- * Pure monochrome. Geometric line icons drawn via Canvas.
+ * Pure monochrome. Canvas geometric icons via CyberIcons.
+ * Currently dead code (not wired in NavGraph v5.0) but ready if needed.
  */
 
-enum class RitualTool(
-    val id: String,
-    val label: String,
-    val englishLabel: String,
-    val description: String,
-    val geometry: String  // ASCII representation of the geometric icon
-) {
-    I_CHING(
-        "i_ching",
-        "\u5468\u6613",
-        "I CHING",
-        "\u4E8C\u8FDB\u5236\u56E0\u679C\u63A8\u6F14",
-        "\u2500\u2500\u2500 \u2500\u2500\u2500\n\u2500\u2500\u2500 \u2500 \u2500\u2500"
-    ),
-    TAROT(
-        "tarot",
-        "\u5854\u7F57",
-        "TAROT",
-        "\u9ED1\u767D\u6728\u523B\u7248\u753B",
-        "\u250C\u2500\u2500\u2500\u2500\u2510\n\u2502 \u25C6 \u2502\n\u2514\u2500\u2500\u2500\u2500\u2518"
-    ),
-    VISION(
-        "vision",
-        "\u89C6\u754C",
-        "VISION",
-        "\u751F\u7406\u9891\u7387\u6355\u6349",
-        "\u25CE \u25CE"
-    )
-}
-
 @Composable
-fun RitualScreen(onBack: () -> Unit) {
+fun RitualScreen(
+    onBack: () -> Unit,
+    onIChing: () -> Unit,
+    onTarot: () -> Unit,
+    onVision: () -> Unit
+) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -62,11 +40,12 @@ fun RitualScreen(onBack: () -> Unit) {
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.Start
         ) {
-            // Header
+            // ── Header ─────────────────────────────────────
             Text(
-                text = "[ \u4EEA\u89C4\u6267\u884C ]",
+                text = "[ 仪规执行 ]",
                 color = TextMuted,
                 fontSize = 11.sp,
                 fontFamily = FontFamily.Monospace,
@@ -82,15 +61,56 @@ fun RitualScreen(onBack: () -> Unit) {
             )
             Spacer(modifier = Modifier.height(40.dp))
 
-            // Tools
-            RitualTool.entries.forEach { tool ->
-                RitualToolRow(tool)
-                Spacer(modifier = Modifier.height(32.dp))
+            // ── I Ching ────────────────────────────────────
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.Top
+            ) {
+                IChingIcon(modifier = Modifier.padding(top = 14.dp))
+                CyberMenuItem(
+                    title = "周易",
+                    subtitle = "I CHING",
+                    description = "二进制因果推演",
+                    onClick = onIChing,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // ── Tarot ──────────────────────────────────────
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.Top
+            ) {
+                TarotIcon(modifier = Modifier.padding(top = 14.dp))
+                CyberMenuItem(
+                    title = "塔罗",
+                    subtitle = "TAROT",
+                    description = "黑白木刻画",
+                    onClick = onTarot,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // ── Vision ─────────────────────────────────────
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.Top
+            ) {
+                VisionIcon(modifier = Modifier.padding(top = 14.dp))
+                CyberMenuItem(
+                    title = "视界",
+                    subtitle = "VISION",
+                    description = "生频率捕捉",
+                    onClick = onVision,
+                    modifier = Modifier.weight(1f)
+                )
             }
 
             Spacer(modifier = Modifier.height(48.dp))
 
-            // Back
+            // ── Back ───────────────────────────────────────
             Text(
                 text = "[ RETURN ]",
                 color = TextMuted,
@@ -98,50 +118,6 @@ fun RitualScreen(onBack: () -> Unit) {
                 fontFamily = FontFamily.Monospace,
                 letterSpacing = 2.sp,
                 modifier = Modifier.clickable { onBack() }
-            )
-        }
-    }
-}
-
-@Composable
-private fun RitualToolRow(tool: RitualTool) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.Top
-    ) {
-        // Geometric icon (ASCII art)
-        Text(
-            text = tool.geometry,
-            color = CyberWhite,
-            fontSize = 14.sp,
-            fontFamily = FontFamily.Monospace,
-            modifier = Modifier.width(80.dp)
-        )
-
-        // Label + description
-        Column {
-            Text(
-                text = tool.label,
-                color = CyberWhite,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                fontFamily = FontFamily.Serif,
-                letterSpacing = 4.sp
-            )
-            Spacer(modifier = Modifier.height(2.dp))
-            Text(
-                text = tool.englishLabel,
-                color = TextMuted,
-                fontSize = 11.sp,
-                fontFamily = FontFamily.Monospace,
-                letterSpacing = 2.sp
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = tool.description,
-                color = TextMuted,
-                fontSize = 12.sp,
-                fontFamily = FontFamily.Monospace
             )
         }
     }

@@ -4,84 +4,108 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.cyberdiviner.ui.archive.ArchiveScreen
 import com.cyberdiviner.ui.consult.ConsultScreen
 import com.cyberdiviner.ui.epiphany.EpiphanyScreen
+import com.cyberdiviner.ui.liuyao.LiuyaoResultScreen
+import com.cyberdiviner.ui.liuyao.LiuyaoScreen
+import com.cyberdiviner.ui.settings.SettingsScreen
+import com.cyberdiviner.ui.tarot.TarotScreen
 import com.cyberdiviner.ui.terminal.TerminalScreen
+import com.cyberdiviner.ui.vision.VisionScreen
 
 /**
- * v4.0 Navigation: Three-layer progressive architecture.
+ * v5.0 Navigation: Flat route map with ritual sub-paths.
  *
- * Layer 1: Epiphany (Splash) -> tap to enter
- * Layer 2: Terminal (Main hub) -> 3 abstract entries
- * Layer 3: Ritual execution (feature screens)
+ * Splash → Terminal hub → feature screens.
+ * Ritual entry points route to specific feature screens directly.
  */
 
 object Routes {
-    // Layer 1
-    const val EPIPHANY = "epiphany"
-    // Layer 2
+    const val SPLASH = "splash"
     const val TERMINAL = "terminal"
-    // Layer 3
-    const val CONSULT = "consult"
-    const val RITUAL = "ritual"
-    const val ARCHIVE = "archive"
-    // Legacy (kept for backward compat with old screens)
-    const val HOME = "home"
+    const val AGENT_CHAT = "agent_chat"
+    const val RITUAL_ICHING = "ritual/iching"
+    const val RITUAL_TAROT = "ritual/tarot"
+    const val RITUAL_VISION = "ritual/vision"
+    const val ARCHIVE_LIST = "archive_list"
     const val LIUYAO = "liuyao"
     const val LIUYAO_RESULT = "liuyao_result"
-    const val TAROT = "tarot"
-    const val VISION = "vision"
-    const val MUYU = "muyu"
     const val SETTINGS = "settings"
+    // Legacy routes kept for HomeScreen compatibility (dead code)
+    const val TAROT = "ritual/tarot"
+    const val VISION = "ritual/vision"
+    const val MUYU = "muyu"
 }
 
 @Composable
 fun CyberDivinerNavGraph(navController: NavHostController) {
-    NavHost(navController = navController, startDestination = Routes.EPIPHANY) {
-        // Layer 1: Epiphany (Splash)
-        composable(Routes.EPIPHANY) {
+    NavHost(navController = navController, startDestination = Routes.SPLASH) {
+
+        // Splash / Epiphany entry
+        composable(Routes.SPLASH) {
             EpiphanyScreen(
                 onEnter = {
                     navController.navigate(Routes.TERMINAL) {
-                        popUpTo(Routes.EPIPHANY) { inclusive = true }
+                        popUpTo(Routes.SPLASH) { inclusive = true }
                     }
                 }
             )
         }
 
-        // Layer 2: Terminal (Main hub)
+        // Terminal hub
         composable(Routes.TERMINAL) {
             TerminalScreen(
-                onConsult = { navController.navigate(Routes.CONSULT) },
-                onRitual = { navController.navigate(Routes.RITUAL) },
-                onArchive = { navController.navigate(Routes.ARCHIVE) }
+                onConsult = { navController.navigate(Routes.AGENT_CHAT) },
+                onRitual = { navController.navigate(Routes.RITUAL_ICHING) },
+                onArchive = { navController.navigate(Routes.ARCHIVE_LIST) }
             )
         }
 
-        // Layer 3: Consult (Agent interview)
-        composable(Routes.CONSULT) {
+        // Agent chat (consultation interview)
+        composable(Routes.AGENT_CHAT) {
             ConsultScreen(
                 onComplete = { soulHash ->
                     navController.navigate(Routes.TERMINAL) {
-                        popUpTo(Routes.CONSULT) { inclusive = true }
+                        popUpTo(Routes.AGENT_CHAT) { inclusive = true }
                     }
                 },
                 onBack = { navController.popBackStack() }
             )
         }
 
-        // Layer 3: Ritual (feature selection)
-        composable(Routes.RITUAL) {
-            com.cyberdiviner.ui.ritual.RitualScreen(
+        // Ritual sub-paths — each routes to its specific feature screen
+        composable(Routes.RITUAL_ICHING) {
+            LiuyaoScreen(navController = navController)
+        }
+
+        composable(Routes.RITUAL_TAROT) {
+            TarotScreen(navController = navController)
+        }
+
+        composable(Routes.RITUAL_VISION) {
+            VisionScreen(navController = navController)
+        }
+
+        // Archive list
+        composable(Routes.ARCHIVE_LIST) {
+            ArchiveScreen(
                 onBack = { navController.popBackStack() }
             )
         }
 
-        // Layer 3: Archive
-        composable(Routes.ARCHIVE) {
-            com.cyberdiviner.ui.archive.ArchiveScreen(
-                onBack = { navController.popBackStack() }
-            )
+        // Internal navigation targets (Liuyao flow)
+        composable(Routes.LIUYAO) {
+            LiuyaoScreen(navController = navController)
+        }
+
+        composable(Routes.LIUYAO_RESULT) {
+            LiuyaoResultScreen(navController = navController)
+        }
+
+        // Settings
+        composable(Routes.SETTINGS) {
+            SettingsScreen(navController = navController)
         }
     }
 }
