@@ -84,12 +84,12 @@ private fun CardFront(card: TarotCard) {
         ) {
             // Suit icon
             when (card.suit) {
-                "major" -> Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = borderColor, modifier = Modifier.size(20.dp))
+                "major" -> Text("*", color = borderColor, fontSize = 14.sp)
                 "wands" -> Icon(Icons.Default.FlashOn, contentDescription = null, tint = borderColor, modifier = Modifier.size(20.dp))
                 "cups" -> Icon(Icons.Default.EmojiEvents, contentDescription = null, tint = borderColor, modifier = Modifier.size(20.dp))
                 "swords" -> Icon(Icons.Default.Gavel, contentDescription = null, tint = borderColor, modifier = Modifier.size(20.dp))
                 "pentacles" -> Icon(Icons.Default.AttachMoney, contentDescription = null, tint = borderColor, modifier = Modifier.size(20.dp))
-                else -> Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = borderColor, modifier = Modifier.size(20.dp))
+                else -> Text("*", color = borderColor, fontSize = 14.sp)
             }
 
             Spacer(modifier = Modifier.height(4.dp))
@@ -134,7 +134,7 @@ private fun CardBack() {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = CyberSecondary.copy(alpha = 0.6f), modifier = Modifier.size(28.dp))
+            Text("*", color = CyberSecondary.copy(alpha = 0.6f), fontSize = 20.sp)
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 "CYBER\nDIVINER",

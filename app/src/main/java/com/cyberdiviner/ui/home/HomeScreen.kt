@@ -1,7 +1,10 @@
-package com.cyberdiviner.ui.home
+@file:OptIn(ExperimentalLayoutApi::class)
 
-import androidx.compose.animation.animateContentSize
+package com.cyberdiviner.ui.home
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.background
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
