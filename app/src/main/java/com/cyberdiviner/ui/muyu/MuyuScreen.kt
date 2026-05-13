@@ -15,10 +15,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -29,7 +25,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.cyberdiviner.ui.theme.*
-import kotlin.math.sin
 
 /**
  * 电子木鱼 — Meditation Wooden Fish screen.
@@ -48,7 +43,6 @@ fun MuyuScreen(
     // ── Hit animation state ──────────────────────────────────────
     var isPressed by remember { mutableStateOf(false) }
 
-    // Bounce scale on tap
     val bounceScale by animateFloatAsState(
         targetValue = if (isPressed) 0.88f else 1f,
         animationSpec = spring(
@@ -58,7 +52,6 @@ fun MuyuScreen(
         label = "bounceScale"
     )
 
-    // Reset pressed state after bounce
     LaunchedEffect(isPressed) {
         if (isPressed) {
             kotlinx.coroutines.delay(80)
@@ -93,7 +86,7 @@ fun MuyuScreen(
         ),
         label = "glowPhase"
     )
-    val glowAlpha = 0.12f + 0.06f * sin(glowPhase)
+    val glowAlpha = 0.08f + 0.04f * kotlin.math.sin(glowPhase)
 
     // ── Ripple ring pulse ────────────────────────────────────────
     val rippleTransition = rememberInfiniteTransition(label = "ripple")
@@ -112,26 +105,6 @@ fun MuyuScreen(
             .fillMaxSize()
             .background(CyberBlack)
     ) {
-        // ── Ambient glow background ──────────────────────────────
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .graphicsLayer { alpha = glowAlpha }
-                .drawBehind {
-                    drawRect(
-                        brush = Brush.radialGradient(
-                            colors = listOf(
-                                NeonCyan.copy(alpha = 0.3f),
-                                CyberSecondary.copy(alpha = 0.15f),
-                                Color.Transparent
-                            ),
-                            center = Offset(size.width / 2, size.height / 2),
-                            radius = size.width * 0.6f
-                        )
-                    )
-                }
-        )
-
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -141,7 +114,7 @@ fun MuyuScreen(
                 title = {
                     Text(
                         "电子木鱼",
-                        color = NeonCyan,
+                        color = AccentMuyu,
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp
                     )
@@ -151,7 +124,7 @@ fun MuyuScreen(
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "返回",
-                            tint = NeonCyan
+                            tint = AccentMuyu
                         )
                     }
                 },
@@ -160,7 +133,7 @@ fun MuyuScreen(
                         Icon(
                             Icons.Default.Refresh,
                             contentDescription = "新 session",
-                            tint = NeonMagenta
+                            tint = AccentMuyu
                         )
                     }
                 },
@@ -176,8 +149,8 @@ fun MuyuScreen(
                     .padding(horizontal = 24.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                StatBadge(label = "本次功德", value = "$sessionHits", color = NeonCyan)
-                StatBadge(label = "总功德", value = "$totalHits", color = NeonMagenta)
+                StatBadge(label = "本次功德", value = "$sessionHits", color = AccentMuyu)
+                StatBadge(label = "总功德", value = "$totalHits", color = FortuneGold)
             }
 
             Spacer(modifier = Modifier.weight(1f))
@@ -199,7 +172,7 @@ fun MuyuScreen(
                                 alpha = ringAlpha * (1f - i * 0.25f)
                             }
                             .clip(CircleShape)
-                            .background(NeonCyan.copy(alpha = 0.06f))
+                            .background(AccentMuyu.copy(alpha = 0.06f))
                     )
                 }
 
@@ -213,15 +186,7 @@ fun MuyuScreen(
                             scaleY = bounceScale
                         }
                         .clip(CircleShape)
-                        .background(
-                            Brush.radialGradient(
-                                colors = listOf(
-                                    NeonCyan.copy(alpha = 0.25f),
-                                    CyberSecondary.copy(alpha = 0.15f),
-                                    CyberDark
-                                )
-                            )
-                        )
+                        .background(AccentMuyu.copy(alpha = 0.15f))
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null
@@ -230,11 +195,13 @@ fun MuyuScreen(
                             viewModel.hit()
                         }
                 ) {
-                    // Wooden fish symbol
+                    // Wooden fish symbol — simple text character
                     Text(
-                        text = "🪷",
-                        fontSize = 72.sp,
-                        modifier = Modifier.alpha(0.95f)
+                        text = "◎",
+                        fontSize = 64.sp,
+                        color = AccentMuyu,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.alpha(0.9f)
                     )
                 }
             }
@@ -251,7 +218,7 @@ fun MuyuScreen(
                 if (meritActive) {
                     Text(
                         text = "＋1 功德",
-                        color = NeonGreen,
+                        color = AccentMuyu,
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.graphicsLayer {
@@ -288,7 +255,7 @@ fun MuyuScreen(
                     fontFamily = FontFamily.Monospace
                 )
                 TextButton(onClick = { viewModel.clearSession() }) {
-                    Text("清除本次", color = CyberTertiary, fontSize = 12.sp)
+                    Text("清除本次", color = AccentMuyu, fontSize = 12.sp)
                 }
             }
         }
@@ -297,7 +264,7 @@ fun MuyuScreen(
 
 // ── Stat badge composable ──────────────────────────────────────
 @Composable
-private fun StatBadge(label: String, value: String, color: Color) {
+private fun StatBadge(label: String, value: String, color: androidx.compose.ui.graphics.Color) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
             text = value,
