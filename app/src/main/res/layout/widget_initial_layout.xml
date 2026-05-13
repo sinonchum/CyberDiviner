@@ -12,7 +12,7 @@
         android:layout_height="wrap_content"
         android:fontFamily="monospace"
         android:text="⚡ CYBERDIVINER"
-        android:textColor="#FF00FFCC"
+        android:textColor="#FFFFFFFF"
         android:textSize="12sp"
         android:textStyle="bold" />
 

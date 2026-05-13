@@ -650,11 +650,11 @@ object AlmanacEngine {
      * Get element colors for display.
      */
     fun elementColors(element: String): List<String> = when (element) {
-        "Wood" -> listOf("#228B22", "#00FF00") // ForestGreen, Lime
-        "Fire" -> listOf("#FF4500", "#FF6347") // OrangeRed, Tomato
+        "Wood" -> listOf("#228B22", "#AAAAAA") // ForestGreen, Lime→Gray
+        "Fire" -> listOf("#CCCCCC", "#AAAAAA") // OrangeRed→Silver, Tomato→Gray
         "Earth" -> listOf("#DAA520", "#B8860B") // Goldenrod, DarkGoldenrod
         "Metal" -> listOf("#C0C0C0", "#FFD700") // Silver, Gold
-        "Water" -> listOf("#000080", "#1E90FF") // Navy, DodgerBlue
+        "Water" -> listOf("#000080", "#888888") // Navy, DodgerBlue→Gray
         else -> listOf("#808080", "#A9A9A9")
     }
 

@@ -7,44 +7,44 @@
 
     <!-- Crystal ball - outer glow circle -->
     <path
-        android:fillColor="#3300FFCC"
+        android:fillColor="#33FFFFFF"
         android:pathData="M54,54m-26,0a26,26 0,1 1,52 0a26,26 0,1 1,-52 0" />
 
     <!-- Crystal ball - main sphere -->
     <path
-        android:fillColor="#00FFCC"
+        android:fillColor="#FFFFFF"
         android:pathData="M54,54m-20,0a20,20 0,1 1,40 0a20,20 0,1 1,-40 0" />
 
     <!-- Crystal ball - inner shine -->
     <path
-        android:fillColor="#6600FFCC"
+        android:fillColor="#66FFFFFF"
         android:pathData="M54,54m-14,0a14,14 0,1 1,28 0a14,14 0,1 1,-28 0" />
 
     <!-- Trigram symbol: ☰ (Qian/Heaven) - three solid lines -->
     <!-- Top line -->
     <path
         android:fillColor="#0A0A0F"
-        android:strokeColor="#00FFCC"
+        android:strokeColor="#FFFFFF"
         android:strokeWidth="1.2"
         android:pathData="M44,42 L64,42" />
     <!-- Middle line -->
     <path
         android:fillColor="#0A0A0F"
-        android:strokeColor="#00FFCC"
+        android:strokeColor="#FFFFFF"
         android:strokeWidth="1.2"
         android:pathData="M44,50 L64,50" />
     <!-- Bottom line -->
     <path
         android:fillColor="#0A0A0F"
-        android:strokeColor="#00FFCC"
+        android:strokeColor="#FFFFFF"
         android:strokeWidth="1.2"
         android:pathData="M44,58 L64,58" />
 
     <!-- Small sparkle dots -->
     <path
-        android:fillColor="#00FFCC"
+        android:fillColor="#FFFFFF"
         android:pathData="M48,36m-1.2,0a1.2,1.2 0,1 1,2.4 0a1.2,1.2 0,1 1,-2.4 0" />
     <path
-        android:fillColor="#00FFCC"
+        android:fillColor="#FFFFFF"
         android:pathData="M62,38m-0.8,0a0.8,0.8 0,1 1,1.6 0a0.8,0.8 0,1 1,-1.6 0" />
 </vector>

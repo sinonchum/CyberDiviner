@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.cyberdiviner.ui.theme.*
+import com.cyberdiviner.engine.Persona
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -32,10 +33,12 @@ fun SettingsScreen(
     val baseUrl by viewModel.baseUrl.collectAsState()
     val provider by viewModel.provider.collectAsState()
     val modelId by viewModel.modelId.collectAsState()
+    val personaId by viewModel.personaId.collectAsState()
     val saved by viewModel.saved.collectAsState()
 
     var showApiKey by remember { mutableStateOf(false) }
     var providerExpanded by remember { mutableStateOf(false) }
+    var personaExpanded by remember { mutableStateOf(false) }
 
     val providers = listOf("OPENAI_COMPATIBLE", "OPENAI", "ANTHROPIC", "OLLAMA")
     val providerDisplayNames = mapOf(
@@ -144,6 +147,61 @@ fun SettingsScreen(
                     }
                 }
             }
+
+            // ── Section: Persona ──────────────────────────────────────
+            SectionHeader("Persona")
+
+            ExposedDropdownMenuBox(
+                expanded = personaExpanded,
+                onExpandedChange = { personaExpanded = it }
+            ) {
+                OutlinedTextField(
+                    value = Persona.ALL[personaId]?.name ?: "Default",
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Persona", fontSize = 13.sp) },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = personaExpanded) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .menuAnchor(),
+                    colors = settingsFieldColors(),
+                    shape = MaterialTheme.shapes.medium,
+                    textStyle = LocalTextStyle.current.copy(
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = 14.sp,
+                        color = TextPrimary
+                    )
+                )
+
+                ExposedDropdownMenu(
+                    expanded = personaExpanded,
+                    onDismissRequest = { personaExpanded = false }
+                ) {
+                    Persona.ALL.forEach { (id, persona) ->
+                        DropdownMenuItem(
+                            text = {
+                                Text(
+                                    persona.name,
+                                    fontFamily = FontFamily.Monospace,
+                                    fontSize = 14.sp
+                                )
+                            },
+                            onClick = {
+                                viewModel.setPersonaId(id)
+                                personaExpanded = false
+                            }
+                        )
+                    }
+                }
+            }
+
+            Text(
+                Persona.ALL[personaId]?.voiceDescription ?: "",
+                color = TextMuted,
+                fontSize = 11.sp,
+                lineHeight = 16.sp,
+                fontFamily = FontFamily.Monospace
+            )
 
             // ── Section: API Key ──────────────────────────────────────
             SectionHeader("API Key")

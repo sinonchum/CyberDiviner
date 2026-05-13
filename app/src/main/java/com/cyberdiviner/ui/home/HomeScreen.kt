@@ -48,7 +48,7 @@ private data class FeatureEntry(
 
 private val FEATURE_ENTRIES = listOf(
     FeatureEntry(
-        Routes.LIUYAO, Icons.Default.Explore, "\u516D\u7237", "Liu Yao",
+        Routes.LIUYAO, Icons.Default.Explore, "\u516D\u723B", "Liu Yao",
         "\u91CF\u5B50\u535C\u5366 \u00B7 Quantum I Ching",
         NeonCyan
     ),
@@ -487,7 +487,7 @@ private fun WarningsSection(reading: AlmanacEngine.DayReading) {
                     Icon(Icons.Default.Autorenew, contentDescription = null, tint = CyberSecondary, modifier = Modifier.size(16.dp))
                     Column {
                         Text("\u8282\u6C14: ${term.name}", color = CyberSecondary, fontSize = 13.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
-                        Text("${term.englishName} \u00B7 ${term.element}\u6C14", color = CyberSecondary.copy(alpha = 0.6f), fontSize = 10.sp, fontFamily = FontFamily.Monospace)
+                        Text("${term.englishName} \u00B7 ${AlmanacEngine.ELEMENT_CN[term.element] ?: term.element}\u6C14", color = CyberSecondary.copy(alpha = 0.6f), fontSize = 10.sp, fontFamily = FontFamily.Monospace)
                     }
                 }
             }

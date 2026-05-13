@@ -39,9 +39,9 @@ object PosterGenerator {
 
     // ── Brand colours (int form) ─────────────────────────────────────────
     private val BG_COLOR = 0xFF0A0A0Fu.toInt()
-    private val NEON_CYAN = 0xFF00FFCCu.toInt()
-    private val NEON_MAGENTA = 0xFFFF00FFu.toInt()
-    private val NEON_GREEN = 0xFF39FF14u.toInt()
+    private val NEON_CYAN = 0xFFFFFFFFu.toInt()
+    private val NEON_MAGENTA = 0xFF999999u.toInt()
+    private val NEON_GREEN = 0xFF555555u.toInt()
     private val TEXT_PRIMARY = 0xFFE0E0E0u.toInt()
     private val TEXT_SECONDARY = 0xFF8888AAu.toInt()
     private val FORTUNE_GOLD = 0xFFFFD700u.toInt()

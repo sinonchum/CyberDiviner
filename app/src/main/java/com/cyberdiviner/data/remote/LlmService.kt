@@ -90,6 +90,7 @@ class LlmService(
 
         if (!response.isSuccessful) {
             val body = response.body?.string() ?: ""
+            response.close()
             throw LlmException(response.code, "Stream request failed: ${response.code} $body")
         }
 
@@ -204,14 +205,14 @@ class LlmService(
 
     private fun executeRequest(request: Request): String {
         val response = client.newCall(request).execute()
-        val body = response.body?.string() ?: ""
-
-        if (!response.isSuccessful) {
-            Log.e(TAG, "HTTP ${response.code}: $body")
-            throw LlmException(response.code, "Request failed: ${response.code} $body")
+        response.use {
+            val body = it.body?.string() ?: ""
+            if (!it.isSuccessful) {
+                Log.e(TAG, "HTTP ${it.code}: $body")
+                throw LlmException(it.code, "Request failed: ${it.code} $body")
+            }
+            return body
         }
-
-        return body
     }
 
     private suspend fun Call.await(): Response = suspendCancellableCoroutine { cont ->

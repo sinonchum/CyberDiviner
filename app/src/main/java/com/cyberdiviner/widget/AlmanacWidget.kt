@@ -65,9 +65,9 @@ class AlmanacWidget : GlanceAppWidget() {
         ganzhi: String
     ) {
         val cyberBlack = ColorProvider(Color(0xFF0A0A0F))
-        val neonCyan = ColorProvider(Color(0xFF00FFCC))
-        val neonMagenta = ColorProvider(Color(0xFFFF00FF))
-        val neonGreen = ColorProvider(Color(0xFF39FF14))
+        val neonCyan = ColorProvider(Color(0xFFFFFFFF))
+        val neonMagenta = ColorProvider(Color(0xFF999999))
+        val neonGreen = ColorProvider(Color(0xFF555555))
         val textSecondary = ColorProvider(Color(0xFF8888AA))
         val cyberGray = ColorProvider(Color(0xFF1A1A2E))
 

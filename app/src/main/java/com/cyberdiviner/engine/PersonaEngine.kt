@@ -161,10 +161,10 @@ data class Persona(
 class PersonaEngine(
     private val llmService: LlmService
 ) {
-    private var activePersona: Persona = Persona.DEFAULT
-    private var customPersonas: MutableMap<String, Persona> = mutableMapOf()
-    private var activeModel: LlmModel? = null
-    private var activeApiKey: String = ""
+    @Volatile private var activePersona: Persona = Persona.DEFAULT
+    private val customPersonas: MutableMap<String, Persona> = java.util.concurrent.ConcurrentHashMap()
+    @Volatile private var activeModel: LlmModel? = null
+    @Volatile private var activeApiKey: String = ""
 
     // ── Persona management ──────────────────────────────────────────────────
 
