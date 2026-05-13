@@ -36,3 +36,7 @@ val FortuneGold = Color(0xFFFBBF24)       // warm gold
 val NeonCyan = CyberPrimary
 val NeonMagenta = CyberSecondary
 val NeonGreen = CyberTertiary
+val NeonPurple = CyberSecondary   // lavender replaces purple
+val NeonOrange = CyberTertiary    // amber replaces orange
+val NeonBlue = Color(0xFF60A5FA)  // soft blue kept for tarot suits / coin states
+val NeonYellow = CyberTertiary   // amber replaces yellow (used in energy card)
