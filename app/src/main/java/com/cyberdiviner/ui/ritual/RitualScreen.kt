@@ -1,5 +1,5 @@
 package com.cyberdiviner.ui.ritual
-
+import com.cyberdiviner.ui.theme.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -48,7 +48,7 @@ fun RitualScreen(
                 text = "[ 仪规执行 ]",
                 color = TextMuted,
                 fontSize = 11.sp,
-                fontFamily = FontFamily.Monospace,
+                fontFamily = HuiwenFontFamily,
                 letterSpacing = 2.sp
             )
             Spacer(modifier = Modifier.height(4.dp))
@@ -56,7 +56,7 @@ fun RitualScreen(
                 text = "RITUAL EXECUTION",
                 color = TextMuted,
                 fontSize = 11.sp,
-                fontFamily = FontFamily.Monospace,
+                fontFamily = MonoFontFamily,
                 letterSpacing = 3.sp
             )
             Spacer(modifier = Modifier.height(40.dp))
@@ -115,7 +115,7 @@ fun RitualScreen(
                 text = "[ RETURN ]",
                 color = TextMuted,
                 fontSize = 11.sp,
-                fontFamily = FontFamily.Monospace,
+                fontFamily = MonoFontFamily,
                 letterSpacing = 2.sp,
                 modifier = Modifier.clickable { onBack() }
             )

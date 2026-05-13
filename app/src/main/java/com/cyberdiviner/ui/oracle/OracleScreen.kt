@@ -1,5 +1,6 @@
 package com.cyberdiviner.ui.oracle
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -11,6 +12,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -63,30 +66,43 @@ fun OracleScreen(
             .systemBarsPadding()
             .padding(horizontal = 32.dp, vertical = 32.dp)
     ) {
-        // -- Header ----------------------------------------------------------
+        // -- Header: Bridgewater uppercase monospace + red underline ----------
         Text(
             text = "叩问天机",
-            color = GrayTitle,
-            fontSize = 24.sp,
-            fontFamily = FontFamily.Serif,
+            color = GrayCaption,
+            fontFamily = HuiwenFontFamily,
+            fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
-            letterSpacing = 4.sp
+            letterSpacing = 3.sp
         )
-        Spacer(modifier = Modifier.height(6.dp))
+        // Red underline
+        Canvas(
+            modifier = Modifier
+                .width(120.dp)
+                .padding(top = 4.dp)
+                .height(2.dp)
+        ) {
+            drawRect(
+                color = AccentRed,
+                topLeft = Offset.Zero,
+                size = Size(size.width, size.height)
+            )
+        }
+        Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = "ROUND ${round}/${viewModel.maxRounds}",
             color = AccentRed,
             fontSize = 12.sp,
-            fontFamily = FontFamily.Monospace,
+            fontFamily = MonoFontFamily,
             letterSpacing = 2.sp
         )
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
         // -- Chat messages ---------------------------------------------------
         LazyColumn(
             modifier = Modifier.weight(1f),
             state = listState,
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+            verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
             items(messages) { msg ->
                 if (msg.isAgent) {
@@ -97,7 +113,7 @@ fun OracleScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
         // -- Input bar (shared VoiceInputField) ------------------------------
         VoiceInputField(
@@ -127,7 +143,7 @@ private fun AiBubble(text: String) {
             style = TextStyle(
                 color = GrayTitle,
                 fontSize = 15.sp,
-                fontFamily = FontFamily.Serif,
+                fontFamily = WenKaiFontFamily,
                 lineHeight = 24.sp
             )
         )
@@ -152,7 +168,7 @@ private fun UserBubble(text: String) {
                 text = text,
                 color = GrayTitle,
                 fontSize = 14.sp,
-                fontFamily = FontFamily.Monospace,
+                fontFamily = WenKaiFontFamily,
                 lineHeight = 20.sp
             )
         }

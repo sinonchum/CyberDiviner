@@ -1,5 +1,5 @@
 package com.cyberdiviner.ui.shared
-
+import com.cyberdiviner.ui.theme.*
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -132,7 +132,7 @@ fun VoiceInputField(
                 textStyle = TextStyle(
                     color = GrayTitle,
                     fontSize = 14.sp,
-                    fontFamily = FontFamily.Serif,
+                    fontFamily = WenKaiFontFamily,
                     lineHeight = 22.sp
                 ),
                 cursorBrush = SolidColor(CyberWhite),
@@ -144,7 +144,7 @@ fun VoiceInputField(
                                 text = placeholder,
                                 color = GrayCaption,
                                 fontSize = 14.sp,
-                                fontFamily = FontFamily.Serif
+                                fontFamily = WenKaiFontFamily
                             )
                         }
                         innerTextField()

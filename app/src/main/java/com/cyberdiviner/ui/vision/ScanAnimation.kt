@@ -158,7 +158,7 @@ fun ScanAnimation(
                 text = phase + ".".repeat(dotCount % 4),
                 color = AccentVision.copy(alpha = pulse),
                 fontSize = 13.sp,
-                fontFamily = FontFamily.Monospace,
+                fontFamily = MonoFontFamily,
                 letterSpacing = 3.sp
             )
             if (statusLines.isNotEmpty()) {
@@ -168,7 +168,7 @@ fun ScanAnimation(
                         text = line,
                         color = TextSecondary,
                         fontSize = 10.sp,
-                        fontFamily = FontFamily.Monospace,
+                        fontFamily = MonoFontFamily,
                     )
                 }
             }

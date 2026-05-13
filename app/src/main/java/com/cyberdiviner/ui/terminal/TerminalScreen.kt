@@ -1,5 +1,5 @@
 package com.cyberdiviner.ui.terminal
-
+import com.cyberdiviner.ui.theme.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
@@ -42,7 +42,7 @@ fun TerminalScreen(
                 text = "CYBERDIVINER v5.0",
                 color = TextMuted,
                 fontSize = 11.sp,
-                fontFamily = FontFamily.Monospace,
+                fontFamily = MonoFontFamily,
                 letterSpacing = 3.sp
             )
             Spacer(modifier = Modifier.height(4.dp))
@@ -50,7 +50,7 @@ fun TerminalScreen(
                 text = "System initialized. Select protocol.",
                 color = TextMuted,
                 fontSize = 12.sp,
-                fontFamily = FontFamily.Monospace
+                fontFamily = MonoFontFamily
             )
             Spacer(modifier = Modifier.height(48.dp))
 
@@ -58,7 +58,7 @@ fun TerminalScreen(
             CyberMenuItem(
                 title = "咨询代理",
                 subtitle = "CONSULT AGENT",
-                description = "进入 AI Agent 访谈流程，通过交互获取用户画像",
+                description = "进入天机访谈流程，通过交互获取你的命盘",
                 onClick = onConsult
             )
             Spacer(modifier = Modifier.height(24.dp))
@@ -87,7 +87,7 @@ fun TerminalScreen(
                 text = "CAUSAL CHAIN ACTIVE  |  SOUL HASH PENDING  |  NODE v5.0",
                 color = TextMuted,
                 fontSize = 10.sp,
-                fontFamily = FontFamily.Monospace,
+                fontFamily = MonoFontFamily,
                 letterSpacing = 2.sp
             )
         }

@@ -323,7 +323,7 @@ class TarotViewModel @Inject constructor(
             }
 
             _uiState.value = _uiState.value.copy(
-                interpretation = fullText.ifBlank { buildFallbackInterpretation(cards, spread, question) },
+interpretation = com.cyberdiviner.engine.Persona.stripActionDescriptions(fullText).ifBlank { buildFallbackInterpretation(cards, spread, question) },
                 phase = TarotPhase.RESULT
             )
         } catch (e: Exception) {
@@ -353,7 +353,7 @@ class TarotViewModel @Inject constructor(
         sb.appendLine("💡 你的问题：$question")
         sb.appendLine()
         sb.appendLine("⚡ 信号提示：牌阵已展开，但赛博先知暂时离线。")
-        sb.appendLine("请在设置中配置 API 密钥以获取完整的 AI 解读。")
+        sb.appendLine("请在设置中配置 API 密钥以获取完整的解读。")
         return sb.toString()
     }
 }

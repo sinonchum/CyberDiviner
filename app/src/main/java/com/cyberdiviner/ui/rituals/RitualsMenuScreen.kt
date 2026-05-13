@@ -6,26 +6,24 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.cyberdiviner.ui.shared.CyberButton
 import com.cyberdiviner.ui.shared.CyberMenuItem
 import com.cyberdiviner.ui.theme.CyberBlack
-import com.cyberdiviner.ui.theme.TextMuted
 
 /**
- * RitualsMenuScreen -- Intermediate menu for ritual selection.
+ * RitualsMenuScreen -- Tab for ritual selection (bottom nav destination).
  *
- * Three options: 周易六爻, 赛博塔罗, 视界摸骨.
- * Left-aligned, same layout as HomeScreen.
+ * Four options: 周易六爻, 赛博塔罗, 视界摸骨, 电子木鱼.
+ * Left-aligned. No back button — navigation handled by bottom bar.
  */
 @Composable
 fun RitualsMenuScreen(
     onIChing: () -> Unit,
     onTarot: () -> Unit,
     onVision: () -> Unit,
-    onBack: () -> Unit
+    onMuyu: () -> Unit,
+    onAlmanac: () -> Unit,
+    @Suppress("UNUSED_PARAMETER") onBack: () -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -60,15 +58,22 @@ fun RitualsMenuScreen(
                 description = "",
                 onClick = onVision
             )
-        }
+            Spacer(modifier = Modifier.height(24.dp))
 
-        // Bottom back button
-        CyberButton(
-            text = "[ 返回 ]",
-            onClick = onBack,
-            modifier = Modifier
-                .align(Alignment.BottomStart)
-                .padding(bottom = 48.dp)
-        )
+            CyberMenuItem(
+                title = "电子木鱼",
+                subtitle = "",
+                description = "",
+                onClick = onMuyu
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+
+            CyberMenuItem(
+                title = "赛博黄历",
+                subtitle = "",
+                description = "",
+                onClick = onAlmanac
+            )
+        }
     }
 }

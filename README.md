@@ -1,10 +1,8 @@
 <div align="center">
 
-# 🔮 CyberDiviner
+# CyberDiviner: Cyberpunk Fortune-Telling for Android
 
-### AI-Powered Cyberpunk Fortune-Telling for Android
-
-**A cyberpunk-styled divination app that blends Chinese metaphysics with modern AI. Almanac, I-Ching, Tarot, face reading, and more, wrapped in neon aesthetics.**
+**A cyberpunk-styled divination app that blends Chinese metaphysics with modern Android development. Almanac, I-Ching, Tarot, face reading, and more -- wrapped in neon aesthetics.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/Platform-Android-3DDC84.svg)]()
@@ -21,30 +19,34 @@
 
 ## What It Does
 
-CyberDiviner is a fortune-telling app that takes the ancient Chinese divination traditions and runs them through a cyberpunk filter. Dark backgrounds, neon accents, binary clocks, and AI-generated interpretations.
+CyberDiviner is a fortune-telling app that takes ancient Chinese divination traditions and runs them through a cyberpunk filter. Dark backgrounds, neon accents, binary clocks, and procedurally generated interpretations -- all running entirely on your device.
 
 ### Core Features
 
-**赛博黄历 (Cyber Almanac)**
-Daily readings based on the traditional Chinese calendar system (Ganzhi). Displays your day's energy level, auspicious/inauspicious activities, lucky colors, and a cyber-themed AI wisdom quote. A desktop widget keeps this info one glance away.
+**Oracle Chat (叩问天机)**
+A roadside fortune teller chat experience. Ask questions in natural language and receive cryptic, stylized responses drawn from classical Chinese divination lore. The fortune teller has a personality -- part sage, part street poet.
 
-**六爻占卜 (I-Ching Divination)**
-Shake your phone 6 times. The app simulates three-coin tosses, builds a hexagram, and feeds it to an AI that speaks in both classical Yi Jing and modern slang. Three persona modes: the ancient sage, the quantum taoist, and the sarcastic bot.
+**I-Ching Divination (周易六爻)**
+Shake your phone 6 times to simulate three-coin tosses. The app builds a hexagram from your results and generates a reading that blends classical Yi Jing commentary with modern interpretation. Three persona modes available: the ancient sage, the quantum taoist, and the sarcastic bot.
 
-**动态塔罗 (Cyber Tarot)**
-78-card deck with AI-recommended spreads. The app analyzes your question's complexity and suggests the right layout, from a single card to the Celtic Cross. Card flips come with haptic feedback.
+**Cyber Tarot (赛博塔罗)**
+78-card deck with multiple spread layouts. Choose from a single card draw, three-card past/present/future, or the full Celtic Cross. Card flips come with haptic feedback and neon-flavored animations.
 
-**科技看相 (AR Face Reading)**
-Camera-based face scanning using on-device MediaPipe. No images leave your phone. The app tracks 478 facial landmarks, maps them to physiognomy concepts, and generates a reading overlaid with a scan-line HUD.
+**Face Reading (视界摸骨)**
+Camera-based face scanning using on-device MediaPipe. No images leave your phone. The app tracks 478 facial landmarks, maps them to traditional physiognomy concepts, and generates a reading overlaid with a scan-line HUD.
 
-**电子木鱼 (Digital Wooden Fish)**
-Tap to accumulate merit. That's it. Sometimes the simplest features get the most daily use.
+**Digital Wooden Fish (电子木鱼)**
+Tap to accumulate merit. Sometimes the simplest features get the most daily use.
 
-### Bonus Features
+**Archive (因果命簿)**
+Your reading history, stored locally. Review past divinations, track patterns, and revisit previous fortune teller conversations.
+
+**Desktop Widget (桌面小插件)**
+A home screen widget that displays your daily almanac -- day energy level, auspicious/inauspicious activities, and lucky colors at a glance.
+
+### Additional Features
 
 - **Fortune Poster Generator** -- One-tap shareable cyberpunk posters with your reading results
-- **Three AI Personas** -- Ancient Sage, Quantum Taoist, Sarcasm Bot
-- **Model-Agnostic Backend** -- Works with OpenAI, Anthropic, Ollama, or any OpenAI-compatible API
 - **Offline Core** -- I-Ching engine and almanac calculations run entirely on-device
 
 ---
@@ -55,17 +57,13 @@ Tap to accumulate merit. That's it. Sometimes the simplest features get the most
 graph TB
     subgraph UI["UI Layer"]
         HOME["HomeScreen\n赛博黄历"]
+        ORACLE["OracleScreen\n叩问天机"]
         LIUYAO["LiuyaoScreen\n六爻占卜"]
         TAROT["TarotScreen\n动态塔罗"]
         VISION["VisionScreen\n科技看相"]
         MUYU["MuyuScreen\n电子木鱼"]
+        ARCHIVE["ArchiveScreen\n因果命簿"]
         WIDGET["AlmanacWidget\n桌面小组件"]
-    end
-
-    subgraph AI["AI Layer"]
-        LLM["LLMService\nModel-Agnostic"]
-        PROMPT["PromptManager\n场景 Prompt"]
-        PERSONA["PersonaEngine\n3 种人格"]
     end
 
     subgraph ENG["Divination Engine"]
@@ -85,28 +83,25 @@ graph TB
     end
 
     HOME --> ALMANAC
-    HOME --> LLM
     LIUYAO --> LIUYAO_E
-    LIUYAO --> LLM
     TAROT --> TAROT_E
-    TAROT --> LLM
     VISION --> CAM
-    VISION --> LLM
     MUYU --> ROOM
-    LLM --> PROMPT
-    LLM --> PERSONA
     LIUYAO --> ROOM
     TAROT --> ROOM
     VISION --> ROOM
     ALMANAC --> WIDGET
     POSTER --> HOME
+    ORACLE --> ROOM
+    ARCHIVE --> ROOM
 
     style HOME fill:#2D9B83,color:#E0E0E0
+    style ORACLE fill:#7B61FF,color:#E0E0E0
     style LIUYAO fill:#7B61FF,color:#E0E0E0
     style TAROT fill:#E8B339,color:#E0E0E0
     style VISION fill:#1A7A6A,color:#E0E0E0
     style MUYU fill:#4A6670,color:#E0E0E0
-    style LLM fill:#7B61FF,color:#E0E0E0
+    style ARCHIVE fill:#5A5A5A,color:#E0E0E0
 ```
 
 ### Tech Stack
@@ -116,7 +111,6 @@ graph TB
 | UI | Jetpack Compose 1.8, Material 3, Custom shaders |
 | DI | Hilt |
 | Database | Room + DataStore |
-| Network | OkHttp + kotlinx.serialization |
 | Camera | CameraX + MediaPipe Face Landmarker |
 | Widget | Jetpack Glance |
 | Build | Kotlin 2.0, AGP 8.7.3, Java 17 |
@@ -146,10 +140,6 @@ cd CyberDiviner
 adb install -t -r app/build/outputs/apk/debug/app-debug.apk
 ```
 
-### Configure AI (Optional)
-
-The app works offline for I-Ching and almanac. For AI-powered interpretations, set your API key in the app settings or via environment variables.
-
 ---
 
 ## Design Language
@@ -170,14 +160,15 @@ app/src/main/java/com/cyberdiviner/
 ├── ui/
 │   ├── theme/          # Color, Typography, AcidDesign
 │   ├── home/           # Cyber Almanac dashboard
+│   ├── oracle/         # Oracle Chat (叩问天机)
 │   ├── liuyao/         # I-Ching divination + coin animation
 │   ├── tarot/          # Tarot card spreads
-│   ├── vision/         # AR face scanning
+│   ├── vision/         # Face scanning + scan-line HUD
 │   ├── muyu/           # Digital wooden fish
+│   ├── archive/        # Reading history (因果命簿)
 │   └── shared/         # HapticUtils, BinaryClock, PosterGenerator
 ├── data/
 │   ├── local/          # Room DB, DAOs, DataStore
-│   ├── remote/         # LLM service, Prompt manager
 │   └── model/          # Data classes
 ├── engine/             # LiuyaoEngine, TarotEngine, AlmanacEngine
 └── widget/             # Glance desktop widget
@@ -207,8 +198,6 @@ MIT
 ---
 
 <div align="center">
-
-**Quality comes from the system, not the model.**
 
 [![GitHub](https://img.shields.io/badge/GitHub-sinonchum-181717?style=flat&logo=github)](https://github.com/sinonchum)
 

@@ -1,5 +1,5 @@
 package com.cyberdiviner.ui.shared
-
+import com.cyberdiviner.ui.theme.*
 import android.content.Context
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
@@ -70,7 +70,7 @@ fun TypewriterText(
         text = displayedText + cursor,
         modifier = modifier,
         style = style,
-        fontFamily = FontFamily.Monospace,
+        fontFamily = MonoFontFamily,
         maxLines = Int.MAX_VALUE,
         overflow = TextOverflow.Clip
     )

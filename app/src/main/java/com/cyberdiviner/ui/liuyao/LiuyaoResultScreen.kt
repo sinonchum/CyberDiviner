@@ -55,12 +55,15 @@ fun LiuyaoResultScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
+                TopAppBar(
                 title = {
                     Text(
                         "卦象解读",
-                        color = NeonCyan,
-                        fontWeight = FontWeight.Bold
+                        color = GrayCaption,
+                        fontFamily = HuiwenFontFamily,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 3.sp
                     )
                 },
                 navigationIcon = {
@@ -68,7 +71,7 @@ fun LiuyaoResultScreen(
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "返回",
-                            tint = NeonCyan
+                            tint = GrayCaption
                         )
                     }
                 },
@@ -80,7 +83,7 @@ fun LiuyaoResultScreen(
                         Icon(
                             Icons.Default.Refresh,
                             contentDescription = "重新起卦",
-                            tint = NeonMagenta
+                            tint = AccentRed
                         )
                     }
                 },
@@ -97,7 +100,7 @@ fun LiuyaoResultScreen(
                     .padding(padding),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator(color = NeonCyan)
+                CircularProgressIndicator(color = GrayCaption)
             }
             return@Scaffold
         }
@@ -194,10 +197,10 @@ private fun QuestionBanner(question: String) {
                     modifier = Modifier.size(14.dp)
                 )
                 Spacer(modifier = Modifier.width(4.dp))
-                Text("问事", color = NeonCyan, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Text("问事", color = NeonCyan, fontSize = 12.sp, fontFamily = WenKaiFontFamily, fontWeight = FontWeight.Bold)
             }
             Spacer(modifier = Modifier.height(4.dp))
-            Text(question, color = TextPrimary, fontSize = 16.sp)
+            Text(question, color = TextPrimary, fontSize = 16.sp, fontFamily = WenKaiFontFamily)
         }
     }
 }
@@ -210,11 +213,12 @@ private fun HexagramHeader(result: LiuyaoEngine.DivinationResult) {
     ) {
         // Primary hexagram
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("本卦", color = TextSecondary, fontSize = 12.sp)
+            Text("本卦", color = TextSecondary, fontSize = 12.sp, fontFamily = WenKaiFontFamily)
             Text(
                 result.primaryHexagram.chineseName,
                 color = NeonCyan,
                 fontSize = 32.sp,
+                fontFamily = WenKaiFontFamily,
                 fontWeight = FontWeight.Bold
             )
             Text(
@@ -225,7 +229,8 @@ private fun HexagramHeader(result: LiuyaoEngine.DivinationResult) {
             Text(
                 "第${result.primaryHexagram.number}卦",
                 color = TextMuted,
-                fontSize = 11.sp
+                fontSize = 11.sp,
+                fontFamily = WenKaiFontFamily
             )
         }
 
@@ -241,11 +246,12 @@ private fun HexagramHeader(result: LiuyaoEngine.DivinationResult) {
 
             // Changed hexagram
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("变卦", color = TextSecondary, fontSize = 12.sp)
+                Text("变卦", color = TextSecondary, fontSize = 12.sp, fontFamily = WenKaiFontFamily)
                 Text(
                     result.changedHexagram.chineseName,
                     color = NeonMagenta,
                     fontSize = 32.sp,
+                    fontFamily = WenKaiFontFamily,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
@@ -256,7 +262,8 @@ private fun HexagramHeader(result: LiuyaoEngine.DivinationResult) {
                 Text(
                     "第${result.changedHexagram.number}卦",
                     color = TextMuted,
-                    fontSize = 11.sp
+                    fontSize = 11.sp,
+                    fontFamily = WenKaiFontFamily
                 )
             }
         }
@@ -280,6 +287,7 @@ private fun HexagramDiagram(result: LiuyaoEngine.DivinationResult) {
                 "━━━ 六爻排列 ━━━",
                 color = TextMuted,
                 fontSize = 12.sp,
+                fontFamily = HuiwenFontFamily,
                 letterSpacing = 2.sp
             )
             Spacer(modifier = Modifier.height(12.dp))
@@ -380,18 +388,20 @@ private fun WorldResponseSection(result: LiuyaoEngine.DivinationResult) {
             modifier = Modifier.weight(1f)
         ) {
             Column(modifier = Modifier.padding(12.dp)) {
-                Text("世爻 (Self)", color = NeonCyan, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                Text("世爻 (Self)", color = NeonCyan, fontSize = 11.sp, fontFamily = WenKaiFontFamily, fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.height(4.dp))
                 val worldLine = result.lines[result.worldLine]
                 Text(
                     "第${result.worldLine + 1}爻 [${worldLine.branch}]",
                     color = TextPrimary,
-                    fontSize = 14.sp
+                    fontSize = 14.sp,
+                    fontFamily = WenKaiFontFamily
                 )
                 Text(
                     worldLine.relation?.chinese ?: "",
                     color = NeonCyan,
-                    fontSize = 13.sp
+                    fontSize = 13.sp,
+                    fontFamily = WenKaiFontFamily
                 )
             }
         }
@@ -403,18 +413,20 @@ private fun WorldResponseSection(result: LiuyaoEngine.DivinationResult) {
             modifier = Modifier.weight(1f)
         ) {
             Column(modifier = Modifier.padding(12.dp)) {
-                Text("应爻 (Other)", color = NeonMagenta, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                Text("应爻 (Other)", color = NeonMagenta, fontSize = 11.sp, fontFamily = WenKaiFontFamily, fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.height(4.dp))
                 val responseLine = result.lines[result.responseLine]
                 Text(
                     "第${result.responseLine + 1}爻 [${responseLine.branch}]",
                     color = TextPrimary,
-                    fontSize = 14.sp
+                    fontSize = 14.sp,
+                    fontFamily = WenKaiFontFamily
                 )
                 Text(
                     responseLine.relation?.chinese ?: "",
                     color = NeonMagenta,
-                    fontSize = 13.sp
+                    fontSize = 13.sp,
+                    fontFamily = WenKaiFontFamily
                 )
             }
         }
@@ -433,6 +445,7 @@ private fun RelationsBranchesSection(result: LiuyaoEngine.DivinationResult) {
                 "━━━ 地支 · 六亲 ━━━",
                 color = TextMuted,
                 fontSize = 12.sp,
+                fontFamily = HuiwenFontFamily,
                 letterSpacing = 2.sp
             )
             Spacer(modifier = Modifier.height(8.dp))
@@ -444,6 +457,7 @@ private fun RelationsBranchesSection(result: LiuyaoEngine.DivinationResult) {
                         text = label,
                         color = TextMuted,
                         fontSize = 11.sp,
+                        fontFamily = HuiwenFontFamily,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.weight(1f),
                         textAlign = TextAlign.Center
@@ -485,6 +499,7 @@ private fun RelationsBranchesSection(result: LiuyaoEngine.DivinationResult) {
                             text = text,
                             color = TextPrimary,
                             fontSize = 12.sp,
+                            fontFamily = WenKaiFontFamily,
                             modifier = Modifier.weight(1f),
                             textAlign = TextAlign.Center
                         )
@@ -507,6 +522,7 @@ private fun SpiritsSection(result: LiuyaoEngine.DivinationResult) {
                 "━━━ 六神 ━━━",
                 color = TextMuted,
                 fontSize = 12.sp,
+                fontFamily = HuiwenFontFamily,
                 letterSpacing = 2.sp
             )
             Spacer(modifier = Modifier.height(8.dp))
@@ -523,19 +539,22 @@ private fun SpiritsSection(result: LiuyaoEngine.DivinationResult) {
                         "${i + 1}爻",
                         color = TextMuted,
                         fontSize = 12.sp,
+                        fontFamily = WenKaiFontFamily,
                         modifier = Modifier.width(32.dp)
                     )
                     Text(
                         spirit.chinese,
                         color = NeonPurple,
                         fontSize = 14.sp,
+                        fontFamily = WenKaiFontFamily,
                         fontWeight = FontWeight.Medium,
                         modifier = Modifier.width(48.dp)
                     )
                     Text(
                         spirit.animal,
                         color = TextSecondary,
-                        fontSize = 12.sp
+                        fontSize = 12.sp,
+                        fontFamily = WenKaiFontFamily
                     )
                 }
             }
@@ -555,6 +574,7 @@ private fun HiddenLinesSection(result: LiuyaoEngine.DivinationResult) {
                 "━━━ 伏神 (Hidden Lines) ━━━",
                 color = TextMuted,
                 fontSize = 12.sp,
+                fontFamily = HuiwenFontFamily,
                 letterSpacing = 2.sp
             )
             Spacer(modifier = Modifier.height(8.dp))
@@ -569,18 +589,21 @@ private fun HiddenLinesSection(result: LiuyaoEngine.DivinationResult) {
                         "第${hidden.position + 1}爻",
                         color = TextMuted,
                         fontSize = 12.sp,
+                        fontFamily = WenKaiFontFamily,
                         modifier = Modifier.width(48.dp)
                     )
                     Text(
                         "[${hidden.branch}]",
                         color = TextSecondary,
                         fontSize = 12.sp,
+                        fontFamily = WenKaiFontFamily,
                         modifier = Modifier.width(40.dp)
                     )
                     Text(
                         hidden.relation?.chinese ?: "",
                         color = NeonOrange.copy(alpha = 0.7f),
-                        fontSize = 13.sp
+                        fontSize = 13.sp,
+                        fontFamily = WenKaiFontFamily
                     )
                 }
             }
@@ -600,6 +623,7 @@ private fun AnalysisSection(result: LiuyaoEngine.DivinationResult) {
                 "━━━ 分析 (Analysis) ━━━",
                 color = NeonCyan,
                 fontSize = 12.sp,
+                fontFamily = HuiwenFontFamily,
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 2.sp
             )
@@ -615,6 +639,7 @@ private fun AnalysisSection(result: LiuyaoEngine.DivinationResult) {
                 text = result.analysis.interpretation,
                 color = TextPrimary,
                 fontSize = 13.sp,
+                fontFamily = WenKaiFontFamily,
                 lineHeight = 20.sp
             )
 
@@ -625,6 +650,7 @@ private fun AnalysisSection(result: LiuyaoEngine.DivinationResult) {
                 text = result.analysis.advice,
                 color = AuspiciousGreen,
                 fontSize = 13.sp,
+                fontFamily = WenKaiFontFamily,
                 lineHeight = 20.sp
             )
 
@@ -636,12 +662,14 @@ private fun AnalysisSection(result: LiuyaoEngine.DivinationResult) {
                 text = "卦辞: ${result.primaryHexagram.judgment}",
                 color = TextSecondary,
                 fontSize = 12.sp,
+                fontFamily = WenKaiFontFamily,
                 fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
             )
             Text(
                 text = "象辞: ${result.primaryHexagram.image}",
                 color = TextSecondary,
                 fontSize = 12.sp,
+                fontFamily = WenKaiFontFamily,
                 fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
             )
         }
@@ -659,12 +687,14 @@ private fun AnalysisRow(label: String, value: String) {
             "  $label: ",
             color = TextMuted,
             fontSize = 13.sp,
+            fontFamily = WenKaiFontFamily,
             fontWeight = FontWeight.Bold
         )
         Text(
             value,
             color = TextPrimary,
-            fontSize = 13.sp
+            fontSize = 13.sp,
+            fontFamily = WenKaiFontFamily
         )
     }
 }
@@ -693,6 +723,7 @@ private fun LlmInterpretationSection(interpretation: String) {
                     "赛博先知的解读",
                     color = NeonCyan,
                     fontSize = 14.sp,
+                    fontFamily = HuiwenFontFamily,
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -702,6 +733,7 @@ private fun LlmInterpretationSection(interpretation: String) {
                 text = interpretation,
                 color = TextPrimary,
                 fontSize = 14.sp,
+                fontFamily = WenKaiFontFamily,
                 lineHeight = 22.sp
             )
         }
@@ -725,7 +757,7 @@ private fun ActionButtons(
             shape = RoundedCornerShape(12.dp),
             modifier = Modifier.weight(1f)
         ) {
-            Text("返回")
+            Text("返回", fontFamily = WenKaiFontFamily)
         }
 
         Button(
@@ -743,7 +775,7 @@ private fun ActionButtons(
                 modifier = Modifier.size(16.dp)
             )
             Spacer(modifier = Modifier.width(4.dp))
-            Text("重新起卦", fontWeight = FontWeight.Bold)
+            Text("重新起卦", fontFamily = WenKaiFontFamily, fontWeight = FontWeight.Bold)
         }
     }
 }

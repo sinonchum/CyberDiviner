@@ -16,6 +16,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -39,6 +41,8 @@ fun MuyuScreen(
     val totalHits by viewModel.totalHits.collectAsStateWithLifecycle()
     val sessionHits by viewModel.sessionHits.collectAsStateWithLifecycle()
     val hitTrigger by viewModel.hitTrigger.collectAsStateWithLifecycle()
+
+    val hapticFeedback = LocalHapticFeedback.current
 
     // ── Hit animation state ──────────────────────────────────────
     var isPressed by remember { mutableStateOf(false) }
@@ -115,6 +119,7 @@ fun MuyuScreen(
                     Text(
                         "电子木鱼",
                         color = AccentMuyu,
+                        fontFamily = HuiwenFontFamily,
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp
                     )
@@ -191,6 +196,7 @@ fun MuyuScreen(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null
                         ) {
+                            hapticFeedback.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                             isPressed = true
                             viewModel.hit()
                         }
@@ -220,6 +226,7 @@ fun MuyuScreen(
                         text = "＋1 功德",
                         color = AccentMuyu,
                         fontSize = 22.sp,
+                        fontFamily = WenKaiFontFamily,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.graphicsLayer {
                             translationY = -50f * meritAnimatable.value
@@ -234,6 +241,7 @@ fun MuyuScreen(
                 text = "轻触木鱼，积累功德",
                 color = TextSecondary,
                 fontSize = 14.sp,
+                fontFamily = WenKaiFontFamily,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(horizontal = 32.dp)
             )
@@ -252,10 +260,10 @@ fun MuyuScreen(
                     text = "session: ${viewModel.sessionId.value.take(8)}…",
                     color = TextMuted,
                     fontSize = 11.sp,
-                    fontFamily = FontFamily.Monospace
+                    fontFamily = MonoFontFamily
                 )
                 TextButton(onClick = { viewModel.clearSession() }) {
-                    Text("清除本次", color = AccentMuyu, fontSize = 12.sp)
+                    Text("清除本次", color = AccentMuyu, fontSize = 12.sp, fontFamily = WenKaiFontFamily)
                 }
             }
         }
@@ -271,12 +279,13 @@ private fun StatBadge(label: String, value: String, color: androidx.compose.ui.g
             color = color,
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
-            fontFamily = FontFamily.Monospace
+            fontFamily = MonoFontFamily
         )
         Text(
             text = label,
             color = TextSecondary,
-            fontSize = 12.sp
+            fontSize = 12.sp,
+            fontFamily = WenKaiFontFamily
         )
     }
 }

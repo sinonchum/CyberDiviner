@@ -108,11 +108,9 @@ fun VisionScreen(
         }
     }
 
-    // Whether the ViewModel camera pipeline is active
-    val cameraActive = scanStarted
-        && !cameraFailed
-        && uiState.phase != VisionPhase.IDLE
-        && uiState.phase != VisionPhase.ERROR
+    // Whether the ViewModel camera pipeline is active — show preview
+    // as soon as scan starts so the user sees the camera feed immediately.
+    val cameraActive = scanStarted && !cameraFailed
 
     // ── CameraX PreviewView (created once, reused) ──
     val previewView = remember {
@@ -154,7 +152,7 @@ fun VisionScreen(
 
     // ── Simulated fallback state ──
     var simProgress by remember { mutableFloatStateOf(0f) }
-    var simPhaseLabel by remember { mutableStateOf("INITIALIZING SENSOR ARRAY") }
+    var simPhaseLabel by remember { mutableStateOf("初始化传感器阵列") }
     var simLandmarks by remember { mutableStateOf<List<PointF>>(emptyList()) }
     var simStatusLines by remember { mutableStateOf<List<String>>(emptyList()) }
     var simComplete by remember { mutableStateOf(false) }
@@ -164,9 +162,9 @@ fun VisionScreen(
         if (!scanStarted || cameraActive) return@LaunchedEffect
 
         // Phase 0 – init
-        simPhaseLabel = "INITIALIZING SENSOR ARRAY"
+        simPhaseLabel = "初始化传感器阵列"
         delay(800)
-        simPhaseLabel = "FACE DETECTION IN PROGRESS"
+        simPhaseLabel = "面部识别中"
         delay(600)
 
         // Phase 1 – face detection: reveal landmarks gradually
@@ -178,12 +176,12 @@ fun VisionScreen(
         }
 
         // Phase 2 – mapping
-        simPhaseLabel = "MAPPING FACIAL TOPOLOGY"
+        simPhaseLabel = "绘制面相拓扑"
         simStatusLines = listOf(
-            "FOREHEAD  ████████░░ 78%",
-            "EYES      ██████████ 100%",
-            "NOSE      ███████░░░ 72%",
-            "MOUTH     █████████░ 95%",
+            "天庭  ████████░░ 78%",
+            "眼睛  ██████████ 100%",
+            "鼻子  ███████░░░ 72%",
+            "嘴巴  █████████░ 95%",
         )
         for (p in 70..90) {
             simProgress = p / 100f
@@ -191,7 +189,7 @@ fun VisionScreen(
         }
 
         // Phase 3 – analysis
-        simPhaseLabel = "ANALYZING ENERGY SIGNATURES"
+        simPhaseLabel = "分析气场能量"
         simStatusLines = listOf(
             "五行平衡: 木=3 火=5 土=2 金=4 水=6",
             "气场频率: 432 Hz",
@@ -203,7 +201,7 @@ fun VisionScreen(
         }
 
         // Phase 4 – complete
-        simPhaseLabel = "DIVINATION COMPLETE"
+        simPhaseLabel = "面相分析完成"
         simProgress = 1f
         simComplete = true
     }
@@ -220,13 +218,13 @@ fun VisionScreen(
         // Real camera pipeline
         displayProgress = uiState.scanProgress
         displayPhaseLabel = when (uiState.phase) {
-            VisionPhase.IDLE -> "INITIALIZING SENSOR ARRAY"
-            VisionPhase.SCANNING -> "FACE DETECTION IN PROGRESS"
-            VisionPhase.DETECTED -> "FACE CAPTURED"
-            VisionPhase.CAPTURING -> "CAPTURING FACIAL DATA"
-            VisionPhase.ANALYZING -> "ANALYZING ENERGY SIGNATURES"
-            VisionPhase.RESULT -> "DIVINATION COMPLETE"
-            VisionPhase.ERROR -> "SYSTEM ERROR"
+            VisionPhase.IDLE -> "初始化传感器阵列"
+            VisionPhase.SCANNING -> "面部识别中"
+            VisionPhase.DETECTED -> "面部已捕捉"
+            VisionPhase.CAPTURING -> "采集面部数据"
+            VisionPhase.ANALYZING -> "分析气场能量"
+            VisionPhase.RESULT -> "面相分析完成"
+            VisionPhase.ERROR -> "系统错误"
         }
         // Use simulated landmarks for visual overlay (MediaPipe 478-point
         // data is processed internally by the ViewModel into FacialFeatures)
@@ -293,7 +291,7 @@ fun VisionScreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp)
+                .padding(horizontal = 24.dp, vertical = 16.dp)
                 .align(Alignment.TopCenter),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -312,7 +310,7 @@ fun VisionScreen(
                 "VISION // FACE SCAN",
                 color = AccentVision,
                 fontSize = 14.sp,
-                fontFamily = FontFamily.Monospace,
+                fontFamily = MonoFontFamily,
                 letterSpacing = 2.sp
             )
             Spacer(Modifier.weight(1f))
@@ -323,8 +321,8 @@ fun VisionScreen(
                     .clip(RoundedCornerShape(50))
                     .background(
                         when {
-                            showResult -> FortuneGold
-                            cameraActive && uiState.faceDetected -> FortuneGold
+                            showResult -> GrayCaption
+                            cameraActive && uiState.faceDetected -> GrayCaption
                             isScanning -> AccentVision
                             else -> TextMuted
                         }
@@ -339,16 +337,16 @@ fun VisionScreen(
                     .fillMaxWidth()
                     .align(Alignment.Center)
                     .padding(32.dp)
-                    .clip(RoundedCornerShape(12.dp))
+                    .clip(RoundedCornerShape(4.dp))
                     .background(CyberSurface.copy(alpha = 0.95f))
                     .padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    "⚠ SYSTEM ERROR",
-                    color = Color.Red,
+                    "⚠ 系统错误",
+                    color = GrayCaption,
                     fontSize = 16.sp,
-                    fontFamily = FontFamily.Monospace
+                    fontFamily = HuiwenFontFamily
                 )
                 Spacer(Modifier.height(8.dp))
                 Text(
@@ -356,7 +354,7 @@ fun VisionScreen(
                     color = TextPrimary,
                     fontSize = 13.sp,
                     textAlign = TextAlign.Center,
-                    fontFamily = FontFamily.Monospace
+                    fontFamily = WenKaiFontFamily
                 )
                 Spacer(Modifier.height(16.dp))
                 CyberButton(
@@ -381,17 +379,17 @@ fun VisionScreen(
                     .fillMaxWidth()
                     .align(Alignment.BottomCenter)
                     .padding(20.dp)
-                    .clip(RoundedCornerShape(16.dp))
+                    .clip(RoundedCornerShape(4.dp))
                     .background(CyberSurface.copy(alpha = 0.92f))
                     .padding(24.dp)
                     .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    "✓ FACE ANALYSIS COMPLETE",
-                    color = FortuneGold,
+                    "✓ 面相分析完成",
+                    color = GrayCaption,
                     fontSize = 18.sp,
-                    fontFamily = FontFamily.Monospace
+                    fontFamily = HuiwenFontFamily
                 )
                 Spacer(Modifier.height(12.dp))
 
@@ -404,7 +402,7 @@ fun VisionScreen(
                         fontSize = 14.sp,
                         lineHeight = 22.sp,
                         textAlign = TextAlign.Left,
-                        fontFamily = FontFamily.Monospace
+                        fontFamily = WenKaiFontFamily
                     )
                 } else if (cameraActive && uiState.streamText.isNotBlank()) {
                     // Streaming LLM text (in case interpretation isn't final yet)
@@ -414,7 +412,7 @@ fun VisionScreen(
                         fontSize = 14.sp,
                         lineHeight = 22.sp,
                         textAlign = TextAlign.Left,
-                        fontFamily = FontFamily.Monospace
+                        fontFamily = WenKaiFontFamily
                     )
                 } else {
                     // Simulated fallback interpretation
@@ -425,7 +423,8 @@ fun VisionScreen(
                         color = TextPrimary,
                         fontSize = 14.sp,
                         lineHeight = 22.sp,
-                        textAlign = TextAlign.Center
+                        textAlign = TextAlign.Center,
+                        fontFamily = WenKaiFontFamily
                     )
                 }
 
@@ -437,24 +436,24 @@ fun VisionScreen(
                     val features = uiState.detectedFeatures
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         StatBadge("FACE", features.faceOval.shape.uppercase(), AccentVision)
-                        StatBadge("EYES", features.eyes.eyeSize.uppercase(), CyberSecondary)
+                        StatBadge("EYES", features.eyes.eyeSize.uppercase(), GrayCaption)
                         StatBadge("NOSE", features.nose.shape.uppercase(), AccentVision)
                     }
                     Spacer(Modifier.height(8.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        StatBadge("MOUTH", features.mouth.shape.uppercase(), CyberSecondary)
+                        StatBadge("MOUTH", features.mouth.shape.uppercase(), GrayCaption)
                         StatBadge("CHIN", features.chin.shape.uppercase(), AccentVision)
                         StatBadge(
                             "SYMMETRY",
                             "${String.format("%.0f", features.faceOval.symmetry * 100)}%",
-                            FortuneGold
+                            GrayCaption
                         )
                     }
                 } else {
                     // Simulated fallback badges
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         StatBadge("RATING", "S+", AccentVision)
-                        StatBadge("FIELD", "432Hz", CyberSecondary)
+                        StatBadge("FIELD", "432Hz", GrayCaption)
                         StatBadge("ELEMENT", "WATER", AccentVision)
                     }
                 }
@@ -487,39 +486,15 @@ fun VisionScreen(
             )
         }
 
-        // ── Bottom HUD bar ──
-        if (!showResult) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.BottomCenter)
-                    .padding(16.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(CyberSurface.copy(alpha = 0.7f))
-                    .padding(horizontal = 16.dp, vertical = 10.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                HUDItem("FRAME", if (cameraActive) "60 FPS" else "30 FPS")
-                HUDItem("SENSOR", if (cameraActive) "CAMERA" else "IR + UV")
-                HUDItem("TEMP", "36.4°C")
-                HUDItem("MODE", "FORTUNE")
-            }
-        }
     }
 }
 
 @Composable
 private fun StatBadge(label: String, value: String, color: Color) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(value, color = color, fontSize = 16.sp, fontFamily = FontFamily.Monospace)
-        Text(label, color = TextSecondary, fontSize = 10.sp)
+        Text(value, color = color, fontSize = 16.sp, fontFamily = MonoFontFamily)
+        Text(label, color = TextSecondary, fontSize = 10.sp, fontFamily = MonoFontFamily)
     }
 }
 
-@Composable
-private fun HUDItem(label: String, value: String) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(value, color = AccentVision, fontSize = 11.sp, fontFamily = FontFamily.Monospace)
-        Text(label, color = TextMuted, fontSize = 8.sp, fontFamily = FontFamily.Monospace)
-    }
-}
+

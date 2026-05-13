@@ -69,7 +69,7 @@ class AgentRepository(
     // ── System prompt ─────────────────────────────────────────────────────
 
     private val systemPrompt = """
-You are CyberDiviner's AI Agent — a cyberpunk fortune-telling oracle.
+You are CyberDiviner的算命师 — a cyberpunk fortune-telling oracle.
 
 ROLE:
 You conduct a brief, atmospheric interview with the user to understand their

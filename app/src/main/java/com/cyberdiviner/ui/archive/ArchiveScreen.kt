@@ -3,6 +3,7 @@ package com.cyberdiviner.ui.archive
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
@@ -12,12 +13,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.cyberdiviner.ui.shared.CyberButton
 import com.cyberdiviner.ui.theme.*
 
 // ── Data model ─────────────────────────────────────────────────────────────
@@ -84,7 +86,7 @@ private val mockArchive = listOf(
  * - Bottom-right: hash watermark (7sp, dark gray)
  */
 @Composable
-fun ArchiveScreen(onBack: () -> Unit) {
+fun ArchiveScreen(@Suppress("UNUSED_PARAMETER") onBack: () -> Unit) {
     var expandedIndex by remember { mutableStateOf<Int?>(null) }
 
     Box(
@@ -94,22 +96,35 @@ fun ArchiveScreen(onBack: () -> Unit) {
             .padding(horizontal = 32.dp, vertical = 32.dp)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            // ── Header ──────────────────────────────
+            // ── Header: Bridgewater uppercase monospace + red underline ──
             Text(
                 text = "因果命簿",
-                color = GrayTitle,
-                fontSize = 24.sp,
-                fontFamily = FontFamily.Serif,
+                color = GrayCaption,
+                fontFamily = HuiwenFontFamily,
+                fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
-                letterSpacing = 4.sp
+                letterSpacing = 3.sp
             )
-            Spacer(modifier = Modifier.height(6.dp))
+            // Red underline
+            Canvas(
+                modifier = Modifier
+                    .width(120.dp)
+                    .padding(top = 4.dp)
+                    .height(2.dp)
+            ) {
+                drawRect(
+                    color = AccentRed,
+                    topLeft = Offset.Zero,
+                    size = Size(size.width, size.height)
+                )
+            }
+            Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = "CAUSAL LEDGER",
-                color = AccentRed,
-                fontSize = 12.sp,
-                fontFamily = FontFamily.Monospace,
-                letterSpacing = 3.sp
+                color = GrayCaption,
+                fontSize = 11.sp,
+                fontFamily = MonoFontFamily,
+                letterSpacing = 2.sp
             )
             Spacer(modifier = Modifier.height(48.dp))
 
@@ -131,14 +146,6 @@ fun ArchiveScreen(onBack: () -> Unit) {
                     )
                 }
             }
-
-            // ── Footer ──────────────────────────────
-            Spacer(modifier = Modifier.height(24.dp))
-            CyberButton(
-                text = "[ 返回 ]",
-                onClick = onBack,
-                modifier = Modifier.fillMaxWidth()
-            )
         }
     }
 }
@@ -172,13 +179,13 @@ private fun ArchiveCard(
                     text = entry.lunarDate,
                     color = GrayCaption,
                     fontSize = 12.sp,
-                    fontFamily = FontFamily.Serif
+                    fontFamily = MonoFontFamily
                 )
                 Text(
                     text = entry.type,
                     color = AccentRed,
                     fontSize = 11.sp,
-                    fontFamily = FontFamily.Monospace,
+                    fontFamily = MonoFontFamily,
                     letterSpacing = 1.sp
                 )
             }
@@ -190,7 +197,7 @@ private fun ArchiveCard(
                 text = entry.title,
                 color = GrayTitle,
                 fontSize = 32.sp,
-                fontFamily = FontFamily.Serif,
+                fontFamily = HuiwenFontFamily,
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 6.sp,
                 textAlign = TextAlign.Start
@@ -203,7 +210,7 @@ private fun ArchiveCard(
                 text = entry.interpretation,
                 color = GrayBody,
                 fontSize = 14.sp,
-                fontFamily = FontFamily.Serif,
+                fontFamily = WenKaiFontFamily,
                 lineHeight = 24.sp
             )
 
@@ -215,7 +222,7 @@ private fun ArchiveCard(
                         text = "完整解读已归档。后续算法将基于此哈希运行。",
                         color = GrayCaption,
                         fontSize = 12.sp,
-                        fontFamily = FontFamily.Serif,
+                        fontFamily = WenKaiFontFamily,
                         lineHeight = 20.sp
                     )
                 }
@@ -232,7 +239,7 @@ private fun ArchiveCard(
                     text = entry.hash,
                     color = GrayMuted,
                     fontSize = 7.sp,
-                    fontFamily = FontFamily.Monospace
+                    fontFamily = MonoFontFamily
                 )
             }
         }

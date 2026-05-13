@@ -86,7 +86,7 @@ fun GeometricCoinAnimation(
             text = "第 ${currentTossIndex + 1} / 6 爻",
             color = GrayCaption,
             fontSize = 14.sp,
-            fontFamily = FontFamily.Serif,
+            fontFamily = WenKaiFontFamily,
             fontWeight = FontWeight.Medium
         )
 
@@ -166,7 +166,7 @@ fun GeometricCoinAnimation(
                 text = stateLabel,
                 color = GrayBody,
                 fontSize = 16.sp,
-                fontFamily = FontFamily.Serif,
+                fontFamily = WenKaiFontFamily,
                 fontWeight = FontWeight.Medium,
                 letterSpacing = 4.sp
             )
@@ -175,7 +175,7 @@ fun GeometricCoinAnimation(
                 text = "演算中...",
                 color = GrayCaption,
                 fontSize = 14.sp,
-                fontFamily = FontFamily.Serif
+                fontFamily = WenKaiFontFamily
             )
         } else {
             // Tap to toss
@@ -183,7 +183,7 @@ fun GeometricCoinAnimation(
                 text = "轻触屏幕起卦",
                 color = GrayCaption,
                 fontSize = 13.sp,
-                fontFamily = FontFamily.Serif
+                fontFamily = WenKaiFontFamily
             )
         }
     }
@@ -238,7 +238,7 @@ fun SixTossAnimation(
                 text = "已得爻象",
                 color = GrayCaption,
                 fontSize = 12.sp,
-                fontFamily = FontFamily.Serif,
+                fontFamily = WenKaiFontFamily,
                 letterSpacing = 2.sp
             )
             Spacer(modifier = Modifier.height(12.dp))
@@ -256,7 +256,7 @@ fun SixTossAnimation(
                         text = "${i + 1}",
                         color = GrayCaption,
                         fontSize = 12.sp,
-                        fontFamily = FontFamily.Monospace,
+                        fontFamily = MonoFontFamily,
                         modifier = Modifier.width(20.dp)
                     )
 
@@ -309,7 +309,7 @@ fun SixTossAnimation(
                             text = changeMark,
                             color = GrayBody,
                             fontSize = 12.sp,
-                            fontFamily = FontFamily.Monospace
+                            fontFamily = MonoFontFamily
                         )
                     }
                 }

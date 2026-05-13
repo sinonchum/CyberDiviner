@@ -38,6 +38,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.File
@@ -60,6 +61,7 @@ enum class VisionPhase {
  * Extracted facial features from MediaPipe Face Landmarker, mapped to
  * Chinese physiognomy (面相) concepts.
  */
+@Serializable
 data class FacialFeatures(
     val faceOval: FaceOval = FaceOval(),
     val forehead: ForeheadFeatures = ForeheadFeatures(),
@@ -71,6 +73,7 @@ data class FacialFeatures(
     val eyebrows: EyebrowFeatures = EyebrowFeatures()
 )
 
+@Serializable
 data class FaceOval(
     val shape: String = "oval",       // oval / round / long / square / heart
     val width: Float = 0f,
@@ -78,6 +81,7 @@ data class FaceOval(
     val symmetry: Float = 1.0f       // 0-1, 1 = perfectly symmetric
 )
 
+@Serializable
 data class ForeheadFeatures(
     val height: Float = 0f,
     val width: Float = 0f,
@@ -86,6 +90,7 @@ data class ForeheadFeatures(
     val fullness: String = "normal"   // full / flat / sunken
 )
 
+@Serializable
 data class EyeFeatures(
     val leftEyeOpenness: Float = 0f,
     val rightEyeOpenness: Float = 0f,
@@ -95,6 +100,7 @@ data class EyeFeatures(
     val gazeDirection: String = "center"
 )
 
+@Serializable
 data class NoseFeatures(
     val bridgeHeight: Float = 0f,
     val tipWidth: Float = 0f,
@@ -103,6 +109,7 @@ data class NoseFeatures(
     val bridgeDescription: String = "normal" // high / low / normal
 )
 
+@Serializable
 data class MouthFeatures(
     val width: Float = 0f,
     val lipThickness: Float = 0f,
@@ -111,6 +118,7 @@ data class MouthFeatures(
     val cornerUpturn: Float = 0f      // negative = downturned
 )
 
+@Serializable
 data class EarFeatures(
     val leftEarSize: Float = 0f,
     val rightEarSize: Float = 0f,
@@ -118,12 +126,14 @@ data class EarFeatures(
     val attachment: String = "detached" // attached / detached
 )
 
+@Serializable
 data class ChinFeatures(
     val shape: String = "rounded",    // pointed / rounded / square / double
     val prominence: Float = 0f,
     val width: Float = 0f
 )
 
+@Serializable
 data class EyebrowFeatures(
     val leftThickness: Float = 0f,
     val rightThickness: Float = 0f,
@@ -235,7 +245,7 @@ class VisionViewModel @Inject constructor(
             // Image analysis use case
             val imageAnalysis = ImageAnalysis.Builder()
                 .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_YUV_420_888)
+                .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
                 .build()
 
             imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(context)) {
@@ -352,14 +362,10 @@ class VisionViewModel @Inject constructor(
             return
         }
 
-        val mediaImage = imageProxy.image
-        if (mediaImage == null) {
-            imageProxy.close()
-            return
-        }
-
         try {
-            val mpImage = MediaImageBuilder(mediaImage).build()
+            // Use Bitmap conversion for RGBA_8888 format compatibility with MediaPipe
+            val bitmap = imageProxy.toBitmap()
+            val mpImage = BitmapImageBuilder(bitmap).build()
             val result = landmarker.detect(mpImage)
 
             if (result.faceLandmarks().isNotEmpty()) {
@@ -750,7 +756,7 @@ class VisionViewModel @Inject constructor(
             }
 
             _uiState.value = _uiState.value.copy(
-                interpretation = fullText.ifBlank { buildFallbackInterpretation(featuresJson, question) },
+                interpretation = com.cyberdiviner.engine.Persona.stripActionDescriptions(fullText).ifBlank { buildFallbackInterpretation(featuresJson, question) },
                 phase = VisionPhase.RESULT
             )
         } catch (e: Exception) {
@@ -814,7 +820,7 @@ class VisionViewModel @Inject constructor(
                 appendLine()
             }
             appendLine("⚡ 信号提示：面相已扫描，但赛博先知暂时离线。")
-            appendLine("请在设置中配置 API 密钥以获取完整的 AI 解读。")
+            appendLine("请在设置中配置 API 密钥以获取完整的解读。")
         }
     }
 }

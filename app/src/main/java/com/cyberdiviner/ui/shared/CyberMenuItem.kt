@@ -1,5 +1,5 @@
 package com.cyberdiviner.ui.shared
-
+import com.cyberdiviner.ui.theme.*
 import android.view.HapticFeedbackConstants
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -106,7 +106,7 @@ fun CyberMenuItem(
             Text(
                 text = title,
                 color = titleColor,
-                fontFamily = FontFamily.Monospace,
+                fontFamily = HuiwenFontFamily,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 1.sp,
@@ -119,7 +119,7 @@ fun CyberMenuItem(
                 Text(
                     text = subtitle,
                     color = mutedColor,
-                    fontFamily = FontFamily.Monospace,
+                    fontFamily = MonoFontFamily,
                     fontSize = 12.sp,
                     letterSpacing = 1.sp,
                     maxLines = 1,
@@ -132,7 +132,7 @@ fun CyberMenuItem(
                 Text(
                     text = description,
                     color = mutedColor,
-                    fontFamily = FontFamily.Monospace,
+                    fontFamily = WenKaiFontFamily,
                     fontSize = 11.sp,
                     lineHeight = 16.sp,
                     maxLines = 3,

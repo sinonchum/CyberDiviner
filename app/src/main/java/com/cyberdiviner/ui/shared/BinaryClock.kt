@@ -1,5 +1,5 @@
 package com.cyberdiviner.ui.shared
-
+import com.cyberdiviner.ui.theme.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -34,7 +34,7 @@ fun BinaryClock(modifier: Modifier = Modifier) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         BinaryByte(value = hour, bits = 5)
-        Text(":", color = CyberPrimary, fontSize = 16.sp, fontFamily = FontFamily.Monospace)
+        Text(":", color = CyberPrimary, fontSize = 16.sp, fontFamily = MonoFontFamily)
         BinaryByte(value = minute, bits = 6)
     }
 }
@@ -48,7 +48,7 @@ private fun BinaryByte(value: Int, bits: Int) {
                 text = "$bit",
                 color = if (bit == 1) CyberPrimary else TextMuted,
                 fontSize = 14.sp,
-                fontFamily = FontFamily.Monospace
+                fontFamily = MonoFontFamily
             )
         }
     }

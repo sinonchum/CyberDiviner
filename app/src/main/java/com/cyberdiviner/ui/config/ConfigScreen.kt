@@ -1,5 +1,5 @@
 package com.cyberdiviner.ui.config
-
+import com.cyberdiviner.ui.theme.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
@@ -49,7 +49,7 @@ fun ConfigScreen(onBack: () -> Unit) {
             Text(
                 text = "CONFIG",
                 color = GrayCaption,
-                fontFamily = FontFamily.Monospace,
+                fontFamily = MonoFontFamily,
                 fontSize = 14.sp,
                 letterSpacing = 4.sp,
                 modifier = Modifier
@@ -61,7 +61,7 @@ fun ConfigScreen(onBack: () -> Unit) {
             Text(
                 text = "API KEY",
                 color = GrayBody,
-                fontFamily = FontFamily.Monospace,
+                fontFamily = MonoFontFamily,
                 fontSize = 12.sp,
                 letterSpacing = 2.sp,
                 modifier = Modifier
@@ -87,7 +87,7 @@ fun ConfigScreen(onBack: () -> Unit) {
                         Text(
                             text = "sk-...",
                             color = GrayCaption,
-                            fontFamily = FontFamily.Monospace,
+                            fontFamily = MonoFontFamily,
                             fontSize = 14.sp
                         )
                     },
@@ -109,7 +109,7 @@ fun ConfigScreen(onBack: () -> Unit) {
                             Text(
                                 text = if (passwordVisible) "HIDE" else "SHOW",
                                 color = GrayCaption,
-                                fontFamily = FontFamily.Monospace,
+                                fontFamily = MonoFontFamily,
                                 fontSize = 10.sp,
                                 letterSpacing = 1.sp
                             )
@@ -124,7 +124,7 @@ fun ConfigScreen(onBack: () -> Unit) {
             Text(
                 text = "BASE URL",
                 color = GrayBody,
-                fontFamily = FontFamily.Monospace,
+                fontFamily = MonoFontFamily,
                 fontSize = 12.sp,
                 letterSpacing = 2.sp,
                 modifier = Modifier
@@ -155,7 +155,7 @@ fun ConfigScreen(onBack: () -> Unit) {
                 Text(
                     text = "SAVED",
                     color = GrayCaption,
-                    fontFamily = FontFamily.Monospace,
+                    fontFamily = MonoFontFamily,
                     fontSize = 11.sp,
                     letterSpacing = 2.sp,
                     modifier = Modifier

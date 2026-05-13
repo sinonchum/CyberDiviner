@@ -1,16 +1,18 @@
 package com.cyberdiviner.ui.liuyao
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontFamily
@@ -20,15 +22,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.cyberdiviner.engine.HexagramData.LineState
 import com.cyberdiviner.ui.shared.CyberButton
 import com.cyberdiviner.ui.shared.VoiceInputField
 import com.cyberdiviner.ui.theme.*
 
 /**
- * LiuyaoScreen -- I-Ching divination with geometric animation.
+ * LiuyaoScreen — I-Ching divination with physical shake interaction.
  *
- * Clean B&W aesthetic. Generous padding. Gray hierarchy.
- * No neon colors, no Material ripple, no emoji.
+ * Flow:
+ *   1. INPUT — enter question
+ *   2. TOSSING — shake phone 6 times to generate 6 lines
+ *   3. COMPUTING — engine calculates hexagram
+ *   4. INTERPRETING → RESULT — LLM interpretation
+ *
+ * Clean B&W aesthetic. No emoji, no neon.
  */
 @Composable
 fun LiuyaoScreen(
@@ -38,13 +46,13 @@ fun LiuyaoScreen(
     val uiState by viewModel.uiState.collectAsState()
     val focusManager = LocalFocusManager.current
 
-    // Navigate to result when interpretation is complete
-    LaunchedEffect(uiState.phase) {
-        if (uiState.phase == LiuyaoPhase.RESULT) {
-            navController.navigate("liuyao_result") {
-                launchSingleTop = true
-            }
-        }
+    // Show result screen inline when interpretation is complete
+    if (uiState.phase == LiuyaoPhase.RESULT) {
+        LiuyaoResultScreen(
+            navController = navController,
+            viewModel = viewModel
+        )
+        return
     }
 
     Box(
@@ -65,28 +73,20 @@ fun LiuyaoScreen(
                 onBack = { navController.popBackStack() }
             )
 
-            LiuyaoPhase.TOSSING, LiuyaoPhase.COMPUTING, LiuyaoPhase.INTERPRETING -> {
-                // Map old CoinState to GeoCoinState for the new animation
-                val geoCoins = uiState.currentCoins.map { coin ->
-                    GeoCoinState(
-                        isYang = coin.isHeads,
-                        isRevealed = coin.isRevealed
-                    )
-                }
-                TossingPhase(
-                    uiState = uiState,
-                    geoCoins = geoCoins
-                )
-            }
+            LiuyaoPhase.TOSSING -> ShakePhase(
+                uiState = uiState
+            )
+
+            LiuyaoPhase.COMPUTING, LiuyaoPhase.INTERPRETING -> ComputingPhase(
+                message = uiState.progressMessage
+            )
 
             LiuyaoPhase.ERROR -> ErrorPhase(
                 message = uiState.errorMessage ?: "未知错误",
                 onDismiss = viewModel::dismissError
             )
 
-            LiuyaoPhase.RESULT -> {
-                // Handled by LaunchedEffect above
-            }
+            LiuyaoPhase.RESULT -> { /* Handled above */ }
         }
     }
 }
@@ -108,18 +108,31 @@ private fun InputPhase(
         // Header
         Text(
             text = "周易起卦",
-            color = GrayTitle,
-            fontSize = 24.sp,
-            fontFamily = FontFamily.Serif,
+            color = GrayCaption,
+            fontFamily = HuiwenFontFamily,
+            fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
-            letterSpacing = 4.sp
+            letterSpacing = 3.sp
         )
+        Canvas(
+            modifier = Modifier
+                .width(120.dp)
+                .padding(top = 4.dp)
+                .height(2.dp)
+        ) {
+            drawRect(
+                color = AccentRed,
+                topLeft = Offset.Zero,
+                size = Size(size.width, size.height)
+            )
+        }
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = "三钱法 · 六次演算",
             color = GrayCaption,
             fontSize = 12.sp,
-            fontFamily = FontFamily.Serif
+            fontFamily = WenKaiFontFamily,
+            letterSpacing = 2.sp
         )
         Spacer(modifier = Modifier.height(48.dp))
 
@@ -128,7 +141,7 @@ private fun InputPhase(
             text = "心诚则灵",
             color = GrayBody,
             fontSize = 16.sp,
-            fontFamily = FontFamily.Serif,
+            fontFamily = WenKaiFontFamily,
             letterSpacing = 4.sp
         )
         Spacer(modifier = Modifier.height(8.dp))
@@ -136,11 +149,11 @@ private fun InputPhase(
             text = "静心冥想，然后输入你的问题",
             color = GrayCaption,
             fontSize = 13.sp,
-            fontFamily = FontFamily.Serif
+            fontFamily = WenKaiFontFamily
         )
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Question input (shared VoiceInputField with hold-to-record)
+        // Question input
         VoiceInputField(
             text = question,
             onTextChange = onQuestionChange,
@@ -179,24 +192,191 @@ private fun InputPhase(
     }
 }
 
-// ── Tossing Phase ──────────────────────────────────────────────────────────
+// ── Shake Phase ────────────────────────────────────────────────────────────
 
 @Composable
-private fun TossingPhase(
-    uiState: LiuyaoUiState,
-    geoCoins: List<GeoCoinState>
+private fun ShakePhase(
+    uiState: LiuyaoUiState
+) {
+    // Pulsing animation for the shake instruction
+    val infiniteTransition = rememberInfiniteTransition(label = "shake")
+    val alpha by infiniteTransition.animateFloat(
+        initialValue = 0.4f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(800, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "alpha"
+    )
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+        modifier = Modifier.fillMaxSize()
+    ) {
+        // Header
+        Text(
+            text = "周易起卦",
+            color = GrayCaption,
+            fontFamily = HuiwenFontFamily,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 3.sp
+        )
+        Canvas(
+            modifier = Modifier
+                .width(120.dp)
+                .padding(top = 4.dp)
+                .height(2.dp)
+        ) {
+            drawRect(
+                color = AccentRed,
+                topLeft = Offset.Zero,
+                size = Size(size.width, size.height)
+            )
+        }
+        Spacer(modifier = Modifier.height(64.dp))
+
+        // Shake instruction — pulsing
+        Text(
+            text = uiState.shakeProgress,
+            color = GrayTitle.copy(alpha = alpha),
+            fontSize = 24.sp,
+            fontFamily = HuiwenFontFamily,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 6.sp
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = "用力摇动手机",
+            color = GrayCaption,
+            fontSize = 13.sp,
+            fontFamily = WenKaiFontFamily
+        )
+        Spacer(modifier = Modifier.height(48.dp))
+
+        // Show generated lines so far
+        if (uiState.tossResults.isNotEmpty()) {
+            Text(
+                text = "已得",
+                color = GrayCaption,
+                fontSize = 11.sp,
+                fontFamily = WenKaiFontFamily,
+                letterSpacing = 2.sp
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+
+            uiState.tossResults.forEachIndexed { index, lineState ->
+                val bar = when (lineState) {
+                    LineState.YOUNG_YANG, LineState.OLD_YANG -> "━━━━━"
+                    LineState.YOUNG_YIN, LineState.OLD_YIN -> "━   ━"
+                }
+                val mark = when (lineState) {
+                    LineState.OLD_YANG -> " ○"
+                    LineState.OLD_YIN -> " ×"
+                    else -> ""
+                }
+                val label = when (lineState) {
+                    LineState.YOUNG_YANG -> "少阳"
+                    LineState.YOUNG_YIN -> "少阴"
+                    LineState.OLD_YANG -> "老阳"
+                    LineState.OLD_YIN -> "老阴"
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 2.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "${index + 1}",
+                        color = GrayMuted,
+                        fontSize = 11.sp,
+                        fontFamily = MonoFontFamily,
+                        modifier = Modifier.width(20.dp)
+                    )
+                    Text(
+                        text = "$bar$mark",
+                        color = GrayBody,
+                        fontSize = 14.sp,
+                        fontFamily = MonoFontFamily
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = label,
+                        color = GrayCaption,
+                        fontSize = 11.sp,
+                        fontFamily = WenKaiFontFamily
+                    )
+                }
+            }
+
+            // Placeholder lines for remaining
+            repeat(6 - uiState.tossResults.size) { idx ->
+                val lineNum = uiState.tossResults.size + idx + 1
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 2.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "$lineNum",
+                        color = GrayMuted,
+                        fontSize = 11.sp,
+                        fontFamily = MonoFontFamily,
+                        modifier = Modifier.width(20.dp)
+                    )
+                    Text(
+                        text = "- - - - -",
+                        color = GrayMuted.copy(alpha = 0.3f),
+                        fontSize = 14.sp,
+                        fontFamily = MonoFontFamily
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // Progress counter
+        Text(
+            text = "${uiState.currentTossIndex} / 6",
+            color = GrayMuted,
+            fontSize = 12.sp,
+            fontFamily = MonoFontFamily
+        )
+    }
+}
+
+// ── Computing Phase ────────────────────────────────────────────────────────
+
+@Composable
+private fun ComputingPhase(
+    message: String
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
         modifier = Modifier.fillMaxSize()
     ) {
-        SixTossAnimation(
-            tossResults = uiState.tossResults,
-            currentTossIndex = uiState.currentTossIndex,
-            currentCoins = geoCoins,
-            isAnimating = uiState.isCoinAnimating,
-            onToss = { /* Handled by ViewModel */ }
+        Text(
+            text = "卦象已成",
+            color = GrayTitle,
+            fontSize = 20.sp,
+            fontFamily = HuiwenFontFamily,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        Text(
+            text = message,
+            color = GrayCaption,
+            fontSize = 13.sp,
+            fontFamily = WenKaiFontFamily,
+            textAlign = TextAlign.Center
         )
     }
 }
@@ -217,7 +397,7 @@ private fun ErrorPhase(
             text = "起卦失败",
             color = GrayTitle,
             fontSize = 20.sp,
-            fontFamily = FontFamily.Serif,
+            fontFamily = WenKaiFontFamily,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(bottom = 8.dp)
         )
@@ -226,7 +406,7 @@ private fun ErrorPhase(
             text = message,
             color = GrayBody,
             fontSize = 14.sp,
-            fontFamily = FontFamily.Serif,
+            fontFamily = WenKaiFontFamily,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(bottom = 24.dp)
         )

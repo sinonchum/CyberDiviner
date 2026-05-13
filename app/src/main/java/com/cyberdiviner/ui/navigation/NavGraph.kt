@@ -1,95 +1,165 @@
 package com.cyberdiviner.ui.navigation
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import com.cyberdiviner.ui.almanac.AlmanacScreen
 import com.cyberdiviner.ui.archive.ArchiveScreen
 import com.cyberdiviner.ui.config.ConfigScreen
-import com.cyberdiviner.ui.home.HomeScreen
-import com.cyberdiviner.ui.liuyao.LiuyaoResultScreen
 import com.cyberdiviner.ui.liuyao.LiuyaoScreen
+import com.cyberdiviner.ui.muyu.MuyuScreen
 import com.cyberdiviner.ui.oracle.OracleScreen
 import com.cyberdiviner.ui.rituals.RitualsMenuScreen
 import com.cyberdiviner.ui.splash.SplashScreen
 import com.cyberdiviner.ui.tarot.TarotScreen
+import com.cyberdiviner.ui.theme.CyberBlack
+import com.cyberdiviner.ui.theme.GrayCaption
 import com.cyberdiviner.ui.vision.VisionScreen
 
 /**
- * v5.1 Navigation: Clean single-page route hierarchy.
+ * v6.0 Navigation: Bottom navigation bar with three main tabs.
  *
- * splash -> home -> oracle | rituals_menu -> ritual/iching|tarot|vision | archive
+ * splash → oracle (default) | rituals → ritual/iching|tarot|vision|muyu | archive
+ * Config accessible via gear icon overlay on main tab screens.
  */
 object Routes {
     const val SPLASH = "splash"
-    const val HOME = "home"
     const val ORACLE = "oracle"
-    const val RITUALS_MENU = "rituals_menu"
+    const val RITUALS = "rituals"
     const val RITUAL_ICHING = "ritual/iching"
     const val RITUAL_TAROT = "ritual/tarot"
     const val RITUAL_VISION = "ritual/vision"
+    const val RITUAL_MUYU = "ritual/muyu"
+    const val RITUAL_ALMANAC = "ritual/almanac"
     const val ARCHIVE = "archive"
     const val CONFIG = "config"
 }
 
+private val bottomNavRoutes = setOf(Routes.ORACLE, Routes.RITUALS, Routes.ARCHIVE)
+
 @Composable
 fun CyberDivinerNavGraph(navController: NavHostController) {
-    NavHost(navController = navController, startDestination = Routes.SPLASH) {
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+    val showBottomBar = currentRoute in bottomNavRoutes
 
-        composable(Routes.SPLASH) {
-            SplashScreen(
-                onTimeout = {
-                    navController.navigate(Routes.HOME) {
-                        popUpTo(Routes.SPLASH) { inclusive = true }
+    Scaffold(
+        containerColor = CyberBlack,
+        bottomBar = {
+            if (showBottomBar) {
+                BottomNavBar(
+                    currentRoute = currentRoute,
+                    onNavigate = { route ->
+                        navController.navigate(route) {
+                            popUpTo(navController.graph.startDestinationId) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
                     }
+                )
+            }
+        }
+    ) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+            NavHost(
+                navController = navController,
+                startDestination = Routes.SPLASH
+            ) {
+                composable(Routes.SPLASH) {
+                    SplashScreen(
+                        onTimeout = {
+                            navController.navigate(Routes.ORACLE) {
+                                popUpTo(Routes.SPLASH) { inclusive = true }
+                            }
+                        }
+                    )
                 }
-            )
-        }
 
-        composable(Routes.HOME) {
-            HomeScreen(
-                onOracle = { navController.navigate(Routes.ORACLE) },
-                onRituals = { navController.navigate(Routes.RITUALS_MENU) },
-                onArchive = { navController.navigate(Routes.ARCHIVE) },
-                onConfig = { navController.navigate(Routes.CONFIG) }
-            )
-        }
+                composable(Routes.ORACLE) {
+                    OracleScreen(
+                        onBack = { navController.popBackStack() }
+                    )
+                }
 
-        composable(Routes.ORACLE) {
-            OracleScreen(
-                onBack = { navController.popBackStack() }
-            )
-        }
+                composable(Routes.RITUALS) {
+                    RitualsMenuScreen(
+                        onIChing = { navController.navigate(Routes.RITUAL_ICHING) },
+                        onTarot = { navController.navigate(Routes.RITUAL_TAROT) },
+                        onVision = { navController.navigate(Routes.RITUAL_VISION) },
+                        onMuyu = { navController.navigate(Routes.RITUAL_MUYU) },
+                        onAlmanac = { navController.navigate(Routes.RITUAL_ALMANAC) },
+                        onBack = { navController.popBackStack() }
+                    )
+                }
 
-        composable(Routes.RITUALS_MENU) {
-            RitualsMenuScreen(
-                onIChing = { navController.navigate(Routes.RITUAL_ICHING) },
-                onTarot = { navController.navigate(Routes.RITUAL_TAROT) },
-                onVision = { navController.navigate(Routes.RITUAL_VISION) },
-                onBack = { navController.popBackStack() }
-            )
-        }
+                composable(Routes.RITUAL_ICHING) {
+                    LiuyaoScreen(navController = navController)
+                }
 
-        composable(Routes.RITUAL_ICHING) {
-            LiuyaoScreen(navController = navController)
-        }
+                composable(Routes.RITUAL_TAROT) {
+                    TarotScreen(navController = navController)
+                }
 
-        composable(Routes.RITUAL_TAROT) {
-            TarotScreen(navController = navController)
-        }
+                composable(Routes.RITUAL_VISION) {
+                    VisionScreen(navController = navController)
+                }
 
-        composable(Routes.RITUAL_VISION) {
-            VisionScreen(navController = navController)
-        }
+                composable(Routes.RITUAL_MUYU) {
+                    MuyuScreen(navController = navController)
+                }
 
-        composable(Routes.ARCHIVE) {
-            ArchiveScreen(
-                onBack = { navController.popBackStack() }
-            )
-        }
+                composable(Routes.RITUAL_ALMANAC) {
+                    AlmanacScreen(onBack = { navController.popBackStack() })
+                }
 
-        composable(Routes.CONFIG) {
-            ConfigScreen(onBack = { navController.popBackStack() })
+                composable(Routes.ARCHIVE) {
+                    ArchiveScreen(
+                        onBack = { navController.popBackStack() }
+                    )
+                }
+
+                composable(Routes.CONFIG) {
+                    ConfigScreen(onBack = { navController.popBackStack() })
+                }
+            }
+
+            // Config gear icon — visible only on main tab screens
+            if (showBottomBar) {
+                IconButton(
+                    onClick = { navController.navigate(Routes.CONFIG) },
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .statusBarsPadding()
+                        .padding(top = 8.dp, end = 8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Settings,
+                        contentDescription = "设置",
+                        tint = GrayCaption
+                    )
+                }
+            }
         }
     }
 }

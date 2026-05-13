@@ -16,8 +16,10 @@ import kotlin.math.abs
  *   6. Monthly/Yearly guidance
  *   7. Five Elements interaction for date energy
  *   8. Quick daily reading (今日运势)
+ *   9. Lunar calendar conversion (农历) via LunarCalendar
+ *  10. 365 cyberpunk-philosophical daily quotes via AlmanacQuotes
  *
- * All calculations follow traditional Chinese calendar algorithms.
+ * All calculations are performed locally with no network calls.
  */
 object AlmanacEngine {
 
@@ -224,13 +226,18 @@ object AlmanacEngine {
         val luckyNumbers: List<Int>,
         val overview: String,
         val warnings: List<String>,
+        // ── Lunar Calendar & Quotes ────────────────────────────
+        val lunarDate: LunarCalendar.LunarDate,
+        val lunarGanzhi: LunarCalendar.GanzhiDate,
+        val dailyQuote: AlmanacQuotes.DailyQuote,
     ) {
         fun summary(): String = buildString {
             appendLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
             appendLine("📅 黄历 — Chinese Almanac")
             appendLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
             appendLine()
-            appendLine("📆 日期: ${date.year}年${date.monthValue}月${date.dayOfMonth}日")
+            appendLine("📆 阳历: ${date.year}年${date.monthValue}月${date.dayOfMonth}日")
+            appendLine("   农历: ${lunarDate.monthName}${lunarDate.dayName}")
             appendLine("   干支: ${yearGanzhi.combined}年 ${monthGanzhi.combined}月 ${dayGanzhi.combined}日")
             if (hourGanzhi != null) {
                 appendLine("   时辰: ${hourGanzhi.combined}")
@@ -239,6 +246,9 @@ object AlmanacEngine {
             if (currentSolarTerm != null) {
                 appendLine("   节气: ${currentSolarTerm.name} (${currentSolarTerm.englishName})")
             }
+            appendLine()
+            appendLine("━━━ 签语 (Daily Quote) ━━━")
+            appendLine("  「${dailyQuote.text}」")
             appendLine()
             appendLine("━━━ 今日宜 (Auspicious) ━━━")
             auspiciousActivities.forEach { act ->
@@ -452,6 +462,7 @@ object AlmanacEngine {
 
     /**
      * Generate a complete daily reading for the given date.
+     * Fully offline — no network calls.
      */
     fun dailyReading(date: LocalDate, birthYear: Int? = null): DayReading {
         val yearGz = calculateYearGanzhi(date)
@@ -504,6 +515,13 @@ object AlmanacEngine {
         // Overview
         val overview = generateOverview(date, dayGz, solarTerm)
 
+        // Lunar calendar (offline)
+        val lunarDate = LunarCalendar.solarToLunar(date)
+        val lunarGanzhi = LunarCalendar.calculateGanzhi(date)
+
+        // Daily quote from the 365-quote pool (offline)
+        val dailyQuote = AlmanacQuotes.getQuoteForDate(date)
+
         return DayReading(
             date = date,
             yearGanzhi = yearGz,
@@ -521,6 +539,9 @@ object AlmanacEngine {
             luckyNumbers = luckyNumbers,
             overview = overview,
             warnings = warnings,
+            lunarDate = lunarDate,
+            lunarGanzhi = lunarGanzhi,
+            dailyQuote = dailyQuote,
         )
     }
 
@@ -666,6 +687,23 @@ object AlmanacEngine {
         val (zodiac, _) = zodiacForYear(date.year)
         val term = currentSolarTerm(date)
         val termStr = term?.let { " | ${it.name}" } ?: ""
-        return "${gz.combined}日 $zodiac$termStr"
+        val lunar = LunarCalendar.solarToLunar(date)
+        val lunarStr = " | 农历${lunar.monthName}${lunar.dayName}"
+        return "${gz.combined}日 $zodiac$lunarStr$termStr"
+    }
+
+    /**
+     * Get the lunar date string for a given date.
+     */
+    fun lunarDateStr(date: LocalDate = LocalDate.now()): String {
+        val lunar = LunarCalendar.solarToLunar(date)
+        return "${lunar.monthName}${lunar.dayName}"
+    }
+
+    /**
+     * Get today's cyberpunk quote.
+     */
+    fun dailyQuote(date: LocalDate = LocalDate.now()): AlmanacQuotes.DailyQuote {
+        return AlmanacQuotes.getQuoteForDate(date)
     }
 }

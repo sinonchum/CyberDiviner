@@ -1,5 +1,5 @@
 package com.cyberdiviner.ui.shared
-
+import com.cyberdiviner.ui.theme.*
 import android.view.HapticFeedbackConstants
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -88,7 +88,7 @@ fun CyberButton(
         Text(
             text = text,
             color = textColor,
-            fontFamily = FontFamily.Monospace,
+            fontFamily = HuiwenFontFamily,
             fontSize = 14.sp,
             letterSpacing = 2.sp
         )

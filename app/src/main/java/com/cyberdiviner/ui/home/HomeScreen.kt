@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cyberdiviner.ui.shared.CyberMenuItem
 import com.cyberdiviner.ui.theme.AccentRed
-import com.cyberdiviner.ui.theme.CyberBlack
+import com.cyberdiviner.ui.theme.*
 import com.cyberdiviner.ui.theme.GrayCaption
 
 /**
@@ -36,13 +36,13 @@ fun HomeScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(CyberBlack)
-            .padding(start = 32.dp, top = 0.dp, end = 32.dp, bottom = 0.dp)
+            .padding(start = 48.dp, top = 0.dp, end = 48.dp, bottom = 0.dp)
     ) {
         // CONFIG button — top-right
         Text(
             text = "[ CONFIG ]",
             color = GrayCaption,
-            fontFamily = FontFamily.Monospace,
+            fontFamily = MonoFontFamily,
             fontSize = 11.sp,
             letterSpacing = 1.sp,
             modifier = Modifier
@@ -60,7 +60,7 @@ fun HomeScreen(
             Text(
                 text = "CYBERDIVINER",
                 color = GrayCaption,
-                fontFamily = FontFamily.Monospace,
+                fontFamily = MonoFontFamily,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 3.sp
@@ -121,7 +121,7 @@ fun HomeScreen(
             Text(
                 text = "CYBERDIVINER v1.0",
                 color = GrayCaption,
-                fontFamily = FontFamily.Monospace,
+                fontFamily = MonoFontFamily,
                 fontSize = 10.sp,
                 letterSpacing = 1.sp
             )

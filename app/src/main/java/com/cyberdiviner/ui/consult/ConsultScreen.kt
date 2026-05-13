@@ -16,9 +16,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cyberdiviner.engine.agent.AgentInterviewEngine
-import com.cyberdiviner.ui.theme.CyberBlack
-import com.cyberdiviner.ui.theme.CyberWhite
-import com.cyberdiviner.ui.theme.TextMuted
+import com.cyberdiviner.ui.theme.*
 import kotlinx.coroutines.launch
 
 /**
@@ -71,14 +69,14 @@ fun ConsultScreen(
                 text = "[ \u54A8\u8BE2\u4EE3\u7406 ]",
                 color = TextMuted,
                 fontSize = 11.sp,
-                fontFamily = FontFamily.Monospace,
+                fontFamily = MonoFontFamily,
                 letterSpacing = 2.sp
             )
             Text(
                 text = "ROUND ${engine.getCurrentRound()}/${engine.getMaxRounds()}",
                 color = TextMuted,
                 fontSize = 11.sp,
-                fontFamily = FontFamily.Monospace
+                fontFamily = MonoFontFamily
             )
         }
 
@@ -87,7 +85,7 @@ fun ConsultScreen(
             text = "\u2500".repeat(50),
             color = TextMuted,
             fontSize = 11.sp,
-            fontFamily = FontFamily.Monospace
+            fontFamily = MonoFontFamily
         )
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -114,7 +112,7 @@ fun ConsultScreen(
                     text = "> ",
                     color = CyberWhite,
                     fontSize = 14.sp,
-                    fontFamily = FontFamily.Monospace
+                    fontFamily = MonoFontFamily
                 )
                 BasicTextField(
                     value = inputText,
@@ -123,7 +121,7 @@ fun ConsultScreen(
                     textStyle = androidx.compose.ui.text.TextStyle(
                         color = CyberWhite,
                         fontSize = 14.sp,
-                        fontFamily = FontFamily.Monospace
+                        fontFamily = MonoFontFamily
                     ),
                     cursorBrush = SolidColor(CyberWhite),
                     singleLine = true,
@@ -135,7 +133,7 @@ fun ConsultScreen(
                 text = "> \u5904\u7406\u4E2D...",
                 color = TextMuted,
                 fontSize = 14.sp,
-                fontFamily = FontFamily.Monospace
+                fontFamily = MonoFontFamily
             )
         }
 
@@ -144,7 +142,7 @@ fun ConsultScreen(
             text = "\u2500".repeat(50),
             color = TextMuted,
             fontSize = 11.sp,
-            fontFamily = FontFamily.Monospace
+            fontFamily = MonoFontFamily
         )
     }
 
@@ -206,14 +204,14 @@ private fun ChatBubble(msg: ChatMessage) {
                 text = prefix,
                 color = TextMuted,
                 fontSize = 11.sp,
-                fontFamily = FontFamily.Monospace
+                fontFamily = MonoFontFamily
             )
         }
         Text(
             text = msg.text,
             color = color,
             fontSize = 14.sp,
-            fontFamily = if (msg is ChatMessage.System) FontFamily.Monospace else FontFamily.Serif,
+            fontFamily = if (msg is ChatMessage.System) MonoFontFamily else WenKaiFontFamily,
             lineHeight = 22.sp
         )
     }

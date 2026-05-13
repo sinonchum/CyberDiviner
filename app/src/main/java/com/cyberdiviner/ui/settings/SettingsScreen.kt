@@ -53,8 +53,8 @@ fun SettingsScreen(
             TopAppBar(
                 title = {
                     Text(
-                        "AI Settings",
-                        fontFamily = FontFamily.Monospace,
+                        "算命设置",
+                        fontFamily = MonoFontFamily,
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp
                     )
@@ -96,7 +96,7 @@ fun SettingsScreen(
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
                         color = CyberPrimary,
                         fontSize = 13.sp,
-                        fontFamily = FontFamily.Monospace
+                        fontFamily = MonoFontFamily
                     )
                 }
             }
@@ -120,7 +120,7 @@ fun SettingsScreen(
                     colors = settingsFieldColors(),
                     shape = MaterialTheme.shapes.medium,
                     textStyle = LocalTextStyle.current.copy(
-                        fontFamily = FontFamily.Monospace,
+                        fontFamily = MonoFontFamily,
                         fontSize = 14.sp,
                         color = TextPrimary
                     )
@@ -135,7 +135,7 @@ fun SettingsScreen(
                             text = {
                                 Text(
                                     providerDisplayNames[p] ?: p,
-                                    fontFamily = FontFamily.Monospace,
+                                    fontFamily = MonoFontFamily,
                                     fontSize = 14.sp
                                 )
                             },
@@ -167,7 +167,7 @@ fun SettingsScreen(
                     colors = settingsFieldColors(),
                     shape = MaterialTheme.shapes.medium,
                     textStyle = LocalTextStyle.current.copy(
-                        fontFamily = FontFamily.Monospace,
+                        fontFamily = MonoFontFamily,
                         fontSize = 14.sp,
                         color = TextPrimary
                     )
@@ -182,7 +182,7 @@ fun SettingsScreen(
                             text = {
                                 Text(
                                     persona.name,
-                                    fontFamily = FontFamily.Monospace,
+                                    fontFamily = MonoFontFamily,
                                     fontSize = 14.sp
                                 )
                             },
@@ -200,7 +200,7 @@ fun SettingsScreen(
                 color = TextMuted,
                 fontSize = 11.sp,
                 lineHeight = 16.sp,
-                fontFamily = FontFamily.Monospace
+                fontFamily = MonoFontFamily
             )
 
             // ── Section: API Key ──────────────────────────────────────
@@ -227,7 +227,7 @@ fun SettingsScreen(
                 colors = settingsFieldColors(),
                 shape = MaterialTheme.shapes.medium,
                 textStyle = LocalTextStyle.current.copy(
-                    fontFamily = FontFamily.Monospace,
+                    fontFamily = MonoFontFamily,
                     fontSize = 14.sp,
                     color = TextPrimary
                 )
@@ -246,7 +246,7 @@ fun SettingsScreen(
                 colors = settingsFieldColors(),
                 shape = MaterialTheme.shapes.medium,
                 textStyle = LocalTextStyle.current.copy(
-                    fontFamily = FontFamily.Monospace,
+                    fontFamily = MonoFontFamily,
                     fontSize = 14.sp,
                     color = TextPrimary
                 )
@@ -264,7 +264,7 @@ fun SettingsScreen(
                 colors = settingsFieldColors(),
                 shape = MaterialTheme.shapes.medium,
                 textStyle = LocalTextStyle.current.copy(
-                    fontFamily = FontFamily.Monospace,
+                    fontFamily = MonoFontFamily,
                     fontSize = 14.sp,
                     color = TextPrimary
                 )
@@ -284,7 +284,7 @@ fun SettingsScreen(
             ) {
                 Text(
                     "Save Configuration",
-                    fontFamily = FontFamily.Monospace,
+                    fontFamily = MonoFontFamily,
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp
                 )
@@ -297,7 +297,7 @@ fun SettingsScreen(
                 color = TextMuted,
                 fontSize = 12.sp,
                 lineHeight = 18.sp,
-                fontFamily = FontFamily.Monospace
+                fontFamily = MonoFontFamily
             )
 
             Spacer(modifier = Modifier.height(40.dp))
@@ -312,7 +312,7 @@ private fun SectionHeader(title: String) {
         color = CyberPrimary,
         fontSize = 13.sp,
         fontWeight = FontWeight.Bold,
-        fontFamily = FontFamily.Monospace,
+        fontFamily = MonoFontFamily,
         letterSpacing = 1.sp
     )
 }

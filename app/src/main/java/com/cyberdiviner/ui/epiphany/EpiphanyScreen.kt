@@ -15,7 +15,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cyberdiviner.engine.AlmanacEngine
-import com.cyberdiviner.ui.theme.CyberBlack
+import com.cyberdiviner.ui.theme.*
 import com.cyberdiviner.ui.theme.CyberWhite
 import com.cyberdiviner.ui.theme.TextMuted
 import kotlinx.coroutines.delay
@@ -87,7 +87,7 @@ fun EpiphanyScreen(
                     color = CyberWhite,
                     fontSize = 42.sp,
                     fontWeight = FontWeight.Black,
-                    fontFamily = FontFamily.Serif,
+                    fontFamily = WenKaiFontFamily,
                     letterSpacing = 8.sp,
                     textAlign = TextAlign.Center
                 )
@@ -98,7 +98,7 @@ fun EpiphanyScreen(
                     color = TextMuted,
                     fontSize = 36.sp,
                     fontWeight = FontWeight.Bold,
-                    fontFamily = FontFamily.Serif,
+                    fontFamily = WenKaiFontFamily,
                     letterSpacing = 6.sp,
                     textAlign = TextAlign.Center
                 )
@@ -109,7 +109,7 @@ fun EpiphanyScreen(
                     color = CyberWhite,
                     fontSize = 56.sp,
                     fontWeight = FontWeight.Black,
-                    fontFamily = FontFamily.Serif,
+                    fontFamily = WenKaiFontFamily,
                     letterSpacing = 10.sp,
                     textAlign = TextAlign.Center
                 )
@@ -121,7 +121,7 @@ fun EpiphanyScreen(
                     text = "[ ${it.name} ]",
                     color = TextMuted,
                     fontSize = 13.sp,
-                    fontFamily = FontFamily.Monospace,
+                    fontFamily = MonoFontFamily,
                     letterSpacing = 4.sp
                 )
                 Spacer(modifier = Modifier.height(20.dp))
@@ -136,7 +136,7 @@ fun EpiphanyScreen(
                     text = "> $logicPhrase",
                     color = TextMuted,
                     fontSize = 14.sp,
-                    fontFamily = FontFamily.Monospace,
+                    fontFamily = MonoFontFamily,
                     lineHeight = 22.sp,
                     textAlign = TextAlign.Center
                 )
@@ -145,7 +145,7 @@ fun EpiphanyScreen(
                     text = if (cursorVisible) "_" else " ",
                     color = CyberWhite,
                     fontSize = 14.sp,
-                    fontFamily = FontFamily.Monospace
+                    fontFamily = MonoFontFamily
                 )
             }
 
@@ -156,7 +156,7 @@ fun EpiphanyScreen(
                 text = "[ TOUCH TO ENTER ]",
                 color = TextMuted,
                 fontSize = 11.sp,
-                fontFamily = FontFamily.Monospace,
+                fontFamily = MonoFontFamily,
                 letterSpacing = 3.sp
             )
         }

@@ -98,6 +98,7 @@ fun CoinTossAnimation(
             text = "第 ${currentTossIndex + 1} / 6 爻",
             color = NeonCyan,
             fontSize = 14.sp,
+            fontFamily = WenKaiFontFamily,
             fontWeight = FontWeight.Medium
         )
 

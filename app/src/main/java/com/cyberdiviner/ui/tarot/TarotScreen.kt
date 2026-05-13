@@ -1,5 +1,5 @@
 package com.cyberdiviner.ui.tarot
-
+import com.cyberdiviner.ui.theme.*
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloat
@@ -37,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.DrawScope
@@ -60,7 +61,7 @@ import com.cyberdiviner.ui.theme.GrayBorder
 import com.cyberdiviner.ui.theme.GrayCaption
 import com.cyberdiviner.ui.theme.GrayMuted
 import com.cyberdiviner.ui.theme.GrayTitle
-import com.cyberdiviner.ui.theme.SerifDisplay
+import com.cyberdiviner.ui.theme.HuiwenFontFamily
 
 // ═══════════════════════════════════════════════════════════════════════════
 // TarotScreen — elegant B&W protocol-style layout
@@ -90,15 +91,15 @@ fun TarotScreen(
                 text = "<",
                 color = GrayCaption,
                 fontSize = 16.sp,
-                fontFamily = FontFamily.Monospace,
+                fontFamily = MonoFontFamily,
                 modifier = Modifier.clickable { navController.popBackStack() }
             )
             Spacer(modifier = Modifier.width(16.dp))
             Text(
-                text = "TAROT PROTOCOL",
+                text = "塔罗协议",
                 color = GrayCaption,
                 fontSize = 11.sp,
-                fontFamily = FontFamily.Monospace,
+                fontFamily = HuiwenFontFamily,
                 letterSpacing = 3.sp
             )
         }
@@ -157,18 +158,35 @@ private fun SelectSpreadPhase(
     ) {
         Spacer(modifier = Modifier.height(16.dp))
 
-        // ── Header ────────────────────────────────────────────────────
+        // ── Header: Bridgewater uppercase monospace + red underline ──
         Text(
-            text = "聆听数据流中的神谕",
+            text = "塔罗协议",
             color = GrayCaption,
-            fontSize = 13.sp,
-            letterSpacing = 2.sp,
-            modifier = Modifier.padding(bottom = 4.dp)
+            fontFamily = HuiwenFontFamily,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 3.sp,
+            modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp)
         )
+        // Red underline
+        Canvas(
+            modifier = Modifier
+                .width(120.dp)
+                .padding(top = 4.dp)
+                .height(2.dp)
+        ) {
+            drawRect(
+                color = AccentRed,
+                topLeft = Offset.Zero,
+                size = Size(size.width, size.height)
+            )
+        }
+        Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = "静心凝神，然后输入你的问题",
-            color = GrayMuted,
-            fontSize = 11.sp,
+            color = GrayCaption,
+            fontSize = 12.sp,
+            fontFamily = WenKaiFontFamily,
             modifier = Modifier.padding(bottom = 24.dp)
         )
 
@@ -200,6 +218,7 @@ private fun SelectSpreadPhase(
                 text = "推荐: ${rec.displayName}（${rec.cardCount}张牌）",
                 color = GrayCaption,
                 fontSize = 12.sp,
+                fontFamily = WenKaiFontFamily,
                 modifier = Modifier.padding(bottom = 12.dp)
             )
         }
@@ -207,9 +226,11 @@ private fun SelectSpreadPhase(
         // ── Spread selection ──────────────────────────────────────────
         Text(
             text = "选择牌阵",
-            color = GrayTitle,
+            color = GrayCaption,
             fontSize = 13.sp,
+            fontFamily = WenKaiFontFamily,
             fontWeight = FontWeight.Bold,
+            letterSpacing = 2.sp,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 12.dp)
@@ -225,9 +246,8 @@ private fun SelectSpreadPhase(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 8.dp)
-                    .clip(RoundedCornerShape(8.dp))
                     .background(bgColor)
-                    .border(1.dp, borderColor, RoundedCornerShape(8.dp))
+                    .border(1.dp, borderColor)
                     .clickable { onSelectSpread(spread) }
                     .padding(16.dp)
             ) {
@@ -236,12 +256,14 @@ private fun SelectSpreadPhase(
                         text = spread.displayName,
                         color = if (isSelected) CyberWhite else GrayBody,
                         fontSize = 14.sp,
+                        fontFamily = WenKaiFontFamily,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
                         text = "${spread.cardCount}张牌 · ${spread.positions.joinToString(", ")}",
                         color = GrayMuted,
-                        fontSize = 10.sp
+                        fontSize = 10.sp,
+                        fontFamily = WenKaiFontFamily
                     )
                 }
                 if (isSelected) {
@@ -249,7 +271,7 @@ private fun SelectSpreadPhase(
                         text = "|",
                         color = CyberWhite,
                         fontSize = 12.sp,
-                        fontFamily = FontFamily.Monospace
+                        fontFamily = MonoFontFamily
                     )
                 }
             }
@@ -267,10 +289,10 @@ private fun SelectSpreadPhase(
 
         Spacer(modifier = Modifier.height(12.dp))
         Text(
-            text = "CYBER DIVINER · AI ENHANCED READING",
+            text = "赛博算命 · 玄学解读",
             color = GrayMuted,
             fontSize = 9.sp,
-            fontFamily = FontFamily.Monospace,
+            fontFamily = WenKaiFontFamily,
             letterSpacing = 2.sp,
             textAlign = TextAlign.Center
         )
@@ -300,9 +322,9 @@ private fun DrawingPhase(uiState: TarotUiState) {
     ) {
         Text(
             text = uiState.progressMessage,
-            color = GrayBody,
+            color = GrayCaption,
             fontSize = 13.sp,
-            fontFamily = FontFamily.Monospace,
+            fontFamily = MonoFontFamily,
             letterSpacing = 1.sp,
             modifier = Modifier.padding(bottom = 32.dp)
         )
@@ -319,7 +341,7 @@ private fun DrawingPhase(uiState: TarotUiState) {
                 text = ". . .",
                 color = GrayCaption.copy(alpha = pulseAlpha),
                 fontSize = 18.sp,
-                fontFamily = FontFamily.Monospace,
+                fontFamily = MonoFontFamily,
                 letterSpacing = 8.sp
             )
         }
@@ -347,9 +369,9 @@ private fun InterpretingPhase(uiState: TarotUiState) {
 
         Text(
             text = uiState.progressMessage,
-            color = GrayBody,
+            color = GrayCaption,
             fontSize = 13.sp,
-            fontFamily = FontFamily.Monospace,
+            fontFamily = MonoFontFamily,
             letterSpacing = 1.sp
         )
 
@@ -365,9 +387,9 @@ private fun InterpretingPhase(uiState: TarotUiState) {
                 Text(
                     text = uiState.streamText,
                     color = GrayBody,
-                    fontSize = 12.sp,
-                    lineHeight = 20.sp,
-                    fontFamily = SerifDisplay
+                    fontSize = 13.sp,
+                    lineHeight = 22.sp,
+                    fontFamily = WenKaiFontFamily
                 )
             }
         }
@@ -393,10 +415,10 @@ private fun ResultPhase(
 
         // ── Archive header ────────────────────────────────────────────
         Text(
-            text = "[ ARCHIVE: TAROT PROTOCOL ]",
+            text = "[ 档案：塔罗协议 ]",
             color = GrayCaption,
             fontSize = 11.sp,
-            fontFamily = FontFamily.Monospace,
+            fontFamily = HuiwenFontFamily,
             letterSpacing = 2.sp
         )
 
@@ -423,18 +445,18 @@ private fun ResultPhase(
                 text = "${card.nameZh} · $orientation",
                 color = GrayTitle,
                 fontSize = 18.sp,
-                fontFamily = SerifDisplay,
+                fontFamily = HuiwenFontFamily,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.padding(vertical = 4.dp)
+                modifier = Modifier.padding(vertical = 6.dp)
             )
             if (card.position.isNotEmpty()) {
                 Text(
                     text = card.position,
                     color = GrayMuted,
                     fontSize = 10.sp,
-                    fontFamily = FontFamily.Monospace,
+                    fontFamily = MonoFontFamily,
                     letterSpacing = 2.sp,
-                    modifier = Modifier.padding(bottom = 8.dp)
+                    modifier = Modifier.padding(bottom = 12.dp)
                 )
             }
         }
@@ -451,8 +473,8 @@ private fun ResultPhase(
             text = uiState.interpretation,
             color = GrayBody,
             fontSize = 14.sp,
-            fontFamily = SerifDisplay,
-            lineHeight = 24.sp
+            fontFamily = WenKaiFontFamily,
+            lineHeight = 26.sp
         )
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -486,10 +508,10 @@ private fun ErrorPhase(message: String, onDismiss: () -> Unit) {
             .padding(32.dp)
     ) {
         Text(
-            text = "ERROR",
-            color = GrayBody,
+            text = "错误",
+            color = GrayCaption,
             fontSize = 24.sp,
-            fontFamily = FontFamily.Monospace,
+            fontFamily = HuiwenFontFamily,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(bottom = 16.dp)
         )
@@ -498,6 +520,7 @@ private fun ErrorPhase(message: String, onDismiss: () -> Unit) {
             color = GrayCaption,
             fontSize = 13.sp,
             textAlign = TextAlign.Center,
+            fontFamily = WenKaiFontFamily,
             modifier = Modifier.padding(bottom = 24.dp)
         )
         CyberButton(
@@ -580,6 +603,7 @@ private fun GeometricCardFront(card: TarotCard) {
                 text = card.nameZh,
                 color = GrayBody,
                 fontSize = 8.sp,
+                fontFamily = HuiwenFontFamily,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
                 maxLines = 1
@@ -752,7 +776,7 @@ private fun CanvasThreeCardSpread(
                         card.position,
                         color = GrayMuted,
                         fontSize = 9.sp,
-                        fontFamily = FontFamily.Monospace,
+                        fontFamily = MonoFontFamily,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.width(90.dp)
                     )

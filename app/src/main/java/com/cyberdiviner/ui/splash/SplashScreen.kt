@@ -1,16 +1,22 @@
 package com.cyberdiviner.ui.splash
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ColorMatrix
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.cyberdiviner.R
 import com.cyberdiviner.engine.AlmanacEngine
 import com.cyberdiviner.ui.theme.*
 import kotlinx.coroutines.delay
@@ -18,9 +24,12 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 /**
- * SplashScreen -- Full-screen black. Solar + Lunar date. Auto-navigate after 2500ms.
+ * SplashScreen -- Mountain background + GanZhi. Auto-navigate after 2500ms.
  *
- * Solar date in monospace (technical). Lunar/GanZhi in serif (汇文明朝体, traditional).
+ * Background: splash_mountain.jpg (grayscale, dimmed)
+ * Solar date: JetBrains Mono (technical/阳历)
+ * Lunar GanZhi: 汇文明朝体 (traditional/农历, 大标题)
+ * Bottom quote: 霞鹜文楷 (人文)
  */
 @Composable
 fun SplashScreen(onTimeout: () -> Unit) {
@@ -34,36 +43,58 @@ fun SplashScreen(onTimeout: () -> Unit) {
         onTimeout()
     }
 
+    // Grayscale + dim color matrix for the mountain background
+    val grayscaleMatrix = remember {
+        ColorMatrix().apply {
+            setToSaturation(0f) // full grayscale
+        }
+    }
+
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(CyberBlack),
+        modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
+        // Mountain background — grayscale, dimmed
+        Image(
+            painter = painterResource(id = R.drawable.splash_mountain),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            colorFilter = ColorFilter.colorMatrix(grayscaleMatrix),
+            modifier = Modifier
+                .fillMaxSize()
+                .alpha(0.35f)
+        )
+
+        // Dark overlay for text readability
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.55f))
+        )
+
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
             modifier = Modifier.fillMaxSize()
         ) {
-            // Solar date (monospace, gray, small — technical/阳历)
+            // Solar date — JetBrains Mono (technical/阳历)
             Text(
                 text = today.format(solarFormatter),
                 color = GrayCaption,
                 fontSize = 14.sp,
-                fontFamily = FontFamily.Monospace,
+                fontFamily = MonoFontFamily,
                 letterSpacing = 4.sp,
                 textAlign = TextAlign.Center
             )
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Lunar GanZhi date (serif/汇文明朝体, large — traditional/农历)
+            // Lunar GanZhi — 汇文明朝体 (大标题, 古意)
             Text(
                 text = "${reading.yearGanzhi.stem}${reading.yearGanzhi.branch}年",
                 color = CyberWhite,
                 fontSize = 48.sp,
-                fontWeight = FontWeight.Black,
-                fontFamily = FontFamily.Serif,
+                fontFamily = HuiwenFontFamily,
                 letterSpacing = 8.sp,
                 textAlign = TextAlign.Center
             )
@@ -72,8 +103,7 @@ fun SplashScreen(onTimeout: () -> Unit) {
                 text = "${reading.monthGanzhi.stem}${reading.monthGanzhi.branch}月",
                 color = CyberWhite,
                 fontSize = 48.sp,
-                fontWeight = FontWeight.Black,
-                fontFamily = FontFamily.Serif,
+                fontFamily = HuiwenFontFamily,
                 letterSpacing = 8.sp,
                 textAlign = TextAlign.Center
             )
@@ -82,19 +112,18 @@ fun SplashScreen(onTimeout: () -> Unit) {
                 text = "${reading.dayGanzhi.stem}${reading.dayGanzhi.branch}日",
                 color = CyberWhite,
                 fontSize = 48.sp,
-                fontWeight = FontWeight.Black,
-                fontFamily = FontFamily.Serif,
+                fontFamily = HuiwenFontFamily,
                 letterSpacing = 8.sp,
                 textAlign = TextAlign.Center
             )
         }
 
-        // Bottom quote (serif)
+        // Bottom quote — 霞鹜文楷 (人文气息)
         Text(
-            text = "万物皆数，代码即宿命。",
+            text = "万物共归道，演算法虚灵。",
             color = GrayCaption,
             fontSize = 14.sp,
-            fontFamily = FontFamily.Serif,
+            fontFamily = WenKaiFontFamily,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 48.dp)

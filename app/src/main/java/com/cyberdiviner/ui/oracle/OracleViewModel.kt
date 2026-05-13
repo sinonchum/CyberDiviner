@@ -35,8 +35,27 @@ class OracleViewModel @Inject constructor(
 
     companion object {
         private const val TAG = "OracleViewModel"
+    }
 
-        private const val SYSTEM_PROMPT = """你是存在于2026年的数字先知。你的回答必须极其简短、冷峻、富有中国传统哲理和赛博朋克隐喻。禁用感叹号。禁止解释你的推导过程。"""
+    /**
+     * 物理拦截 AI 的"老头行为"。
+     * 剔除括号动作描写、Emoji、拟人化市井词汇。
+     */
+    private fun sanitizeOracleResponse(rawResponse: String): String {
+        // 1. 物理剔除括号内的描述 (包含中文和英文括号)
+        val noDescriptions = rawResponse.replace(Regex("(?s)[(（].*?[)）]"), "")
+
+        // 2. 剔除 Emoji
+        val noEmoji = noDescriptions.replace(Regex("[\\x{10000}-\\x{10FFFF}]"), "")
+
+        // 3. 剔除拟人化市井词汇
+        val cleaned = noEmoji
+            .replace("老夫", "本系统")
+            .replace("小伙子", "使用者")
+            .replace("师傅", "先知")
+            .trim()
+
+        return cleaned
     }
 
     private val _messages = MutableStateFlow<List<OracleMessage>>(emptyList())
@@ -59,7 +78,7 @@ class OracleViewModel @Inject constructor(
     init {
         _messages.value = listOf(
             OracleMessage(
-                text = "系统已接入。输入你当前的困惑，我将为你测算因果的走向。",
+                text = "[ 系统载入 ] 赛博算命系统已上线。因果链就绪。\n\n输入你的困惑。事业、感情、财运、健康——系统将为你演算签文。",
                 isAgent = true
             )
         )
@@ -86,9 +105,9 @@ class OracleViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
-                val config = configManager.buildConfig(systemPrompt = SYSTEM_PROMPT)
+                val config = configManager.buildConfig(systemPrompt = com.cyberdiviner.data.remote.PromptManager().resolveSystem("oracle", com.cyberdiviner.engine.Persona.DEFAULT))
                 if (config == null) {
-                    addAgentMessage("API密钥未配置。请在CONFIG中设置DeepSeek API Key。")
+                    addAgentMessage("[ 系统离线 ] 量子因果链未连接。请在设置中配置算命服务密钥。")
                     return@launch
                 }
 
@@ -104,10 +123,10 @@ class OracleViewModel @Inject constructor(
                     llmService.complete(config, apiMessages).text
                 }
 
-                addAgentMessage(responseText)
+                addAgentMessage(sanitizeOracleResponse(com.cyberdiviner.engine.Persona.stripActionDescriptions(responseText)))
             } catch (e: Exception) {
                 Log.e(TAG, "LLM call failed", e)
-                addAgentMessage("因果链断裂。错误: ${e.message ?: "未知"}")
+                addAgentMessage("[ 系统异常 ] 量子因果链中断。错误码: ${e.message ?: "未知"}。请稍后重试。")
             } finally {
                 _round.value = _round.value + 1
                 _isProcessing.value = false

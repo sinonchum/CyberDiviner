@@ -14,6 +14,7 @@ import com.cyberdiviner.data.remote.LlmService
 import com.cyberdiviner.data.remote.PromptManager
 import com.cyberdiviner.engine.HexagramData.LineState
 import com.cyberdiviner.engine.LiuyaoEngine
+import com.cyberdiviner.engine.ShakeDetector
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -27,16 +28,19 @@ import javax.inject.Inject
 /**
  * LiuyaoViewModel — orchestrates the full liuyao divination flow:
  *
- * 1. Question input → coin toss animation (6 rounds)
+ * 1. Question input → user shakes phone (6 shakes = 6 lines)
  * 2. Hexagram computation (LiuyaoEngine)
  * 3. Save reading to database
  * 4. LLM interpretation (streaming)
  * 5. Navigate to result screen
+ *
+ * Physical shake detection replaces random number generation.
+ * Each phone shake triggers one coin toss via the accelerometer.
  */
 
 enum class LiuyaoPhase {
     INPUT,          // User entering question
-    TOSSING,        // Coin animation running
+    TOSSING,        // Waiting for shakes (6 rounds)
     COMPUTING,      // Engine computing hexagram
     INTERPRETING,   // LLM generating interpretation
     RESULT,         // Done, showing result
@@ -48,8 +52,7 @@ data class LiuyaoUiState(
     val question: String = "",
     val currentTossIndex: Int = 0,
     val tossResults: List<LineState> = emptyList(),
-    val currentCoins: List<CoinState> = emptyList(),
-    val isCoinAnimating: Boolean = false,
+    val shakeProgress: String = "摇一摇",
     val divinationResult: LiuyaoEngine.DivinationResult? = null,
     val llmInterpretation: String = "",
     val llmStreamChunks: String = "",
@@ -72,6 +75,12 @@ class LiuyaoViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(LiuyaoUiState())
     val uiState: StateFlow<LiuyaoUiState> = _uiState.asStateFlow()
 
+    // Shake detector — created on demand, started/stopped with phase
+    private var shakeDetector: ShakeDetector? = null
+
+    // Collect all toss results from shake events
+    private val allTosses = mutableListOf<LineState>()
+
     // ── Public actions ────────────────────────────────────────────────────
 
     fun updateQuestion(question: String) {
@@ -79,7 +88,8 @@ class LiuyaoViewModel @Inject constructor(
     }
 
     /**
-     * Start the full divination flow: toss coins → compute → interpret.
+     * Start the full divination flow: shake → compute → interpret.
+     * Enters TOSSING phase and starts the accelerometer listener.
      */
     fun startDivination() {
         val question = _uiState.value.question.trim()
@@ -90,89 +100,66 @@ class LiuyaoViewModel @Inject constructor(
             return
         }
 
-        viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(
-                phase = LiuyaoPhase.TOSSING,
-                question = question,
-                tossResults = emptyList(),
-                currentCoins = emptyList(),
-                currentTossIndex = 0,
-                divinationResult = null,
-                llmInterpretation = "",
-                llmStreamChunks = "",
-                errorMessage = null,
-                progressMessage = "准备抛掷铜钱..."
-            )
+        allTosses.clear()
 
-            // Animate 6 coin tosses
-            val allTosses = mutableListOf<LineState>()
-            for (i in 0 until 6) {
-                // Generate coin states for this toss
-                val coins = generateCoinStates()
-                _uiState.value = _uiState.value.copy(
-                    currentTossIndex = i,
-                    currentCoins = coins.map { it.copy(isRevealed = false) },
-                    isCoinAnimating = true,
-                    tossResults = allTosses.toList(),
-                    progressMessage = "第 ${i + 1} 爻抛掷中..."
-                )
+        _uiState.value = _uiState.value.copy(
+            phase = LiuyaoPhase.TOSSING,
+            question = question,
+            tossResults = emptyList(),
+            currentTossIndex = 0,
+            divinationResult = null,
+            llmInterpretation = "",
+            llmStreamChunks = "",
+            errorMessage = null,
+            shakeProgress = "第 1 爻 · 摇一摇",
+            progressMessage = "握住手机，用力摇动"
+        )
 
-                // Spin animation delay
-                delay(800L)
+        // Start accelerometer listener
+        startShakeDetection()
+    }
 
-                // Reveal coins one by one
-                for (j in coins.indices) {
-                    val revealed = coins.mapIndexed { idx, coin ->
-                        if (idx <= j) coin.copy(isRevealed = true) else coin
-                    }
-                    _uiState.value = _uiState.value.copy(currentCoins = revealed)
-                    delay(200L)
-                }
+    /**
+     * Called by ShakeDetector when a shake is detected.
+     * Generates one coin toss, records the line, advances the count.
+     */
+    fun onShakeDetected() {
+        val state = _uiState.value
+        if (state.phase != LiuyaoPhase.TOSSING) return
+        if (state.currentTossIndex >= 6) return
 
-                // Final state — calculate line
-                val lineState = coins.toLineState()
-                allTosses.add(lineState)
+        // Generate one coin toss
+        val toss = engine.throwCoins()
+        allTosses.add(toss.lineState)
 
-                _uiState.value = _uiState.value.copy(
-                    currentCoins = coins.map { it.copy(isRevealed = true) },
-                    tossResults = allTosses.toList(),
-                    isCoinAnimating = false
-                )
-                delay(400L)
+        val newIndex = state.currentTossIndex + 1
+        val newState = when {
+            newIndex >= 6 -> {
+                // All 6 done — stop shaking, compute
+                stopShakeDetection()
+                LiuyaoPhase.COMPUTING
             }
+            else -> LiuyaoPhase.TOSSING
+        }
 
-            // All 6 tosses done — compute hexagram
-            _uiState.value = _uiState.value.copy(
-                phase = LiuyaoPhase.COMPUTING,
-                progressMessage = "计算卦象中..."
-            )
-            delay(300L)
+        val progressText = if (newIndex < 6) {
+            "第 ${newIndex + 1} 爻 · 摇一摇"
+        } else {
+            "六爻已成"
+        }
 
-            try {
-                val result = engine.divine(question)
-                _uiState.value = _uiState.value.copy(
-                    divinationResult = result,
-                    progressMessage = "卦象已成，解读中..."
-                )
+        _uiState.value = state.copy(
+            currentTossIndex = newIndex,
+            tossResults = allTosses.toList(),
+            phase = newState,
+            shakeProgress = progressText
+        )
 
-                // Save to database
-                val readingId = saveReading(result, question)
-
-                // Navigate to interpretation
-                _uiState.value = _uiState.value.copy(
-                    phase = LiuyaoPhase.INTERPRETING,
-                    readingId = readingId,
-                    progressMessage = "正在召唤赛博先知..."
-                )
-
-                // Start LLM interpretation
-                streamLlmInterpretation(result, question)
-
-            } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    phase = LiuyaoPhase.ERROR,
-                    errorMessage = "起卦失败: ${e.message}"
-                )
+        // If all 6 done, proceed to computation
+        if (newIndex >= 6) {
+            viewModelScope.launch {
+                delay(300L) // brief pause to show "六爻已成"
+                computeHexagram()
             }
         }
     }
@@ -181,6 +168,7 @@ class LiuyaoViewModel @Inject constructor(
      * Dismiss error and return to input.
      */
     fun dismissError() {
+        stopShakeDetection()
         _uiState.value = LiuyaoUiState()
     }
 
@@ -197,45 +185,82 @@ class LiuyaoViewModel @Inject constructor(
      * Start a new reading, resetting state.
      */
     fun newReading() {
+        stopShakeDetection()
+        allTosses.clear()
         _uiState.value = LiuyaoUiState()
     }
 
     /**
-     * Force result phase (e.g. after animation completes and interpretation is done).
+     * Force result phase.
      */
     fun showResult() {
         _uiState.value = _uiState.value.copy(phase = LiuyaoPhase.RESULT)
     }
 
-    // ── Internal helpers ──────────────────────────────────────────────────
+    // ── Shake Detection ──────────────────────────────────────────────────
 
-    private fun generateCoinStates(): List<CoinState> {
-        return List(3) {
-            CoinState(
-                index = it,
-                isHeads = kotlin.random.Random.nextBoolean(),
-                isRevealed = false
+    private fun startShakeDetection() {
+        if (shakeDetector == null) {
+            shakeDetector = ShakeDetector(getApplication()) {
+                // This runs on the main thread — safe to update state
+                onShakeDetected()
+            }
+        }
+        shakeDetector?.start()
+    }
+
+    private fun stopShakeDetection() {
+        shakeDetector?.stop()
+    }
+
+    // ── Hexagram Computation ─────────────────────────────────────────────
+
+    private suspend fun computeHexagram() {
+        _uiState.value = _uiState.value.copy(
+            phase = LiuyaoPhase.COMPUTING,
+            progressMessage = "计算卦象中..."
+        )
+        delay(300L)
+
+        try {
+            // Build divination result from the 6 line states
+            val result = engine.divineFromStates(
+                question = _uiState.value.question,
+                states = allTosses.toList()
+            )
+            _uiState.value = _uiState.value.copy(
+                divinationResult = result,
+                progressMessage = "卦象已成，解读中..."
+            )
+
+            // Save to database
+            val readingId = saveReading(result, _uiState.value.question)
+
+            // Navigate to interpretation
+            _uiState.value = _uiState.value.copy(
+                phase = LiuyaoPhase.INTERPRETING,
+                readingId = readingId,
+                progressMessage = "正在召唤赛博先知..."
+            )
+
+            // Start LLM interpretation
+            streamLlmInterpretation(result, _uiState.value.question)
+
+        } catch (e: Exception) {
+            _uiState.value = _uiState.value.copy(
+                phase = LiuyaoPhase.ERROR,
+                errorMessage = "起卦失败: ${e.message}"
             )
         }
     }
 
-    private fun List<CoinState>.toLineState(): LineState {
-        val sum = fold(0) { acc, coin -> acc + if (coin.isHeads) 2 else 1 }
-        return when (sum) {
-            6 -> LineState.OLD_YIN
-            5 -> LineState.YOUNG_YANG
-            4 -> LineState.YOUNG_YIN
-            3 -> LineState.OLD_YANG
-            else -> LineState.YOUNG_YANG
-        }
-    }
+    // ── Database ─────────────────────────────────────────────────────────
 
     private suspend fun saveReading(
         result: LiuyaoEngine.DivinationResult,
         question: String
     ): Long = withContext(Dispatchers.IO) {
         try {
-            // Create the parent divination reading
             val reading = DivinationReading(
                 type = DivinationType.LIUYAO,
                 question = question,
@@ -243,7 +268,6 @@ class LiuyaoViewModel @Inject constructor(
             )
             val readingId = divinationDao.insert(reading)
 
-            // Create the liuyao-specific sub-reading
             val liuyaoReading = LiuyaoReading(
                 readingId = readingId,
                 hexagramName = result.primaryHexagram.chineseName,
@@ -269,10 +293,11 @@ class LiuyaoViewModel @Inject constructor(
 
             readingId
         } catch (e: Exception) {
-            // Non-fatal — reading is still viewable from memory
             -1L
         }
     }
+
+    // ── LLM Interpretation ───────────────────────────────────────────────
 
     private suspend fun streamLlmInterpretation(
         result: LiuyaoEngine.DivinationResult,
@@ -304,12 +329,9 @@ class LiuyaoViewModel @Inject constructor(
             )
 
             val messages = listOf(LlmMessage(role = "user", content = userPrompt))
-
-            // Build config from persisted settings
             val config = configManager.buildConfig(systemPrompt = systemPrompt)
 
             if (config == null) {
-                // No API key — fall back to engine's built-in summary
                 _uiState.value = _uiState.value.copy(
                     llmInterpretation = result.summary(),
                     phase = LiuyaoPhase.RESULT
@@ -326,16 +348,20 @@ class LiuyaoViewModel @Inject constructor(
             }
 
             _uiState.value = _uiState.value.copy(
-                llmInterpretation = fullText.ifBlank { result.summary() },
+                llmInterpretation = com.cyberdiviner.engine.Persona.stripActionDescriptions(fullText).ifBlank { result.summary() },
                 phase = LiuyaoPhase.RESULT
             )
 
         } catch (e: Exception) {
-            // LLM failure is non-fatal — fall back to engine summary
             _uiState.value = _uiState.value.copy(
                 llmInterpretation = result.summary(),
                 phase = LiuyaoPhase.RESULT
             )
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        stopShakeDetection()
     }
 }
