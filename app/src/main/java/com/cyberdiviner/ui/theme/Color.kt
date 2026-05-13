@@ -2,41 +2,40 @@ package com.cyberdiviner.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// ── Professional cyberpunk palette ────────────────────────────────────────
-// Primary: muted teal/cyan
-val CyberPrimary = Color(0xFF5EEAD4)
-// Secondary: muted lavender
-val CyberSecondary = Color(0xFFA78BFA)
-// Tertiary: warm amber
-val CyberTertiary = Color(0xFFF59E0B)
+// ── Strictly #000000 / #FFFFFF ──────────────────────────────────────────────
+// No glow. No gradient. No color. Only binary.
 
-// ── Background layers (softened dark tones) ───────────────────────────────
-val CyberBlack = Color(0xFF0D0D12)
-val CyberDark = Color(0xFF15151E)
-val CyberGray = Color(0xFF1E1E2E)
-val CyberSurface = Color(0xFF1A2332)
+val CyberBlack = Color(0xFF000000)
+val CyberWhite = Color(0xFFFFFFFF)
 
-// ── Feature accent colors (subtle, not neon) ──────────────────────────────
-val AccentLiuYao = Color(0xFF5EEAD4)   // teal – hexagram divination
-val AccentTarot = Color(0xFFA78BFA)    // lavender – tarot reading
-val AccentVision = Color(0xFF6EE7B7)   // mint – face scanning
-val AccentMuyu = Color(0xFFF59E0B)     // amber – wooden fish
+// ── Background layers (pure black variants) ─────────────────────────────────
+val CyberSurface = Color(0xFF0A0A0A)
+val CyberGray = Color(0xFF111111)
+val CyberDark = Color(0xFF080808)
 
-// ── Text ──────────────────────────────────────────────────────────────────
-val TextPrimary = Color(0xFFE0E0E0)
-val TextSecondary = Color(0xFF8888AA)
-val TextMuted = Color(0xFF555577)
+// ── Text (grayscale only) ──────────────────────────────────────────────────
+val TextPrimary = Color(0xFFFFFFFF)
+val TextSecondary = Color(0xFF999999)
+val TextMuted = Color(0xFF555555)
 
-// ── Fortune specific ──────────────────────────────────────────────────────
-val AuspiciousGreen = Color(0xFF34D399)   // muted green, not screaming
-val InauspiciousRed = Color(0xFFEF4444)   // clean red
-val FortuneGold = Color(0xFFFBBF24)       // warm gold
+// ── Border / divider ───────────────────────────────────────────────────────
+val BorderColor = Color(0xFF333333)
 
-// ── Backward-compat aliases (legacy neon names → professional palette) ────
-val NeonCyan = CyberPrimary
-val NeonMagenta = CyberSecondary
-val NeonGreen = CyberTertiary
-val NeonPurple = CyberSecondary   // lavender replaces purple
-val NeonOrange = CyberTertiary    // amber replaces orange
-val NeonBlue = Color(0xFF60A5FA)  // soft blue kept for tarot suits / coin states
-val NeonYellow = CyberTertiary   // amber replaces yellow (used in energy card)
+// ── Legacy aliases (map to B&W) ───────────────────────────────────────────
+val CyberPrimary = CyberWhite
+val CyberSecondary = CyberWhite
+val CyberTertiary = CyberWhite
+val NeonCyan = CyberWhite
+val NeonMagenta = CyberWhite
+val NeonGreen = CyberWhite
+val NeonPurple = CyberWhite
+val NeonOrange = CyberWhite
+val NeonBlue = CyberWhite
+val NeonYellow = CyberWhite
+val AccentLiuYao = CyberWhite
+val AccentTarot = CyberWhite
+val AccentVision = CyberWhite
+val AccentMuyu = CyberWhite
+val AuspiciousGreen = CyberWhite
+val InauspiciousRed = CyberWhite
+val FortuneGold = CyberWhite

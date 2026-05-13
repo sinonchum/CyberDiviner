@@ -6,49 +6,78 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
+// ── Serif for titles (古籍刻本感), Monospace for body (终端逻辑感) ──────────
+
+val SerifDisplay = FontFamily.Serif
+val MonoBody = FontFamily.Monospace
+
 val CyberTypography = Typography(
     displayLarge = TextStyle(
-        fontFamily = FontFamily.Monospace,
-        fontWeight = FontWeight.Bold,
+        fontFamily = SerifDisplay,
+        fontWeight = FontWeight.Black,
         fontSize = 48.sp,
-        letterSpacing = 4.sp
+        letterSpacing = 6.sp,
+        color = CyberWhite
     ),
     displayMedium = TextStyle(
-        fontFamily = FontFamily.Monospace,
+        fontFamily = SerifDisplay,
         fontWeight = FontWeight.Bold,
         fontSize = 36.sp,
-        letterSpacing = 2.sp
+        letterSpacing = 4.sp,
+        color = CyberWhite
     ),
     headlineLarge = TextStyle(
-        fontFamily = FontFamily.Monospace,
+        fontFamily = SerifDisplay,
         fontWeight = FontWeight.Bold,
-        fontSize = 28.sp
+        fontSize = 28.sp,
+        letterSpacing = 2.sp,
+        color = CyberWhite
     ),
     headlineMedium = TextStyle(
-        fontFamily = FontFamily.Monospace,
-        fontWeight = FontWeight.Normal,
-        fontSize = 22.sp
+        fontFamily = SerifDisplay,
+        fontWeight = FontWeight.Bold,
+        fontSize = 22.sp,
+        color = CyberWhite
+    ),
+    titleLarge = TextStyle(
+        fontFamily = MonoBody,
+        fontWeight = FontWeight.Bold,
+        fontSize = 18.sp,
+        letterSpacing = 1.sp,
+        color = CyberWhite
+    ),
+    titleMedium = TextStyle(
+        fontFamily = MonoBody,
+        fontWeight = FontWeight.Medium,
+        fontSize = 16.sp,
+        color = CyberWhite
     ),
     bodyLarge = TextStyle(
-        fontFamily = FontFamily.Default,
+        fontFamily = MonoBody,
         fontWeight = FontWeight.Normal,
         fontSize = 16.sp,
-        lineHeight = 24.sp
+        lineHeight = 24.sp,
+        color = CyberWhite
     ),
     bodyMedium = TextStyle(
-        fontFamily = FontFamily.Default,
+        fontFamily = MonoBody,
         fontWeight = FontWeight.Normal,
         fontSize = 14.sp,
-        lineHeight = 20.sp
+        lineHeight = 20.sp,
+        color = CyberWhite
     ),
     labelLarge = TextStyle(
-        fontFamily = FontFamily.Monospace,
+        fontFamily = MonoBody,
         fontWeight = FontWeight.Medium,
-        fontSize = 14.sp
+        fontSize = 14.sp,
+        letterSpacing = 1.sp,
+        color = CyberWhite
     ),
     labelSmall = TextStyle(
-        fontFamily = FontFamily.Monospace,
+        fontFamily = MonoBody,
         fontWeight = FontWeight.Normal,
-        fontSize = 11.sp
+        fontSize = 11.sp,
+        letterSpacing = 1.sp,
+        color = TextSecondary
     )
 )
