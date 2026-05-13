@@ -27,22 +27,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Text
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.DrawScope
@@ -52,13 +46,13 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.cyberdiviner.ui.shared.CyberButton
+import com.cyberdiviner.ui.shared.VoiceInputField
 import com.cyberdiviner.ui.theme.CyberBlack
 import com.cyberdiviner.ui.theme.CyberWhite
 import com.cyberdiviner.ui.theme.GrayBody
@@ -153,7 +147,6 @@ private fun SelectSpreadPhase(
     onSelectSpread: (SpreadType) -> Unit,
     onStartReading: () -> Unit
 ) {
-    val focusRequester = remember { FocusRequester() }
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -179,36 +172,14 @@ private fun SelectSpreadPhase(
             modifier = Modifier.padding(bottom = 24.dp)
         )
 
-        // ── Question input ────────────────────────────────────────────
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(1.dp, GrayBorder, RoundedCornerShape(8.dp))
-                .background(CyberBlack)
-                .padding(16.dp)
-        ) {
-            if (uiState.question.isEmpty()) {
-                Text(
-                    text = "你想问什么？",
-                    color = GrayMuted,
-                    fontSize = 14.sp
-                )
-            }
-            BasicTextField(
-                value = uiState.question,
-                onValueChange = onQuestionChange,
-                textStyle = TextStyle(
-                    color = CyberWhite,
-                    fontSize = 14.sp
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .focusRequester(focusRequester),
-                cursorBrush = SolidColor(CyberWhite),
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                maxLines = 3
-            )
-        }
+        // ── Question input (shared VoiceInputField) ──────────────────
+        VoiceInputField(
+            text = uiState.question,
+            onTextChange = onQuestionChange,
+            onSend = onStartReading,
+            placeholder = "你想问什么？",
+            modifier = Modifier.fillMaxWidth()
+        )
 
         // ── Error ─────────────────────────────────────────────────────
         AnimatedVisibility(visible = uiState.errorMessage != null) {

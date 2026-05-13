@@ -6,12 +6,8 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -19,13 +15,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.cyberdiviner.ui.shared.CyberButton
+import com.cyberdiviner.ui.shared.VoiceInputField
 import com.cyberdiviner.ui.theme.*
 
 /**
@@ -144,36 +140,13 @@ private fun InputPhase(
         )
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Question input (minimal, bottom border only)
-        TextField(
-            value = question,
-            onValueChange = onQuestionChange,
-            placeholder = {
-                Text(
-                    "例如：我的事业前景如何？",
-                    color = GrayCaption,
-                    fontSize = 14.sp,
-                    fontFamily = FontFamily.Serif
-                )
-            },
-            textStyle = androidx.compose.ui.text.TextStyle(
-                color = GrayTitle,
-                fontSize = 16.sp,
-                fontFamily = FontFamily.Serif
-            ),
-            colors = TextFieldDefaults.colors(
-                focusedTextColor = GrayTitle,
-                unfocusedTextColor = GrayTitle,
-                cursorColor = CyberWhite,
-                focusedContainerColor = Color.Transparent,
-                unfocusedContainerColor = Color.Transparent,
-                focusedIndicatorColor = CyberWhite,
-                unfocusedIndicatorColor = GrayBorder
-            ),
-            modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Go),
-            keyboardActions = KeyboardActions(onGo = { onStartDivination() }),
-            maxLines = 3
+        // Question input (shared VoiceInputField with hold-to-record)
+        VoiceInputField(
+            text = question,
+            onTextChange = onQuestionChange,
+            onSend = onStartDivination,
+            placeholder = "例如：我的事业前景如何？",
+            modifier = Modifier.fillMaxWidth()
         )
 
         // Error
