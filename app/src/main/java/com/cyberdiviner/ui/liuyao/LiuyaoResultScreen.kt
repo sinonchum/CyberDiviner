@@ -315,7 +315,7 @@ private fun buildCardList(
     CardInfo("爻象", "LINES") { LinesCard(result) },
     CardInfo("六神", "SPIRITS") { SpiritsCard(result) },
     CardInfo("断卦", "ANALYSIS") { AnalysisCard(result) },
-    CardInfo("解读", "INTERPRETATION") { InterpretationCard(llmText) }
+    CardInfo("解读", "INTERPRETATION") { InterpretationCard(result, llmText) }
 )
 
 // ── Card 1: Hexagram ──────────────────────────────────────────────────────
@@ -581,12 +581,98 @@ private fun AnalysisCard(result: LiuyaoEngine.DivinationResult) {
 // ── Card 5: LLM Interpretation ────────────────────────────────────────────
 
 @Composable
-private fun InterpretationCard(llmText: String) {
-    if (llmText.isBlank()) {
-        Box(Modifier.fillMaxWidth().height(120.dp), contentAlignment = Alignment.Center) {
-            Text("量子因果链运算中...", color = GrayMuted, fontSize = 13.sp, fontFamily = WenKaiFontFamily)
-        }
+private fun InterpretationCard(result: LiuyaoEngine.DivinationResult, llmText: String) {
+    // Clean LLM text: strip engine divider lines
+    val cleanText = llmText
+        .replace(Regex("[━─═]{4,}"), "")
+        .replace(Regex("六爻占卜 — Liuyao Divination"), "")
+        .replace(Regex("━━━ .+ ━━━"), "")
+        .trim()
+
+    if (cleanText.isBlank()) {
+        // Fallback: generate structured plain-language summary from engine data
+        PlainLanguageSummary(result)
     } else {
-        Text(llmText, color = GrayBody, fontSize = 14.sp, fontFamily = WenKaiFontFamily, lineHeight = 24.sp)
+        // Show cleaned LLM interpretation
+        Text(cleanText, color = GrayBody, fontSize = 14.sp, fontFamily = WenKaiFontFamily, lineHeight = 26.sp)
+    }
+}
+
+@Composable
+private fun PlainLanguageSummary(result: LiuyaoEngine.DivinationResult) {
+    val primary = result.primaryHexagram
+    val changed = result.changedHexagram
+    val hasChanges = result.hasChangingLines()
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        // 卦象概述
+        Text(
+            text = "你所问之事，得${primary.chineseName}卦（${primary.englishName}）",
+            color = CyberWhite,
+            fontSize = 15.sp,
+            fontFamily = WenKaiFontFamily,
+            lineHeight = 26.sp
+        )
+        if (hasChanges) {
+            Spacer(Modifier.height(6.dp))
+            Text(
+                text = "动爻变${changed.chineseName}卦（${changed.englishName}），主变化转化之势。",
+                color = GrayBody,
+                fontSize = 14.sp,
+                fontFamily = WenKaiFontFamily,
+                lineHeight = 24.sp
+            )
+        }
+
+        Spacer(Modifier.height(16.dp))
+
+        // 旺衰判断
+        Text(
+            text = result.analysis.strength,
+            color = if (result.analysis.strength.contains("旺")) AccentRed else GrayBody,
+            fontSize = 14.sp,
+            fontFamily = WenKaiFontFamily,
+            lineHeight = 24.sp
+        )
+
+        Spacer(Modifier.height(12.dp))
+
+        // 综合断语
+        Text(
+            text = result.analysis.interpretation,
+            color = GrayBody,
+            fontSize = 14.sp,
+            fontFamily = WenKaiFontFamily,
+            lineHeight = 24.sp
+        )
+
+        Spacer(Modifier.height(20.dp))
+
+        // 建议 — 最重要，突出显示
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .border(1.dp, AccentRed.copy(alpha = 0.3f), RoundedCornerShape(4.dp))
+                .padding(12.dp)
+        ) {
+            Column {
+                Text(
+                    text = "建议",
+                    color = AccentRed,
+                    fontSize = 12.sp,
+                    fontFamily = HuiwenFontFamily,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 2.sp
+                )
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    text = result.analysis.advice,
+                    color = CyberWhite,
+                    fontSize = 14.sp,
+                    fontFamily = WenKaiFontFamily,
+                    lineHeight = 24.sp
+                )
+            }
+        }
     }
 }
