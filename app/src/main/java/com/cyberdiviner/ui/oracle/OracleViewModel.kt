@@ -7,6 +7,9 @@ import androidx.lifecycle.viewModelScope
 import com.cyberdiviner.data.remote.LlmConfigManager
 import com.cyberdiviner.data.remote.LlmMessage
 import com.cyberdiviner.data.remote.LlmService
+import com.cyberdiviner.data.dao.DivinationDao
+import com.cyberdiviner.data.model.DivinationReading
+import com.cyberdiviner.data.model.DivinationType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,7 +33,8 @@ data class OracleMessage(
 class OracleViewModel @Inject constructor(
     application: Application,
     private val llmService: LlmService,
-    private val configManager: LlmConfigManager
+    private val configManager: LlmConfigManager,
+    private val divinationDao: DivinationDao
 ) : AndroidViewModel(application) {
 
     companion object {
@@ -130,11 +134,48 @@ class OracleViewModel @Inject constructor(
             } finally {
                 _round.value = _round.value + 1
                 _isProcessing.value = false
+
+                // Auto-save to archive when session ends
+                if (_round.value >= maxRounds) {
+                    saveToArchive()
+                }
             }
         }
     }
 
     private fun addAgentMessage(text: String) {
         _messages.value = _messages.value + OracleMessage(text = text, isAgent = true)
+    }
+
+    private fun saveToArchive() {
+        viewModelScope.launch {
+            try {
+                // Build a summary from the conversation
+                val conversationSummary = _messages.value
+                    .filter { !it.isAgent }
+                    .take(3)
+                    .joinToString(" | ") { it.text.take(20) }
+
+                // Get the last AI response as the result
+                val lastAiMessage = _messages.value
+                    .lastOrNull { it.isAgent }
+                    ?.text ?: "无结果"
+
+                // Create result JSON
+                val resultJson = """
+                {"question": "$conversationSummary", "response": "${'$'}{lastAiMessage.take(200)}"}
+                """.trimIndent()
+
+                val reading = DivinationReading(
+                    type = DivinationType.ORACLE,
+                    question = conversationSummary,
+                    resultJson = resultJson
+                )
+                divinationDao.insert(reading)
+                Log.d(TAG, "Saved oracle session to archive")
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to save oracle session", e)
+            }
+        }
     }
 }

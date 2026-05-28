@@ -12,6 +12,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.cyberdiviner.data.model.DivinationReading
+import com.cyberdiviner.data.model.DivinationType
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -33,46 +39,6 @@ private data class ArchiveEntry(
     val hash: String            // 防伪哈希
 )
 
-// ── Mock data ──────────────────────────────────────────────────────────────
-
-private val mockArchive = listOf(
-    ArchiveEntry(
-        lunarDate = "丙戌日",
-        type = "周易起卦",
-        title = "泽水困卦",
-        interpretation = "当前局势阻滞，切忌盲目投资，需等待时机。",
-        hash = "0x8F9A3C7E1B2D4460"
-    ),
-    ArchiveEntry(
-        lunarDate = "乙酉日",
-        type = "赛博塔罗",
-        title = "愚者逆位",
-        interpretation = "冲动行事将导致失控，应回归理性审慎的判断。",
-        hash = "0x2E7B1FA9D3C86052"
-    ),
-    ArchiveEntry(
-        lunarDate = "甲申日",
-        type = "视界扫描",
-        title = "破局之象",
-        interpretation = "灵子共振率达标，深层结构已解析，可推进下一阶段。",
-        hash = "0xD4A06B3E91F72C88"
-    ),
-    ArchiveEntry(
-        lunarDate = "癸未日",
-        type = "叩问天机",
-        title = "灵魂校准",
-        interpretation = "人格频谱已锁定，因果变量组已写入永久链。",
-        hash = "0x7C3E2A8B1D64F091"
-    ),
-    ArchiveEntry(
-        lunarDate = "壬午日",
-        type = "周易起卦",
-        title = "地天泰卦",
-        interpretation = "天地交泰，万事亨通。宜积极行动，把握当前良机。",
-        hash = "0x1A5E8D2F6B73C940"
-    )
-)
-
 // ── Screen ─────────────────────────────────────────────────────────────────
 
 /**
@@ -87,7 +53,11 @@ private val mockArchive = listOf(
  * - Bottom-right: hash watermark (7sp, dark gray)
  */
 @Composable
-fun ArchiveScreen(@Suppress("UNUSED_PARAMETER") onBack: () -> Unit) {
+fun ArchiveScreen(
+    @Suppress("UNUSED_PARAMETER") onBack: () -> Unit,
+    viewModel: ArchiveViewModel = hiltViewModel()
+) {
+    val readings by viewModel.readings.collectAsState()
     var expandedIndex by remember { mutableStateOf<Int?>(null) }
 
     Box(
@@ -102,21 +72,25 @@ fun ArchiveScreen(@Suppress("UNUSED_PARAMETER") onBack: () -> Unit) {
             Spacer(modifier = Modifier.height(48.dp))
 
             // ── Card stream ─────────────────────────
-            LazyColumn(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(20.dp)
-            ) {
-                items(mockArchive.size) { index ->
-                    val entry = mockArchive[index]
-                    val isExpanded = expandedIndex == index
+            if (readings.isEmpty()) {
+                EmptyArchive()
+            } else {
+                LazyColumn(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(20.dp)
+                ) {
+                    items(readings.size) { index ->
+                        val entry = readings[index].toDisplayEntry()
+                        val isExpanded = expandedIndex == index
 
-                    ArchiveCard(
-                        entry = entry,
-                        isExpanded = isExpanded,
-                        onClick = {
-                            expandedIndex = if (isExpanded) null else index
-                        }
-                    )
+                        ArchiveCard(
+                            entry = entry,
+                            isExpanded = isExpanded,
+                            onClick = {
+                                expandedIndex = if (isExpanded) null else index
+                            }
+                        )
+                    }
                 }
             }
         }
@@ -124,6 +98,30 @@ fun ArchiveScreen(@Suppress("UNUSED_PARAMETER") onBack: () -> Unit) {
 }
 
 // ── Empty state ───────────────────────────────────────────────────────
+
+private fun DivinationReading.toDisplayEntry(): ArchiveEntry {
+    val sdf = SimpleDateFormat("yyyy.MM.dd HH:mm", Locale.getDefault())
+    val dateStr = sdf.format(Date(timestamp))
+    
+    // Parse resultJson to get a brief summary
+    val briefResult = try {
+        val json = resultJson
+        // Simple extraction - get the response field
+        val responseStart = json.indexOf("\"response\": \"") + 13
+        val responseEnd = json.indexOf("\"", responseStart).coerceAtMost(responseStart + 80)
+        json.substring(responseStart, responseEnd).trim()
+    } catch (e: Exception) {
+        question.take(50)
+    }
+    
+    return ArchiveEntry(
+        lunarDate = dateStr,
+        type = type.displayName,
+        title = question.take(10).ifEmpty { type.displayName },
+        interpretation = briefResult.ifEmpty { "暂无解读" },
+        hash = String.format("0x%08X", id.hashCode())
+    )
+}
 
 @Composable
 private fun EmptyArchive() {
