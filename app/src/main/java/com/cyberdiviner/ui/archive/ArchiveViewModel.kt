@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.cyberdiviner.data.dao.DivinationDao
 import com.cyberdiviner.data.dao.LiuyaoDao
 import com.cyberdiviner.data.dao.TarotDao
+import com.cyberdiviner.data.dao.VisionDao
 import com.cyberdiviner.data.model.DivinationReading
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -17,7 +18,8 @@ import javax.inject.Inject
 class ArchiveViewModel @Inject constructor(
     private val divinationDao: DivinationDao,
     private val liuyaoDao: LiuyaoDao,
-    private val tarotDao: TarotDao
+    private val tarotDao: TarotDao,
+    private val visionDao: VisionDao
 ) : ViewModel() {
 
     val readings: StateFlow<List<DivinationReading>> = divinationDao.getAll()
@@ -75,6 +77,21 @@ class ArchiveViewModel @Inject constructor(
 
             Pair(title, interp)
         } catch (e: Exception) { null }
+    }
+
+    /** Get interpretation from the sub-reading table for any type */
+    suspend fun getInterpretation(readingId: Long, type: com.cyberdiviner.data.model.DivinationType): String {
+        return try {
+            when (type) {
+                com.cyberdiviner.data.model.DivinationType.LIUYAO ->
+                    liuyaoDao.getByReadingId(readingId)?.interpretation ?: ""
+                com.cyberdiviner.data.model.DivinationType.TAROT ->
+                    tarotDao.getByReadingId(readingId)?.interpretation ?: ""
+                com.cyberdiviner.data.model.DivinationType.VISION ->
+                    visionDao.getByReadingId(readingId)?.interpretation ?: ""
+                else -> ""
+            }
+        } catch (e: Exception) { "" }
     }
 
     fun deleteReading(reading: DivinationReading) {

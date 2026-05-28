@@ -347,14 +347,26 @@ class LiuyaoViewModel @Inject constructor(
                 }
             }
 
+            val finalText = com.cyberdiviner.engine.Persona.stripActionDescriptions(fullText).ifBlank { result.summary() }
             _uiState.value = _uiState.value.copy(
-                llmInterpretation = com.cyberdiviner.engine.Persona.stripActionDescriptions(fullText).ifBlank { result.summary() },
+                llmInterpretation = finalText,
                 phase = LiuyaoPhase.RESULT
             )
+            // Persist interpretation to database
+            try {
+                val rid = _uiState.value.readingId
+                if (rid != null) {
+                    val existing = liuyaoDao.getByReadingId(rid)
+                    if (existing != null) {
+                        liuyaoDao.update(existing.copy(interpretation = finalText))
+                    }
+                }
+            } catch (_: Exception) {}
 
         } catch (e: Exception) {
+            val fallback = result.summary()
             _uiState.value = _uiState.value.copy(
-                llmInterpretation = result.summary(),
+                llmInterpretation = fallback,
                 phase = LiuyaoPhase.RESULT
             )
         }

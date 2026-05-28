@@ -122,9 +122,17 @@ fun ArchiveScreen(
                         val entry = entryState.value
                         val isExpanded = expandedIndex == index
 
+                        // Fetch full interpretation when expanded
+                        val interpState = produceState<String>(initialValue = "") {
+                            if (isExpanded) {
+                                value = viewModel.getInterpretation(reading.id, reading.type)
+                            }
+                        }
+
                         SwipeToDeleteCard(
                             entry = entry,
                             isExpanded = isExpanded,
+                            expandedText = interpState.value,
                             onClick = {
                                 expandedIndex = if (isExpanded) null else index
                             },
@@ -145,6 +153,7 @@ fun ArchiveScreen(
 private fun SwipeToDeleteCard(
     entry: ArchiveEntry,
     isExpanded: Boolean,
+    expandedText: String,
     onClick: () -> Unit,
     onDelete: () -> Unit
 ) {
@@ -265,17 +274,41 @@ private fun SwipeToDeleteCard(
                         lineHeight = 24.sp
                     )
 
-                    // ── Expanded details ────────────────
+                    // ── Expanded details: full interpretation ────────
                     AnimatedVisibility(visible = isExpanded) {
                         Column(modifier = Modifier.padding(top = 16.dp)) {
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = "完整解读已归档。后续算法将基于此哈希运行。",
-                                color = GrayCaption,
-                                fontSize = 12.sp,
-                                fontFamily = WenKaiFontFamily,
-                                lineHeight = 20.sp
-                            )
+                            if (expandedText.isNotBlank()) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(1.dp)
+                                        .background(GrayBorder)
+                                )
+                                Spacer(modifier = Modifier.height(12.dp))
+                                Text(
+                                    text = "完整解读",
+                                    color = AccentRed,
+                                    fontSize = 11.sp,
+                                    fontFamily = HuiwenFontFamily,
+                                    fontWeight = FontWeight.Bold,
+                                    letterSpacing = 2.sp
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = expandedText,
+                                    color = GrayBody,
+                                    fontSize = 13.sp,
+                                    fontFamily = WenKaiFontFamily,
+                                    lineHeight = 22.sp
+                                )
+                            } else {
+                                Text(
+                                    text = "暂无详细解读",
+                                    color = GrayMuted,
+                                    fontSize = 12.sp,
+                                    fontFamily = WenKaiFontFamily
+                                )
+                            }
                         }
                     }
 

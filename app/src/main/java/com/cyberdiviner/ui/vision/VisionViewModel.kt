@@ -755,10 +755,21 @@ class VisionViewModel @Inject constructor(
                 }
             }
 
+            val finalText = com.cyberdiviner.engine.Persona.stripActionDescriptions(fullText).ifBlank { buildFallbackInterpretation(featuresJson, question) }
             _uiState.value = _uiState.value.copy(
-                interpretation = com.cyberdiviner.engine.Persona.stripActionDescriptions(fullText).ifBlank { buildFallbackInterpretation(featuresJson, question) },
+                interpretation = finalText,
                 phase = VisionPhase.RESULT
             )
+            // Persist interpretation to database
+            try {
+                val rid = _uiState.value.readingId
+                if (rid != null) {
+                    val existing = visionDao.getByReadingId(rid)
+                    if (existing != null) {
+                        visionDao.update(existing.copy(interpretation = finalText))
+                    }
+                }
+            } catch (_: Exception) {}
         } catch (e: Exception) {
             Log.e(TAG, "Interpretation failed", e)
             val fallback = buildFallbackInterpretation(featuresJson, question)

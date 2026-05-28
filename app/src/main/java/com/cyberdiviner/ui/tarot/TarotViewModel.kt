@@ -322,10 +322,21 @@ class TarotViewModel @Inject constructor(
                 }
             }
 
+            val finalText = com.cyberdiviner.engine.Persona.stripActionDescriptions(fullText).ifBlank { buildFallbackInterpretation(cards, spread, question) }
             _uiState.value = _uiState.value.copy(
-interpretation = com.cyberdiviner.engine.Persona.stripActionDescriptions(fullText).ifBlank { buildFallbackInterpretation(cards, spread, question) },
+                interpretation = finalText,
                 phase = TarotPhase.RESULT
             )
+            // Persist interpretation to database
+            try {
+                val rid = _uiState.value.readingId
+                if (rid != null) {
+                    val existing = tarotDao.getByReadingId(rid)
+                    if (existing != null) {
+                        tarotDao.update(existing.copy(interpretation = finalText))
+                    }
+                }
+            } catch (_: Exception) {}
         } catch (e: Exception) {
             val fallback = buildFallbackInterpretation(cards, spread, question)
             _uiState.value = _uiState.value.copy(
