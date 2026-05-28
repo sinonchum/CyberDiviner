@@ -81,7 +81,39 @@ fun ArchiveScreen(
                         items = readings,
                         key = { _, reading -> reading.id }
                     ) { index, reading ->
-                        val entry = reading.toDisplayEntry()
+                        // Fetch sub-reading data asynchronously
+                        val entryState = produceState<ArchiveEntry>(
+                            initialValue = reading.toDisplayEntry()
+                        ) {
+                            val title: String
+                            val interp: String
+                            when (reading.type) {
+                                DivinationType.LIUYAO -> {
+                                    val hexName = viewModel.getHexagramName(reading.id)
+                                    title = hexName?.takeIf { it.isNotBlank() }
+                                        ?: reading.question.takeIf { it.length <= 6 }
+                                        ?: "六爻占卜"
+                                    interp = ""
+                                }
+                                DivinationType.TAROT -> {
+                                    title = viewModel.getTarotCardSummary(reading.id)
+                                        ?: reading.question.takeIf { it.length <= 8 }
+                                        ?: "塔罗占卜"
+                                    interp = viewModel.getTarotCardNames(reading.id) ?: ""
+                                }
+                                else -> {
+                                    // ORACLE/MUYU/VISION: use existing logic
+                                    val base = reading.toDisplayEntry()
+                                    title = base.title
+                                    interp = base.interpretation
+                                }
+                            }
+                            value = reading.toDisplayEntry().copy(
+                                title = title.ifEmpty { reading.type.displayName },
+                                interpretation = interp.ifEmpty { value.interpretation }
+                            )
+                        }
+                        val entry = entryState.value
                         val isExpanded = expandedIndex == index
 
                         SwipeToDeleteCard(
