@@ -54,29 +54,49 @@ class ArchiveViewModel @Inject constructor(
     /** Get vision reading summary: Pair(title, interpretation) */
     suspend fun getVisionSummary(readingId: Long): Pair<String, String>? {
         return try {
-            val reading = divinationDao.getById(readingId) ?: return null
-            val json = reading.resultJson
+            // Get interpretation from sub-reading table
+            val interp = visionDao.getByReadingId(readingId)?.interpretation ?: ""
 
-            // Extract conclusion from featuresJson if available
-            val conclusion = Regex("\"conclusion\"\\s*:\\s*\"([^\"]+)\"").find(json)?.groupValues?.get(1)
+            // Generate 4-char fortune summary from interpretation text
+            val title = generateVisionFourCharSummary(interp)
 
-            // Generate 4-char title from features
-            val title = when {
-                json.contains("\"eyes\"") && json.contains("phoenix") -> "凤眼呈祥"
-                json.contains("\"forehead\"") && json.contains("broad") -> "天庭饱满"
-                json.contains("\"nose\"") && json.contains("dragon") -> "龙鼻主贵"
-                json.contains("\"mouth\"") && json.contains("cherry") -> "樱桃小口"
-                json.contains("\"chin\"") && json.contains("strong") -> "地阁方圆"
-                json.contains("\"ears\"") && json.contains("lotus") -> "福耳垂珠"
-                conclusion != null -> "面相玄机"
-                else -> "面相玄机"
-            }
+            // One-sentence: first sentence of interpretation, or short default
+            val oneSentence = if (interp.isNotBlank()) {
+                val end = interp.indexOfFirst { it == '。' || it == '！' || it == '？' || it == '.' }
+                val s = if (end > 0) interp.substring(0, end + 1) else interp.take(50)
+                if (s.length > 50) s.take(47) + "..." else s
+            } else "面相已解析，点击查看详细解读"
 
-            // Brief interpretation
-            val interp = conclusion?.take(60) ?: ""
-
-            Pair(title, interp)
+            Pair(title, oneSentence)
         } catch (e: Exception) { null }
+    }
+
+    /** Generate 4-char fortune summary for vision readings — same style as Oracle */
+    private fun generateVisionFourCharSummary(text: String): String {
+        if (text.isBlank()) return "面相玄机"
+
+        val themeMap = listOf(
+            listOf("事业", "工作", "职业", "升职", "发展") to "鹏程万里",
+            listOf("财运", "金钱", "财富", "投资", "富贵") to "财源广进",
+            listOf("感情", "爱情", "桃花", "婚姻", "异性") to "情缘天定",
+            listOf("健康", "身体", "精力", "长寿") to "身心康泰",
+            listOf("贵人", "人缘", "人际", "助力") to "贵人相助",
+            listOf("智慧", "聪明", "悟性", "学习") to "慧根深厚",
+            listOf("权力", "领导", "管理", "地位") to "权柄在握",
+            listOf("福气", "福报", "好运", "吉祥") to "福泽绵长",
+            listOf("性格", "坚毅", "果断", "意志") to "刚毅果决",
+            listOf("潜力", "未来", "突破", "转机") to "破局之象",
+            listOf("危机", "困难", "阻碍", "注意") to "明哲保身",
+            listOf("变动", "迁移", "出行") to "逢凶化吉",
+            listOf("修行", "内省", "修养") to "明心见性",
+        )
+
+        val best = themeMap
+            .map { (keywords, phrase) -> phrase to keywords.count { text.contains(it) } }
+            .filter { it.second > 0 }
+            .maxByOrNull { it.second }
+
+        return best?.first ?: "面相玄机"
     }
 
     /** Get interpretation from the sub-reading table for any type */
@@ -166,16 +186,9 @@ class ArchiveViewModel @Inject constructor(
     /** Generate one-line interpretation from tarot cards */
     private fun generateTarotInterpretation(cards: List<ParsedCard>): String {
         val first = cards[0]
-        val orient = if (first.isReversed) "逆位" else "正位"
 
-        // Single card
-        if (cards.size == 1) {
-            return "${first.nameZh}${orient}：${cardBriefMeaning(first.nameZh, first.isReversed)}"
-        }
-
-        // Multi-card: summarize the spread
-        val names = cards.joinToString("、") { it.nameZh }
-        return "牌阵含${cards.size}张牌（$names），${cardBriefMeaning(first.nameZh, first.isReversed)}"
+        // Always return just the fortune meaning, never card names
+        return cardBriefMeaning(first.nameZh, first.isReversed)
     }
 
     /** Brief one-line meaning for a card */

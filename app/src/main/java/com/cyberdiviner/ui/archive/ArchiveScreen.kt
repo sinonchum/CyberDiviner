@@ -48,6 +48,16 @@ private data class ArchiveEntry(
     val hash: String            // 防伪哈希
 )
 
+/** Extract the first sentence from a multi-sentence text, capped at 50 chars */
+private fun firstSentence(text: String): String {
+    if (text.isBlank()) return ""
+    // Find first sentence-ending punctuation
+    val end = text.indexOfFirst { it == '。' || it == '！' || it == '？' || it == '.' || it == '!' || it == '?' }
+    val sentence = if (end > 0) text.substring(0, end + 1) else text
+    // Cap at 50 chars
+    return if (sentence.length > 50) sentence.take(47) + "..." else sentence
+}
+
 // ── Screen ─────────────────────────────────────────────────────────────────
 
 @Composable
@@ -93,25 +103,26 @@ fun ArchiveScreen(
                                     title = hexName?.takeIf { it.isNotBlank() }
                                         ?: reading.question.takeIf { it.length in 2..6 }
                                         ?: "六爻占卜"
-                                    interp = ""
+                                    val fullInterp = viewModel.getInterpretation(reading.id, reading.type)
+                                    interp = firstSentence(fullInterp)
                                 }
                                 DivinationType.TAROT -> {
                                     val summary = viewModel.getTarotSummary(reading.id)
                                     title = summary?.title
                                         ?: reading.question.takeIf { it.length <= 8 }
                                         ?: "塔罗占卜"
-                                    interp = summary?.interpretation ?: ""
+                                    interp = firstSentence(summary?.interpretation ?: "")
                                 }
                                 DivinationType.VISION -> {
                                     val summary = viewModel.getVisionSummary(reading.id)
                                     title = summary?.first ?: "面相玄机"
-                                    interp = summary?.second ?: ""
+                                    interp = firstSentence(summary?.second ?: "")
                                 }
                                 else -> {
                                     // ORACLE/MUYU: question field is already 4-char summary
                                     val base = reading.toDisplayEntry()
                                     title = base.title
-                                    interp = base.interpretation
+                                    interp = firstSentence(base.interpretation)
                                 }
                             }
                             value = reading.toDisplayEntry().copy(

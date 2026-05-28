@@ -12,8 +12,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -27,7 +31,7 @@ import androidx.navigation.NavController
 import com.cyberdiviner.ui.theme.*
 
 /**
- * 电子木鱼 — Temple Wooden Fish (圆锤形法器)
+ * 电子木鱼 — Temple Wooden Fish
  */
 @Composable
 fun MuyuScreen(
@@ -43,7 +47,7 @@ fun MuyuScreen(
     var isPressed by remember { mutableStateOf(false) }
 
     val bounceScale by animateFloatAsState(
-        targetValue = if (isPressed) 0.92f else 1f,
+        targetValue = if (isPressed) 0.93f else 1f,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
             stiffness = Spring.StiffnessMedium
@@ -51,10 +55,10 @@ fun MuyuScreen(
         label = "bounceScale"
     )
 
-    // Mallet swing animation
-    var malletSwing by remember { mutableStateOf(false) }
+    // Mallet strike animation
+    var malletStrike by remember { mutableStateOf(false) }
     val malletAngle by animateFloatAsState(
-        targetValue = if (malletSwing) -25f else 0f,
+        targetValue = if (malletStrike) -30f else 0f,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
             stiffness = Spring.StiffnessHigh
@@ -64,15 +68,15 @@ fun MuyuScreen(
 
     LaunchedEffect(isPressed) {
         if (isPressed) {
-            kotlinx.coroutines.delay(100)
+            kotlinx.coroutines.delay(80)
             isPressed = false
-            malletSwing = true
-            kotlinx.coroutines.delay(200)
-            malletSwing = false
+            malletStrike = true
+            kotlinx.coroutines.delay(250)
+            malletStrike = false
         }
     }
 
-    // Floating +1 merit animation
+    // Floating +1 merit
     val meritAnimatable = remember { Animatable(0f) }
     var meritActive by remember { mutableStateOf(false) }
 
@@ -88,19 +92,7 @@ fun MuyuScreen(
         }
     }
 
-    // Ambient glow pulse
-    val infiniteTransition = rememberInfiniteTransition(label = "glow")
-    val glowPhase by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = (2.0 * Math.PI).toFloat(),
-        animationSpec = infiniteRepeatable(
-            animation = tween(4000, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "glowPhase"
-    )
-
-    // Ripple ring pulse
+    // Ripple
     val rippleTransition = rememberInfiniteTransition(label = "ripple")
     val rippleProgress by rippleTransition.animateFloat(
         initialValue = 0f,
@@ -163,7 +155,7 @@ fun MuyuScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // ── Stats row ─────────────────────────────────────────
+            // ── Stats ────────────────────────────────────────────
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -176,21 +168,21 @@ fun MuyuScreen(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            // ── Temple wooden fish area ──────────────────────────
+            // ── Wooden fish area ──────────────────────────────────
             Box(
                 contentAlignment = Alignment.Center,
-                modifier = Modifier.size(300.dp)
+                modifier = Modifier.size(320.dp)
             ) {
                 // Ripple rings
                 for (i in 1..3) {
-                    val ringAlpha = ((1f - rippleProgress) * 0.15f).coerceIn(0f, 0.15f)
+                    val ringAlpha = ((1f - rippleProgress) * 0.12f).coerceIn(0f, 0.12f)
                     Canvas(
                         modifier = Modifier
-                            .size((180 + i * 40).dp)
+                            .size((160 + i * 50).dp)
                             .graphicsLayer {
-                                scaleX = 1f + rippleProgress * 0.2f * i
-                                scaleY = 1f + rippleProgress * 0.2f * i
-                                alpha = ringAlpha * (1f - i * 0.25f)
+                                scaleX = 1f + rippleProgress * 0.15f * i
+                                scaleY = 1f + rippleProgress * 0.15f * i
+                                alpha = ringAlpha * (1f - i * 0.2f)
                             }
                     ) {
                         drawCircle(
@@ -201,11 +193,11 @@ fun MuyuScreen(
                     }
                 }
 
-                // Wooden fish body + mallet
+                // Wooden fish + mallet
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
-                        .size(220.dp)
+                        .size(240.dp)
                         .graphicsLayer {
                             scaleX = bounceScale
                             scaleY = bounceScale
@@ -225,9 +217,9 @@ fun MuyuScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
-            // ── Floating +1 merit ────────────────────────────────
+            // ── Floating +1 ──────────────────────────────────────
             Box(
                 modifier = Modifier
                     .height(48.dp)
@@ -285,119 +277,178 @@ fun MuyuScreen(
     }
 }
 
-// ── Canvas: Temple Wooden Fish (寺庙木鱼) ────────────────────────
-// A round, hollow percussion instrument with ornamental pattern and a mallet
+// ── Temple Wooden Fish (寺庙木鱼) ────────────────────────────────
+//
+//   Shape: Rounded square body with slightly concave top edge,
+//          decorative "scale" pattern, central strike point,
+//          short handle stem at bottom, and a mallet to the side.
+//
+//        ╭──────────────╮
+//       │  ╱╲  ╱╲  ╱╲   │
+//       │ ╱  ╲╱  ╲╱  ╲  │   ← scale pattern
+//       │   ── ◉ ──     │   ← strike point
+//       │ ╲  ╱╲  ╱╲  ╱  │
+//       │  ╲╱  ╲╱  ╲╱   │
+//        ╰──────┬───────╯
+//               │            ← handle stem
+//               ▼
 
-private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawTempleWoodenFish(malletAngle: Float) {
+private fun DrawScope.drawTempleWoodenFish(malletAngleDeg: Float) {
     val cx = size.width / 2f
     val cy = size.height / 2f
-    val r = size.minDimension * 0.35f  // main radius
+    val bodyR = size.minDimension * 0.34f
     val sw = 2.dp.toPx()
     val color = CyberWhite
-    val colorDim = CyberWhite.copy(alpha = 0.3f)
-    val colorMid = CyberWhite.copy(alpha = 0.6f)
+    val colorMid = CyberWhite.copy(alpha = 0.5f)
+    val colorDim = CyberWhite.copy(alpha = 0.2f)
 
-    // ── Main body: circle (round wooden fish head) ──
-    drawCircle(
-        color = color,
-        radius = r,
-        center = Offset(cx, cy),
-        style = Stroke(sw, cap = StrokeCap.Round)
-    )
+    // ── Body: rounded square (superellipse approximation) ──
+    // Draw as a rounded rectangle path
+    val bodyW = bodyR * 1.7f
+    val bodyH = bodyR * 1.5f
+    val cornerR = bodyR * 0.4f
 
-    // Inner circle (hollow cavity)
-    drawCircle(
+    val bodyPath = Path().apply {
+        // Start at top-left corner
+        moveTo(cx - bodyW + cornerR, cy - bodyH)
+        // Top edge
+        lineTo(cx + bodyW - cornerR, cy - bodyH)
+        // Top-right corner
+        arcTo(
+            rect = androidx.compose.ui.geometry.Rect(
+                cx + bodyW - cornerR * 2, cy - bodyH,
+                cx + bodyW, cy - bodyH + cornerR * 2
+            ),
+            startAngleDegrees = -90f, sweepAngleDegrees = 90f, forceMoveTo = false
+        )
+        // Right edge
+        lineTo(cx + bodyW, cy + bodyH - cornerR)
+        // Bottom-right corner
+        arcTo(
+            rect = androidx.compose.ui.geometry.Rect(
+                cx + bodyW - cornerR * 2, cy + bodyH - cornerR * 2,
+                cx + bodyW, cy + bodyH
+            ),
+            startAngleDegrees = 0f, sweepAngleDegrees = 90f, forceMoveTo = false
+        )
+        // Bottom edge (with gap for handle)
+        lineTo(cx + bodyW * 0.3f, cy + bodyH)
+        moveTo(cx - bodyW * 0.3f, cy + bodyH)
+        lineTo(cx - bodyW + cornerR, cy + bodyH)
+        // Bottom-left corner
+        arcTo(
+            rect = androidx.compose.ui.geometry.Rect(
+                cx - bodyW, cy + bodyH - cornerR * 2,
+                cx - bodyW + cornerR * 2, cy + bodyH
+            ),
+            startAngleDegrees = 90f, sweepAngleDegrees = 90f, forceMoveTo = false
+        )
+        // Left edge
+        lineTo(cx - bodyW, cy - bodyH + cornerR)
+        // Top-left corner
+        arcTo(
+            rect = androidx.compose.ui.geometry.Rect(
+                cx - bodyW, cy - bodyH,
+                cx - bodyW + cornerR * 2, cy - bodyH + cornerR * 2
+            ),
+            startAngleDegrees = 180f, sweepAngleDegrees = 90f, forceMoveTo = false
+        )
+        close()
+    }
+    drawPath(bodyPath, color, style = Stroke(sw, cap = StrokeCap.Round))
+
+    // ── Top slit (开口 / mouth of the fish) ──
+    val slitW = bodyW * 0.5f
+    drawLine(
         color = colorMid,
-        radius = r * 0.75f,
-        center = Offset(cx, cy),
-        style = Stroke(sw * 0.7f, cap = StrokeCap.Round)
-    )
-
-    // Center dot (striking point)
-    drawCircle(
-        color = color,
-        radius = r * 0.08f,
-        center = Offset(cx, cy)
-    )
-
-    // Cross-hatch pattern inside (traditional ornamental lines)
-    val innerR = r * 0.7f
-    // Horizontal line
-    drawLine(
-        color = colorDim,
-        start = Offset(cx - innerR, cy),
-        end = Offset(cx + innerR, cy),
-        strokeWidth = sw * 0.5f,
-        cap = StrokeCap.Round
-    )
-    // Vertical line
-    drawLine(
-        color = colorDim,
-        start = Offset(cx, cy - innerR),
-        end = Offset(cx, cy + innerR),
-        strokeWidth = sw * 0.5f,
+        start = Offset(cx - slitW, cy - bodyH + bodyH * 0.25f),
+        end = Offset(cx + slitW, cy - bodyH + bodyH * 0.25f),
+        strokeWidth = sw * 1.2f,
         cap = StrokeCap.Round
     )
 
-    // Diagonal lines (X pattern)
-    val diag = innerR * 0.707f
-    drawLine(
-        color = colorDim.copy(alpha = 0.15f),
-        start = Offset(cx - diag, cy - diag),
-        end = Offset(cx + diag, cy + diag),
-        strokeWidth = sw * 0.4f,
-        cap = StrokeCap.Round
-    )
-    drawLine(
-        color = colorDim.copy(alpha = 0.15f),
-        start = Offset(cx + diag, cy - diag),
-        end = Offset(cx - diag, cy + diag),
-        strokeWidth = sw * 0.4f,
-        cap = StrokeCap.Round
-    )
+    // ── Scale pattern (鱼鳞纹) — concentric arcs inside ──
+    val scaleRows = 3
+    val scaleCols = 4
+    val scaleStartY = cy - bodyH * 0.1f
+    val scaleSpacingX = bodyW * 1.4f / (scaleCols + 1)
+    val scaleSpacingY = bodyH * 1.2f / (scaleRows + 1)
 
-    // ── Mallet (木槌) — positioned at top-right, angled toward center ──
-    val malletLen = r * 1.3f
-    val malletHeadR = r * 0.12f
+    for (row in 0 until scaleRows) {
+        for (col in 0 until scaleCols) {
+            val sx = cx - bodyW * 0.7f + (col + 1) * scaleSpacingX
+            val sy = scaleStartY + row * scaleSpacingY
+            val arcR = scaleSpacingX * 0.35f
 
-    // Mallet handle: from top-right toward center
-    val malletStartX = cx + r * 0.8f
-    val malletStartY = cy - r * 1.0f
-    val malletEndX = cx + r * 0.1f
-    val malletEndY = cy - r * 0.1f
+            // Alternating direction for fish-scale effect
+            if ((row + col) % 2 == 0) {
+                drawArc(
+                    color = colorDim,
+                    startAngle = 0f,
+                    sweepAngle = 180f,
+                    useCenter = false,
+                    topLeft = Offset(sx - arcR, sy - arcR),
+                    size = Size(arcR * 2, arcR * 2),
+                    style = Stroke(sw * 0.5f, cap = StrokeCap.Round)
+                )
+            } else {
+                drawArc(
+                    color = colorDim,
+                    startAngle = 180f,
+                    sweepAngle = 180f,
+                    useCenter = false,
+                    topLeft = Offset(sx - arcR, sy - arcR),
+                    size = Size(arcR * 2, arcR * 2),
+                    style = Stroke(sw * 0.5f, cap = StrokeCap.Round)
+                )
+            }
+        }
+    }
 
-    // Apply swing rotation around the mallet's grip end
-    val angleRad = Math.toRadians(malletAngle.toDouble())
-    val pivotX = malletStartX
-    val pivotY = malletStartY
+    // ── Central strike point (圆心 / 击打点) ──
+    val dotR = bodyR * 0.06f
+    drawCircle(color, radius = dotR, center = Offset(cx, cy))
+    drawCircle(color, radius = dotR * 2.5f, center = Offset(cx, cy), style = Stroke(sw * 0.6f))
 
-    // Rotate mallet end around pivot
-    val dx = malletEndX - pivotX
-    val dy = malletEndY - pivotY
-    val rotEndX = pivotX + (dx * kotlin.math.cos(angleRad) - dy * kotlin.math.sin(angleRad)).toFloat()
-    val rotEndY = pivotY + (dx * kotlin.math.sin(angleRad) + dy * kotlin.math.cos(angleRad)).toFloat()
+    // ── Handle stem (把手) at bottom ──
+    val handleW = bodyW * 0.2f
+    val handleH = bodyH * 0.45f
+    val handleTop = cy + bodyH
+    val handlePath = Path().apply {
+        moveTo(cx - handleW, handleTop)
+        lineTo(cx - handleW * 0.7f, handleTop + handleH)
+        lineTo(cx + handleW * 0.7f, handleTop + handleH)
+        lineTo(cx + handleW, handleTop)
+        close()
+    }
+    drawPath(handlePath, color, style = Stroke(sw, cap = StrokeCap.Round))
+
+    // ── Mallet (木槌) — top-right, angled toward strike point ──
+    val malletLen = bodyR * 1.4f
+    val malletHeadR = bodyR * 0.1f
+    val malletPivotX = cx + bodyW * 1.1f
+    val malletPivotY = cy - bodyH * 1.0f
+    val malletTipX0 = cx + bodyW * 0.2f
+    val malletTipY0 = cy - bodyH * 0.1f
+
+    // Rotate mallet around pivot
+    val angleRad = Math.toRadians(malletAngleDeg.toDouble())
+    val dx = malletTipX0 - malletPivotX
+    val dy = malletTipY0 - malletPivotY
+    val tipX = malletPivotX + (dx * kotlin.math.cos(angleRad) - dy * kotlin.math.sin(angleRad)).toFloat()
+    val tipY = malletPivotY + (dx * kotlin.math.sin(angleRad) + dy * kotlin.math.cos(angleRad)).toFloat()
 
     // Handle
     drawLine(
         color = colorMid,
-        start = Offset(pivotX, pivotY),
-        end = Offset(rotEndX, rotEndY),
+        start = Offset(malletPivotX, malletPivotY),
+        end = Offset(tipX, tipY),
         strokeWidth = sw * 1.5f,
         cap = StrokeCap.Round
     )
-
-    // Mallet head (round)
-    drawCircle(
-        color = color,
-        radius = malletHeadR,
-        center = Offset(rotEndX, rotEndY),
-        style = Stroke(sw, cap = StrokeCap.Round)
-    )
-    drawCircle(
-        color = color,
-        radius = malletHeadR * 0.4f,
-        center = Offset(rotEndX, rotEndY)
-    )
+    // Head
+    drawCircle(color, radius = malletHeadR, center = Offset(tipX, tipY), style = Stroke(sw))
+    drawCircle(color, radius = malletHeadR * 0.35f, center = Offset(tipX, tipY))
 }
 
 // ── Stat badge ──────────────────────────────────────────────
@@ -420,3 +471,4 @@ private fun StatBadge(label: String, value: String) {
         )
     }
 }
+
