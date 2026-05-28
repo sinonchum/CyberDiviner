@@ -15,6 +15,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -24,6 +26,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.cyberdiviner.engine.HexagramData.LineState
 import com.cyberdiviner.ui.shared.CyberButton
+import com.cyberdiviner.ui.shared.SectionHeader
 import com.cyberdiviner.ui.shared.VoiceInputField
 import com.cyberdiviner.ui.theme.*
 
@@ -106,33 +109,9 @@ private fun InputPhase(
         modifier = Modifier.fillMaxSize()
     ) {
         // Header
-        Text(
-            text = "周易起卦",
-            color = GrayCaption,
-            fontFamily = HuiwenFontFamily,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Bold,
-            letterSpacing = 3.sp
-        )
-        Canvas(
-            modifier = Modifier
-                .width(120.dp)
-                .padding(top = 4.dp)
-                .height(2.dp)
-        ) {
-            drawRect(
-                color = AccentRed,
-                topLeft = Offset.Zero,
-                size = Size(size.width, size.height)
-            )
-        }
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = "三钱法 · 六次演算",
-            color = GrayCaption,
-            fontSize = 12.sp,
-            fontFamily = WenKaiFontFamily,
-            letterSpacing = 2.sp
+        SectionHeader(
+            title = "周易起卦",
+            subtitle = "三钱法 · 六次演算"
         )
         Spacer(modifier = Modifier.height(48.dp))
 
@@ -198,6 +177,15 @@ private fun InputPhase(
 private fun ShakePhase(
     uiState: LiuyaoUiState
 ) {
+    val hapticFeedback = LocalHapticFeedback.current
+
+    // Haptic feedback on each new toss result
+    LaunchedEffect(uiState.tossResults.size) {
+        if (uiState.tossResults.isNotEmpty()) {
+            hapticFeedback.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+        }
+    }
+
     // Pulsing animation for the shake instruction
     val infiniteTransition = rememberInfiniteTransition(label = "shake")
     val alpha by infiniteTransition.animateFloat(
@@ -216,26 +204,7 @@ private fun ShakePhase(
         modifier = Modifier.fillMaxSize()
     ) {
         // Header
-        Text(
-            text = "周易起卦",
-            color = GrayCaption,
-            fontFamily = HuiwenFontFamily,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Bold,
-            letterSpacing = 3.sp
-        )
-        Canvas(
-            modifier = Modifier
-                .width(120.dp)
-                .padding(top = 4.dp)
-                .height(2.dp)
-        ) {
-            drawRect(
-                color = AccentRed,
-                topLeft = Offset.Zero,
-                size = Size(size.width, size.height)
-            )
-        }
+        SectionHeader(title = "周易起卦")
         Spacer(modifier = Modifier.height(64.dp))
 
         // Shake instruction — pulsing

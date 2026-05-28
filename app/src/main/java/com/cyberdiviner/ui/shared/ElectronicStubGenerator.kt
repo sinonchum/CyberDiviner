@@ -18,6 +18,7 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import com.cyberdiviner.BuildConfig
 
 /**
  * Generates strict black-and-white electronic stub (电子存根) PNG images
@@ -371,7 +372,7 @@ object ElectronicStubGenerator {
             color = GRAY_MID
             isFakeBoldText = false
         }
-        canvas.drawText("赛博算命 · 电子存根 · v5.0", WIDTH / 2f, HEIGHT - 80f, paint)
+        canvas.drawText("赛博算命 · 电子存根 · v${BuildConfig.VERSION_NAME}", WIDTH / 2f, HEIGHT - 80f, paint)
     }
 
     /**

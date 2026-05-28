@@ -12,6 +12,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.StrokeCap
@@ -68,6 +70,7 @@ fun CyberMenuItem(
         modifier = modifier
             .fillMaxWidth()
             .background(CyberBlack)
+            .semantics { contentDescription = title }
             .clickable(
                 interactionSource = interactionSource,
                 indication = null,

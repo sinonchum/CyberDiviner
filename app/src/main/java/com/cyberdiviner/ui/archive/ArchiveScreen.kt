@@ -155,7 +155,7 @@ fun ArchiveScreen(
                         val isExpanded = expandedIndex == index
 
                         // Fetch full interpretation when expanded
-                        val interpState = produceState<String>(initialValue = "") {
+                        val interpState = produceState<String>(initialValue = "", key1 = isExpanded) {
                             if (isExpanded) {
                                 value = viewModel.getInterpretation(reading.id, reading.type)
                             }

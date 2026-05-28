@@ -56,6 +56,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.cyberdiviner.ui.shared.CyberButton
+import com.cyberdiviner.ui.shared.SectionHeader
 import com.cyberdiviner.ui.shared.VoiceInputField
 import com.cyberdiviner.ui.theme.CyberBlack
 import com.cyberdiviner.ui.theme.CyberWhite
@@ -168,36 +169,11 @@ private fun SelectSpreadPhase(
     ) {
         Spacer(modifier = Modifier.height(16.dp))
 
-        // ── Header: Bridgewater uppercase monospace + red underline ──
-        Text(
-            text = "塔罗协议",
-            color = GrayCaption,
-            fontFamily = HuiwenFontFamily,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Bold,
-            letterSpacing = 3.sp,
-            modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp)
-        )
-        // Red underline
-        Canvas(
-            modifier = Modifier
-                .width(120.dp)
-                .padding(top = 4.dp)
-                .height(2.dp)
-        ) {
-            drawRect(
-                color = AccentRed,
-                topLeft = Offset.Zero,
-                size = Size(size.width, size.height)
-            )
-        }
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = "静心凝神，然后输入你的问题",
-            color = GrayCaption,
-            fontSize = 12.sp,
-            fontFamily = WenKaiFontFamily,
-            modifier = Modifier.padding(bottom = 24.dp)
+        // ── Header ──
+        SectionHeader(
+            title = "塔罗协议",
+            subtitle = "静心凝神，然后输入你的问题",
+            modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
         )
 
         // ── Question input (shared VoiceInputField) ──────────────────
@@ -742,23 +718,6 @@ private fun ResultPhase(
                     .padding(bottom = 20.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(40.dp)
-                        .border(1.dp, GrayBorder, RoundedCornerShape(6.dp))
-                        .background(CyberBlack, RoundedCornerShape(6.dp))
-                        .clickable { onBack() },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        "返回",
-                        color = GrayCaption,
-                        fontSize = 13.sp,
-                        fontFamily = HuiwenFontFamily
-                    )
-                }
-
                 Box(
                     modifier = Modifier
                         .weight(1f)
