@@ -252,38 +252,63 @@ private fun DivinationReading.toDisplayEntry(): ArchiveEntry {
     val sdf = SimpleDateFormat("yyyy.MM.dd HH:mm", Locale.getDefault())
     val dateStr = sdf.format(Date(timestamp))
 
-    // 从 resultJson 提取四字批命
-    val summary = try {
-        val json = resultJson
-        val summaryStart = json.indexOf("\"summary\": \"") + 12
-        if (summaryStart > 12) {
-            val summaryEnd = json.indexOf("\"", summaryStart).coerceAtMost(summaryStart + 20)
-            json.substring(summaryStart, summaryEnd).trim()
-        } else ""
-    } catch (e: Exception) { "" }
+    val titleText: String
+    val interpretationText: String
 
-    // 从 resultJson 提取解读
-    val briefResult = try {
-        val json = resultJson
-        val responseStart = json.indexOf("\"response\": \"") + 13
-        if (responseStart > 13) {
-            val responseEnd = json.indexOf("\"", responseStart).coerceAtMost(responseStart + 80)
-            json.substring(responseStart, responseEnd).trim()
-        } else ""
-    } catch (e: Exception) { "" }
-
-    // 优先用 summary（四字批命），fallback 到 question 字段（Oracle已存summary）
-    val titleText = summary.ifEmpty {
-        // question字段在Oracle流程中已经存的是四字批命
-        if (question.length <= 6) question else question.take(4)
-    }.ifEmpty { type.displayName }
+    when (type) {
+        DivinationType.LIUYAO -> {
+            // resultJson 是纯文本 summary，含 "本卦 (Primary): X 卦名"
+            titleText = try {
+                val m = Regex("本卦\\s*\\(Primary\\):\\s*\\S+\\s+(\\S+)").find(resultJson)
+                val name = m?.groupValues?.get(1) ?: ""
+                if (name.isNotEmpty()) name else question.takeIf { it.length <= 6 } ?: "六爻占卜"
+            } catch (e: Exception) { "六爻占卜" }
+            interpretationText = try {
+                val m = Regex("卦象:\\s*(.+)").find(resultJson)
+                m?.groupValues?.get(1)?.take(60) ?: ""
+            } catch (e: Exception) { "" }
+        }
+        DivinationType.TAROT -> {
+            // resultJson 是 JSON array: [{"card_zh":"愚者","isReversed":"true",...}]
+            titleText = try {
+                val arr = resultJson.trim()
+                if (arr.startsWith("[")) {
+                    val cardZh = Regex("\"card_zh\"\\s*:\\s*\"([^\"]+)\"").find(arr)?.groupValues?.get(1) ?: ""
+                    val reversed = Regex("\"isReversed\"\\s*:\\s*\"true\"").containsMatchIn(arr)
+                    if (cardZh.isNotEmpty()) {
+                        cardZh + if (reversed) "逆位" else "正位"
+                    } else question.takeIf { it.length <= 6 } ?: "塔罗占卜"
+                } else question.takeIf { it.length <= 6 } ?: "塔罗占卜"
+            } catch (e: Exception) { "塔罗占卜" }
+            interpretationText = try {
+                val names = Regex("\"card_zh\"\\s*:\\s*\"([^\"]+)\"").findAll(resultJson)
+                    .map { it.groupValues[1] }.toList()
+                if (names.size > 1) names.joinToString(" · ") else ""
+            } catch (e: Exception) { "" }
+        }
+        DivinationType.VISION -> {
+            titleText = question.ifBlank { "面相分析" }
+            interpretationText = try {
+                val m = Regex("\"conclusion\"\\s*:\\s*\"([^\"]+)\"").find(resultJson)
+                m?.groupValues?.get(1)?.take(60) ?: ""
+            } catch (e: Exception) { "" }
+        }
+        else -> {
+            // ORACLE / MUYU: question 字段已是四字批命
+            titleText = if (question.length <= 8) question else question.take(4)
+            interpretationText = try {
+                val m = Regex("\"response\"\\s*:\\s*\"([^\"]{1,80})\"").find(resultJson)
+                m?.groupValues?.get(1)?.trim() ?: ""
+            } catch (e: Exception) { "" }
+        }
+    }
 
     return ArchiveEntry(
         id = id,
         lunarDate = dateStr,
         type = type.displayName,
-        title = titleText,
-        interpretation = briefResult.ifEmpty { notes.ifEmpty { "暂无解读" } },
+        title = titleText.ifEmpty { type.displayName },
+        interpretation = interpretationText.ifEmpty { notes.ifEmpty { "暂无解读" } },
         hash = String.format("0x%08X", id.hashCode())
     )
 }
