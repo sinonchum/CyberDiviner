@@ -97,9 +97,9 @@ fun EpiphanyScreen(
     // 亮度提升矩阵
     val brightMatrix = remember {
         ColorMatrix(floatArrayOf(
-            2.0f, 0f,   0f,   0f, 50f,
-            0f,   2.0f, 0f,   0f, 50f,
-            0f,   0f,   2.0f, 0f, 50f,
+            1.2f, 0f,   0f,   0f, 15f,
+            0f,   1.2f, 0f,   0f, 15f,
+            0f,   0f,   1.2f, 0f, 15f,
             0f,   0f,   0f,   1f, 0f
         ))
     }

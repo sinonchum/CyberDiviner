@@ -93,9 +93,9 @@ fun SplashScreen(onTimeout: () -> Unit) {
     // 亮度提升矩阵：每通道 ×2.0，偏移+50
     val brightMatrix = remember {
         ColorMatrix(floatArrayOf(
-            2.0f, 0f,   0f,   0f, 50f,
-            0f,   2.0f, 0f,   0f, 50f,
-            0f,   0f,   2.0f, 0f, 50f,
+            1.2f, 0f,   0f,   0f, 15f,
+            0f,   1.2f, 0f,   0f, 15f,
+            0f,   0f,   1.2f, 0f, 15f,
             0f,   0f,   0f,   1f, 0f
         ))
     }

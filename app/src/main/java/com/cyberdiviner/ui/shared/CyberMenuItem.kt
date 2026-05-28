@@ -3,6 +3,7 @@ import com.cyberdiviner.ui.theme.*
 import android.view.HapticFeedbackConstants
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
@@ -15,7 +16,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -26,17 +26,12 @@ import com.cyberdiviner.ui.theme.TextMuted
 import kotlinx.coroutines.flow.collectLatest
 
 /**
- * A left-aligned menu item with Chinese title, English subtitle, and description.
+ * CyberMenuItem — 左对齐菜单项，点击时左侧竖线变红 + 标题变红。
  *
- * Features instant color inversion on press (entire row) and haptic feedback.
- * A geometric accent line is drawn on the left edge via [Canvas] with [StrokeCap.Square].
- * No Material ripple is used.
- *
- * @param title Chinese title displayed large and bold.
- * @param subtitle English subtitle displayed small and muted.
- * @param description Additional description displayed small and muted.
- * @param onClick Callback invoked when the item is tapped.
- * @param modifier Optional [Modifier] applied to the root [Row].
+ * 不再整块反色，改为更克制的交互反馈：
+ * - 左侧 1dp 竖线：按下时 AccentRed，松开恢复 CyberWhite
+ * - 标题文字：按下时 AccentRed，松开恢复 CyberWhite
+ * - 震动反馈保持
  */
 @Composable
 fun CyberMenuItem(
@@ -65,15 +60,14 @@ fun CyberMenuItem(
         }
     }
 
-    val bgColor = if (isPressed) CyberWhite else CyberBlack
-    val titleColor = if (isPressed) CyberBlack else CyberWhite
-    val mutedColor = if (isPressed) CyberBlack.copy(alpha = 0.5f) else TextMuted
-    val accentColor = if (isPressed) CyberBlack else CyberWhite
+    // 克制的色彩变化：不再整块反色
+    val accentColor = if (isPressed) AccentRed else CyberWhite
+    val titleColor = if (isPressed) AccentRed else CyberWhite
 
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .background(bgColor)
+            .background(CyberBlack)
             .clickable(
                 interactionSource = interactionSource,
                 indication = null,
@@ -82,12 +76,11 @@ fun CyberMenuItem(
             .padding(start = 1.dp, top = 16.dp, end = 16.dp, bottom = 16.dp),
         verticalAlignment = Alignment.Top
     ) {
-        // Geometric accent line on the left edge (1.dp wide, StrokeCap.Square)
+        // 左侧竖线 — 按下时变红
         Canvas(
             modifier = Modifier
-                .width(1.dp)
+                .width(2.dp)
                 .height(48.dp)
-                .padding(top = 2.dp)
         ) {
             drawRect(
                 color = accentColor,
@@ -102,36 +95,36 @@ fun CyberMenuItem(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            // Chinese title (large, bold)
+            // 标题 — 按下时变红
             Text(
                 text = title,
                 color = titleColor,
                 fontFamily = HuiwenFontFamily,
                 fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 1.sp,
+                fontWeight = FontWeight.Normal,
+                letterSpacing = 2.sp,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
 
-            // English subtitle (small, muted)
+            // 英文副标题
             if (subtitle.isNotEmpty()) {
                 Text(
                     text = subtitle,
-                    color = mutedColor,
+                    color = TextMuted,
                     fontFamily = MonoFontFamily,
-                    fontSize = 12.sp,
+                    fontSize = 11.sp,
                     letterSpacing = 1.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
             }
 
-            // Description (small, muted)
+            // 描述
             if (description.isNotEmpty()) {
                 Text(
                     text = description,
-                    color = mutedColor,
+                    color = TextMuted,
                     fontFamily = WenKaiFontFamily,
                     fontSize = 11.sp,
                     lineHeight = 16.sp,
