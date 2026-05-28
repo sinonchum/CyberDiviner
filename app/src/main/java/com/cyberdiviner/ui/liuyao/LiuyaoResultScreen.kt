@@ -502,9 +502,7 @@ private fun LinesCard(result: LiuyaoEngine.DivinationResult) {
 
         // Hidden lines
         if (result.hiddenLines.isNotEmpty()) {
-            Spacer(Modifier.height(12.dp))
-            Box(Modifier.fillMaxWidth().height(1.dp).background(GrayBorder))
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(16.dp))
             Text("伏神", color = GrayMuted, fontSize = 11.sp, fontFamily = HuiwenFontFamily, letterSpacing = 2.sp)
             Spacer(Modifier.height(4.dp))
             for (h in result.hiddenLines) {
@@ -532,9 +530,7 @@ private fun SpiritsCard(result: LiuyaoEngine.DivinationResult) {
             }
         }
 
-        Spacer(Modifier.height(20.dp))
-        Box(Modifier.fillMaxWidth().height(1.dp).background(GrayBorder))
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(24.dp))
 
         // 世应
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
@@ -568,17 +564,13 @@ private fun AnalysisCard(result: LiuyaoEngine.DivinationResult) {
             Text(result.analysis.strength, color = CyberWhite, fontSize = 13.sp, fontFamily = WenKaiFontFamily)
         }
 
-        Spacer(Modifier.height(12.dp))
-        Box(Modifier.fillMaxWidth().height(1.dp).background(GrayBorder))
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(16.dp))
 
         Text(result.analysis.interpretation, color = GrayBody, fontSize = 14.sp, fontFamily = WenKaiFontFamily, lineHeight = 24.sp)
         Spacer(Modifier.height(12.dp))
         Text(result.analysis.advice, color = CyberWhite, fontSize = 14.sp, fontFamily = WenKaiFontFamily, lineHeight = 24.sp, fontWeight = FontWeight.Medium)
 
-        Spacer(Modifier.height(16.dp))
-        Box(Modifier.fillMaxWidth().height(1.dp).background(GrayBorder))
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(20.dp))
 
         Text("卦辞: ${result.primaryHexagram.judgment}", color = GrayCaption, fontSize = 12.sp, fontFamily = WenKaiFontFamily, lineHeight = 20.sp)
         Spacer(Modifier.height(4.dp))
