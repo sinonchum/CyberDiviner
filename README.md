@@ -2,7 +2,7 @@
 
 # CyberDiviner: Cyberpunk Fortune-Telling for Android
 
-**A cyberpunk-styled divination app that blends Chinese metaphysics with modern Android development. Almanac, I-Ching, Tarot, face reading, and more -- wrapped in neon aesthetics.**
+**A divination app that blends Chinese metaphysics with modern Android development. Almanac, I-Ching, Tarot, face reading, and more -- wrapped in a refined black-and-white Bridgewater design with accent red highlights.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/Platform-Android-3DDC84.svg)]()
@@ -19,7 +19,7 @@
 
 ## What It Does
 
-CyberDiviner is a fortune-telling app that takes ancient Chinese divination traditions and runs them through a cyberpunk filter. Dark backgrounds, neon accents, binary clocks, and procedurally generated interpretations -- all running entirely on your device.
+CyberDiviner is a fortune-telling app that takes ancient Chinese divination traditions and presents them through a refined Bridgewater aesthetic. Black-and-white palette with accent red, procedurally generated interpretations, and classical Chinese typography -- all running entirely on your device.
 
 ### Core Features
 
@@ -30,7 +30,7 @@ A roadside fortune teller chat experience. Ask questions in natural language and
 Shake your phone 6 times to simulate three-coin tosses. The app builds a hexagram from your results and generates a reading that blends classical Yi Jing commentary with modern interpretation. Three persona modes available: the ancient sage, the quantum taoist, and the sarcastic bot.
 
 **Cyber Tarot (赛博塔罗)**
-78-card deck with multiple spread layouts. Choose from a single card draw, three-card past/present/future, or the full Celtic Cross. Card flips come with haptic feedback and neon-flavored animations.
+78-card deck with multiple spread layouts. Choose from a single card draw, three-card past/present/future, or the full Celtic Cross. Card flips come with haptic feedback and elegant animations.
 
 **Face Reading (视界摸骨)**
 Camera-based face scanning using on-device MediaPipe. No images leave your phone. The app tracks 478 facial landmarks, maps them to traditional physiognomy concepts, and generates a reading overlaid with a scan-line HUD.
@@ -66,10 +66,16 @@ graph TB
         WIDGET["AlmanacWidget\n桌面小组件"]
     end
 
+    subgraph AI["AI Layer"]
+        LLM["LlmService\n模型无关"]
+        PERSONA["PersonaEngine\n3 种人格"]
+    end
+
     subgraph ENG["Divination Engine"]
         LIUYAO_E["LiuyaoEngine\n64 卦 + 铜钱投掷"]
         TAROT_E["TarotEngine\n78 牌 + 5 阵法"]
         ALMANAC["AlmanacEngine\n干支 + 黄历"]
+        FORTUNE["FortuneEngine\n运势计算"]
     end
 
     subgraph DATA["Data Layer"]
@@ -83,25 +89,35 @@ graph TB
     end
 
     HOME --> ALMANAC
+    HOME --> LLM
     LIUYAO --> LIUYAO_E
+    LIUYAO --> LLM
     TAROT --> TAROT_E
+    TAROT --> LLM
     VISION --> CAM
+    VISION --> LLM
     MUYU --> ROOM
     LIUYAO --> ROOM
     TAROT --> ROOM
     VISION --> ROOM
     ALMANAC --> WIDGET
     POSTER --> HOME
-    ORACLE --> ROOM
     ARCHIVE --> ROOM
+    LLM --> PERSONA
+    ORACLE --> LLM
+    FORTUNE --> ALMANAC
 
-    style HOME fill:#2D9B83,color:#E0E0E0
-    style ORACLE fill:#7B61FF,color:#E0E0E0
-    style LIUYAO fill:#7B61FF,color:#E0E0E0
-    style TAROT fill:#E8B339,color:#E0E0E0
-    style VISION fill:#1A7A6A,color:#E0E0E0
-    style MUYU fill:#4A6670,color:#E0E0E0
-    style ARCHIVE fill:#5A5A5A,color:#E0E0E0
+    style HOME fill:#1A1A1A,color:#E0E0E0
+    style ORACLE fill:#CC3333,color:#FFFFFF
+    style LIUYAO fill:#1A1A1A,color:#E0E0E0
+    style TAROT fill:#1A1A1A,color:#E0E0E0
+    style VISION fill:#1A1A1A,color:#E0E0E0
+    style MUYU fill:#333333,color:#E0E0E0
+    style ARCHIVE fill:#333333,color:#E0E0E0
+    style WIDGET fill:#333333,color:#E0E0E0
+    style LLM fill:#CC3333,color:#FFFFFF
+    style PERSONA fill:#1A1A1A,color:#E0E0E0
+    style FORTUNE fill:#1A1A1A,color:#E0E0E0
 ```
 
 ### Tech Stack
@@ -144,11 +160,11 @@ adb install -t -r app/build/outputs/apk/debug/app-debug.apk
 
 ## Design Language
 
-The visual identity draws from acid graphics and cyberpunk terminal aesthetics:
+The visual identity follows the Bridgewater B&W design system:
 
-- **Palette**: Neon cyan (#00FFCC), magenta (#FF00FF), green (#39FF14) on near-black (#0A0A0F)
-- **Typography**: Monospace throughout, binary-formatted dates
-- **Motion**: Animated sweep gradients, spring-physics coin tosses, card flip animations
+- **Palette**: Black-and-white base with AccentRed (#CC3333) highlights on near-black (#0A0A0F)
+- **Typography**: 汇文明朝体 (titles), 霞鹜文楷 (body), JetBrains Mono (data)
+- **Motion**: Spring-physics coin tosses, card flip animations, subtle transitions
 - **Haptics**: Linear motor feedback on coin landings and card interactions
 
 ---
@@ -158,7 +174,7 @@ The visual identity draws from acid graphics and cyberpunk terminal aesthetics:
 ```
 app/src/main/java/com/cyberdiviner/
 ├── ui/
-│   ├── theme/          # Color, Typography, AcidDesign
+│   ├── theme/          # Bridgewater B&W, AccentRed, Typography
 │   ├── home/           # Cyber Almanac dashboard
 │   ├── oracle/         # Oracle Chat (叩问天机)
 │   ├── liuyao/         # I-Ching divination + coin animation

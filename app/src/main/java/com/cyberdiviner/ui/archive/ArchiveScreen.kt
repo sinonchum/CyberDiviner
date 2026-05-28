@@ -40,12 +40,12 @@ import com.cyberdiviner.engine.AlmanacEngine
 
 private data class ArchiveEntry(
     val id: Long,
-    val ganzhiDate: String,     // 天干地支日名 (e.g. 丙戌日)
-    val solarDate: String,      // 公历日期 (2026.05.28)
-    val type: String,           // 测算类型
-    val title: String,          // 卦名 / 卡名 / 四字批命
-    val interpretation: String, // 一句解读
-    val hash: String            // 防伪哈希
+    val ganzhiDate: String,     // Ganzhi day name (e.g. 丙戌日)
+    val solarDate: String,      // Solar date (2026.05.28)
+    val type: String,           // Divination type
+    val title: String,          // Hexagram/card name or 4-char fortune
+    val interpretation: String, // One-line interpretation
+    val hash: String            // Anti-tamper hash
 )
 
 /** Extract the first sentence from a multi-sentence text, capped at 50 chars */
@@ -284,7 +284,7 @@ private fun SwipeToDeleteCard(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // ── Center: 四字批命 ──────────────
+                    // ── Center: 4-char fortune summary ──────────────
                     Text(
                         text = entry.title,
                         color = GrayTitle,
@@ -376,7 +376,7 @@ private fun DivinationReading.toDisplayEntry(): ArchiveEntry {
 
     when (type) {
         DivinationType.LIUYAO -> {
-            // resultJson 是纯文本 summary，含 "本卦 (Primary): X 卦名"
+            // resultJson is plain text summary, contains "本卦 (Primary): X hexagram name"
             titleText = try {
                 val m = Regex("本卦\\s*\\(Primary\\):\\s*\\S+\\s+(\\S+)").find(resultJson)
                 val name = m?.groupValues?.get(1) ?: ""
@@ -388,7 +388,7 @@ private fun DivinationReading.toDisplayEntry(): ArchiveEntry {
             } catch (e: Exception) { "" }
         }
         DivinationType.TAROT -> {
-            // resultJson 是 JSON array: [{"card_zh":"愚者","isReversed":"true",...}]
+            // resultJson is JSON array: [{"card_zh":"愚者","isReversed":"true",...}]
             titleText = try {
                 val arr = resultJson.trim()
                 if (arr.startsWith("[")) {
@@ -413,7 +413,7 @@ private fun DivinationReading.toDisplayEntry(): ArchiveEntry {
             } catch (e: Exception) { "" }
         }
         else -> {
-            // ORACLE / MUYU: question 字段已是四字批命
+            // ORACLE / MUYU: question field is already 4-char fortune summary
             titleText = if (question.length <= 8) question else question.take(4)
             interpretationText = try {
                 val m = Regex("\"response\"\\s*:\\s*\"([^\"]{1,80})\"").find(resultJson)

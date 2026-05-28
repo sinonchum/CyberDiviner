@@ -33,7 +33,7 @@ import androidx.navigation.NavController
 import com.cyberdiviner.ui.theme.*
 
 /**
- * 电子木鱼 — Temple Wooden Fish
+ * Electronic Wooden Fish (电子木鱼)
  */
 @Composable
 fun MuyuScreen(
@@ -286,7 +286,7 @@ fun MuyuScreen(
     }
 }
 
-// ── Temple Wooden Fish (寺庙木鱼 / 小圆木鱼) ─────────────────────
+// ── Temple Wooden Fish ────────────────────────────────────
 //
 //   Based on real Buddhist temple wooden fish reference:
 //   - Nearly spherical hollow wooden body

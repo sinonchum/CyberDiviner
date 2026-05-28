@@ -143,7 +143,7 @@ class ArchiveViewModel @Inject constructor(
         return FortuneEngine.tarotMeaning(first.nameZh, first.isReversed)
     }
 
-    // ── Liuyao (六爻) Fortune Mapping ────────────────────────────────
+    // ── Liuyao Fortune Mapping ────────────────────────────────
 
     // Fortune mapping logic now lives in FortuneEngine (shared with all divination screens)
 }

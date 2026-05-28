@@ -1,20 +1,20 @@
 package com.cyberdiviner.engine
 
 /**
- * FortuneEngine — shared 四字批命 (4-char fortune summary) logic.
+ * FortuneEngine — shared 4-char fortune summary (四字批命) logic.
  *
  * Used by all three divination types (Liuyao, Tarot, Vision) and the archive.
  */
 object FortuneEngine {
 
     // ═══════════════════════════════════════════════════════════════════
-    // LIUYAO (六爻) Fortune Mapping
+    // LIUYAO Fortune Mapping
     // ═══════════════════════════════════════════════════════════════════
 
     /** Generate 4-char fortune summary from hexagram name (64 hexagrams) */
     fun liuyaoFortune(hexName: String): String {
         val map = mapOf(
-            // ── 上经 (1-30) ──
+            // ── Upper Canon (1-30) ──
             "乾" to "自强不息", "坤" to "厚德载物", "屯" to "蓄势待发",
             "蒙" to "启蒙开智", "需" to "静待时机", "讼" to "以和为贵",
             "师" to "德行服众", "比" to "同心协力", "小畜" to "厚积薄发",
@@ -25,7 +25,7 @@ object FortuneEngine {
             "贲" to "文质彬彬", "剥" to "韬光养晦", "复" to "一阳来复",
             "无妄" to "无妄之灾", "大畜" to "大有可为", "颐" to "修身养性",
             "大过" to "非常之时", "坎" to "险中求胜", "离" to "光明普照",
-            // ── 下经 (31-64) ──
+            // ── Lower Canon (31-64) ──
             "咸" to "感应相通", "恒" to "持之以恒", "遁" to "急流勇退",
             "大壮" to "刚健有为", "晋" to "步步高升", "明夷" to "韬光养晦",
             "家人" to "家和万事", "睽" to "求同存异", "蹇" to "砥砺前行",
@@ -48,7 +48,7 @@ object FortuneEngine {
         return "天机莫测"
     }
 
-    /** One-line meaning for a liuyao 四字批命 */
+    /** One-line meaning for a liuyao 4-char fortune summary */
     fun liuyaoMeaning(title: String): String {
         val meanings = mapOf(
             "自强不息" to "天行健，君子以自强不息，运势昂扬向上",

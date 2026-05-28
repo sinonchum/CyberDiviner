@@ -468,7 +468,7 @@ private fun InterpretingPhase(uiState: TarotUiState) {
     }
 }
 
-// ── Result phase — matches Liuyao古书风格 ─────────────────────────────────
+// ── Result phase — matches Liuyao ancient-book style ──────────────────────
 
 @Composable
 private fun ResultPhase(
@@ -572,7 +572,7 @@ private fun ResultPhase(
                         .verticalScroll(rememberScrollState())
                 ) {
                     if (currentPage == 0) {
-                        // ── Page 0: 批命 四字批命 ──
+                        // ── Page 0: Fortune (四字批命) ──
                         Text(
                             text = "批命",
                             color = CyberWhite,
@@ -618,7 +618,7 @@ private fun ResultPhase(
                             textAlign = TextAlign.Center
                         )
                     } else if (currentPage == 1) {
-                        // ── Page 1: 牌阵 ──
+                        // ── Page 1: Spread ──
                         Text(
                             text = "牌阵",
                             color = CyberWhite,
@@ -685,7 +685,7 @@ private fun ResultPhase(
                             }
                         }
                     } else {
-                        // ── Page 2: 解读 ──
+                        // ── Page 2: Interpretation ──
                         Text(
                             text = "解读",
                             color = CyberWhite,

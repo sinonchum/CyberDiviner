@@ -4,7 +4,7 @@
 
 ### AI 驱动的赛博朋克玄学引擎
 
-**将中国传统玄学与 AI 结合的占卜应用。赛博黄历、六爻起卦、动态塔罗、科技看相，统统装进霓虹色的安卓客户端。**
+**将中国传统玄学与 AI 结合的占卜应用。赛博黄历、六爻起卦、动态塔罗、科技看相，搭配 Bridgewater 黑白设计与朱砂红点缀。**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/Platform-Android-3DDC84.svg)]()
@@ -59,7 +59,7 @@ graph TB
     end
 
     subgraph AI["AI 层"]
-        LLM["LLMService\n模型无关"]
+        LLM["LlmService\n模型无关"]
         PROMPT["PromptManager\n场景 Prompt"]
         PERSONA["PersonaEngine\n3 种人格"]
     end
@@ -68,6 +68,7 @@ graph TB
         LIUYAO_E["LiuyaoEngine\n64 卦 + 铜钱投掷"]
         TAROT_E["TarotEngine\n78 牌 + 5 阵法"]
         ALMANAC["AlmanacEngine\n干支 + 黄历"]
+        FORTUNE["FortuneEngine\n运势计算"]
     end
 
     subgraph DATA["数据层"]
@@ -96,13 +97,17 @@ graph TB
     VISION --> ROOM
     ALMANAC --> WIDGET
     POSTER --> HOME
+    FORTUNE --> ALMANAC
 
-    style HOME fill:#00FFCC,color:#000
-    style LIUYAO fill:#BF00FF,color:#fff
-    style TAROT fill:#FF00FF,color:#fff
-    style VISION fill:#39FF14,color:#000
-    style MUYU fill:#FFD700,color:#000
-    style LLM fill:#00BFFF,color:#000
+    style HOME fill:#1A1A1A,color:#E0E0E0
+    style LIUYAO fill:#1A1A1A,color:#E0E0E0
+    style TAROT fill:#1A1A1A,color:#E0E0E0
+    style VISION fill:#1A1A1A,color:#E0E0E0
+    style MUYU fill:#333333,color:#E0E0E0
+    style WIDGET fill:#333333,color:#E0E0E0
+    style LLM fill:#CC3333,color:#FFFFFF
+    style PERSONA fill:#1A1A1A,color:#E0E0E0
+    style FORTUNE fill:#1A1A1A,color:#E0E0E0
 ```
 
 ### 技术选型
@@ -150,11 +155,11 @@ adb install -t -r app/build/outputs/apk/debug/app-debug.apk
 
 ## 设计语言
 
-视觉风格融合酸性设计 (Acid Graphic) 和赛博朋克终端美学：
+视觉风格遵循 Bridgewater B&W 设计体系：
 
-- **色板**: 霓虹青 (#00FFCC)、品红 (#FF00FF)、荧光绿 (#39FF14)，深色底 (#0A0A0F)
-- **字体**: 全局等宽字体，十进制日期以二进制形式展示
-- **动效**: 流动扫掠渐变、基于弹簧物理的铜钱落地、卡牌翻转动画
+- **色板**: 黑白基调 + 朱砂红 (#CC3333) 点缀，深色底 (#0A0A0F)
+- **字体**: 汇明朝体（标题）/ 霞鹜文楷（正文）/ JetBrains Mono（数据）
+- **动效**: 基于弹簧物理的铜钱落地、卡牌翻转动画、细腻过渡
 - **触感**: 线性马达在铜钱落地和卡牌交互时触发
 
 ---
@@ -179,7 +184,7 @@ adb install -t -r app/build/outputs/apk/debug/app-debug.apk
 ```
 app/src/main/java/com/cyberdiviner/
 ├── ui/
-│   ├── theme/          # 色彩、字体、酸性设计
+│   ├── theme/          # Bridgewater B&W、AccentRed、字体
 │   ├── home/           # 赛博黄历仪表盘
 │   ├── liuyao/         # 六爻占卜 + 铜钱动画
 │   ├── tarot/          # 塔罗牌阵

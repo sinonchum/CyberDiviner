@@ -32,11 +32,11 @@ import com.cyberdiviner.ui.theme.*
 import kotlin.math.abs
 
 /**
- * LiuyaoResultScreen — 古书翻页式卦象解读
+ * LiuyaoResultScreen — ancient-book style paginated hexagram interpretation
  *
- * 左右滑动翻页，每页一卡。
- * 页面编号用中文数字（壹/贰/叁/肆/伍）。
- * 卡片内容可上下滚动。
+ * Swipe left/right to turn pages, one card per page.
+ * Page numbers use Chinese numerals (壹/贰/叁/肆/伍).
+ * Card content is vertically scrollable.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -321,7 +321,7 @@ private fun buildCardList(
     CardInfo("解读", "INTERPRETATION") { InterpretationCard(result, llmText) }
 )
 
-// ── Card 0: Fortune 四字批命 ─────────────────────────────────────────────
+// ── Card 0: Fortune (4-char summary) ─────────────────────────────────────
 
 @Composable
 private fun FortuneCard(fortune: String, meaning: String) {
@@ -441,7 +441,7 @@ private fun HexagramCard(result: LiuyaoEngine.DivinationResult) {
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                // 世/应
+                // World/Response line markers
                 when (lineIndex) {
                     result.worldLine -> Tag("世", AccentRed, true)
                     result.responseLine -> Tag("应", AccentRed, false)
@@ -563,7 +563,7 @@ private fun SpiritsCard(result: LiuyaoEngine.DivinationResult) {
 
         Spacer(Modifier.height(24.dp))
 
-        // 世应
+        // World and Response line markers
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text("世爻", color = GrayMuted, fontSize = 11.sp, fontFamily = HuiwenFontFamily)
@@ -636,7 +636,7 @@ private fun PlainLanguageSummary(result: LiuyaoEngine.DivinationResult) {
     val hasChanges = result.hasChangingLines()
 
     Column(modifier = Modifier.fillMaxWidth()) {
-        // 卦象概述
+        // Hexagram overview
         Text(
             text = "你所问之事，得${primary.chineseName}卦（${primary.englishName}）",
             color = CyberWhite,
@@ -657,7 +657,7 @@ private fun PlainLanguageSummary(result: LiuyaoEngine.DivinationResult) {
 
         Spacer(Modifier.height(16.dp))
 
-        // 旺衰判断
+        // Strength assessment
         Text(
             text = result.analysis.strength,
             color = if (result.analysis.strength.contains("旺")) AccentRed else GrayBody,
@@ -668,7 +668,7 @@ private fun PlainLanguageSummary(result: LiuyaoEngine.DivinationResult) {
 
         Spacer(Modifier.height(12.dp))
 
-        // 综合断语
+        // Overall interpretation
         Text(
             text = result.analysis.interpretation,
             color = GrayBody,
@@ -679,7 +679,7 @@ private fun PlainLanguageSummary(result: LiuyaoEngine.DivinationResult) {
 
         Spacer(Modifier.height(20.dp))
 
-        // 建议 — 最重要，突出显示
+        // Advice — most important, highlighted
         Box(
             modifier = Modifier
                 .fillMaxWidth()
