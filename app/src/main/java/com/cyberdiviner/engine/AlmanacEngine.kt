@@ -56,6 +56,8 @@ object AlmanacEngine {
         "申" to "Metal", "酉" to "Metal", "戌" to "Earth", "亥" to "Water",
     )
 
+    private val BRANCH_WUXING_LIST = BRANCH_WUXING.values.toList()
+
     val STEM_YIN_YANG = mapOf(
         "甲" to "Yang", "乙" to "Yin",
         "丙" to "Yang", "丁" to "Yin",
@@ -428,17 +430,11 @@ object AlmanacEngine {
 
         for (activity in ALL_ACTIVITIES) {
             val actIdx = abs(activity.name.hashCode() + seed.toInt()) % 100
-            val element = BRANCH_WUXING.values.toList()[actIdx % 5]
+            val element = BRANCH_WUXING_LIST[actIdx % 5]
 
-            val isCompatible = when {
-                dayElement == element -> true  // same element: usually fine
-                HexagramData.toWuXing(dayElement).name == "WOOD" && element == "Fire" -> true
-                HexagramData.toWuXing(dayElement).name == "FIRE" && element == "Earth" -> true
-                HexagramData.toWuXing(dayElement).name == "EARTH" && element == "Metal" -> true
-                HexagramData.toWuXing(dayElement).name == "METAL" && element == "Water" -> true
-                HexagramData.toWuXing(dayElement).name == "WATER" && element == "Wood" -> true
-                else -> false
-            }
+            val dayWuXing = HexagramData.toWuXing(dayElement)
+            val actWuXing = HexagramData.toWuXing(element)
+            val isCompatible = dayWuXing.isCompatibleWith(actWuXing)
 
             if (isCompatible && auspicious.size < 10) {
                 auspicious.add(activity)
@@ -616,28 +612,12 @@ object AlmanacEngine {
 
         return when {
             e1 == e2 -> "比和 — 和谐稳定，相互支持"
-            produces(e1, e2) -> "${e1.chinese}生${e2.chinese} — 相生相助，吉"
-            produces(e2, e1) -> "${e2.chinese}生${e1.chinese} — 被生者受益，吉"
-            overcomes(e1, e2) -> "${e1.chinese}克${e2.chinese} — 有制约，需注意"
-            overcomes(e2, e1) -> "${e2.chinese}克${e1.chinese} — 受制约，需化解"
+            HexagramData.produces(e1, e2) -> "${e1.chinese}生${e2.chinese} — 相生相助，吉"
+            HexagramData.produces(e2, e1) -> "${e2.chinese}生${e1.chinese} — 被生者受益，吉"
+            HexagramData.overcomes(e1, e2) -> "${e1.chinese}克${e2.chinese} — 有制约，需注意"
+            HexagramData.overcomes(e2, e1) -> "${e2.chinese}克${e1.chinese} — 受制约，需化解"
             else -> "五行无直接关系"
         }
-    }
-
-    private fun produces(a: HexagramData.WuXing, b: HexagramData.WuXing): Boolean = when (a) {
-        HexagramData.WuXing.WOOD -> b == HexagramData.WuXing.FIRE
-        HexagramData.WuXing.FIRE -> b == HexagramData.WuXing.EARTH
-        HexagramData.WuXing.EARTH -> b == HexagramData.WuXing.METAL
-        HexagramData.WuXing.METAL -> b == HexagramData.WuXing.WATER
-        HexagramData.WuXing.WATER -> b == HexagramData.WuXing.WOOD
-    }
-
-    private fun overcomes(a: HexagramData.WuXing, b: HexagramData.WuXing): Boolean = when (a) {
-        HexagramData.WuXing.WOOD -> b == HexagramData.WuXing.EARTH
-        HexagramData.WuXing.FIRE -> b == HexagramData.WuXing.METAL
-        HexagramData.WuXing.EARTH -> b == HexagramData.WuXing.WATER
-        HexagramData.WuXing.METAL -> b == HexagramData.WuXing.WOOD
-        HexagramData.WuXing.WATER -> b == HexagramData.WuXing.FIRE
     }
 
     // ─────────────────────────── Utility Methods ───────────────────────────

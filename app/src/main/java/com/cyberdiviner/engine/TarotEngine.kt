@@ -381,7 +381,7 @@ object TarotEngine {
 
     // ==================== 完整牌组 ====================
 
-    val fullDeck: List<TarotCard> = majorArcana + generateMinorArcana()
+    val fullDeck: List<TarotCard> by lazy { majorArcana + generateMinorArcana() }
 
     // ==================== 牌阵定义 ====================
 

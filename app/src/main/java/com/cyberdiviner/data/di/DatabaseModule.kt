@@ -26,7 +26,8 @@ object DatabaseModule {
             context,
             CyberDivinerDatabase::class.java,
             CyberDivinerDatabase.DATABASE_NAME
-        ).build()
+        ).fallbackToDestructiveMigration()
+         .build()
     }
 
     @Provides

@@ -22,9 +22,6 @@ class CyberDivinerApp : Application() {
     private fun initializeDefaults() {
         val configManager = LlmConfigManager(this)
         appScope.launch {
-            // Ensure default API key and base URL are written to DataStore
-            // so buildConfig() never returns null on first launch.
-            configManager.setApiKey(DEFAULT_API_KEY)
             configManager.setBaseUrl(DEFAULT_BASE_URL)
             configManager.setModelId(DEFAULT_MODEL_ID)
             configManager.setProvider(LlmProvider.OPENAI_COMPATIBLE)
@@ -32,7 +29,6 @@ class CyberDivinerApp : Application() {
     }
 
     companion object {
-        private const val DEFAULT_API_KEY = "sk-REDACTED"
         private const val DEFAULT_BASE_URL = "https://api.deepseek.com"
         private const val DEFAULT_MODEL_ID = "deepseek-chat"
     }

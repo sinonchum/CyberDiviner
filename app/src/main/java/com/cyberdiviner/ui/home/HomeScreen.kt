@@ -48,7 +48,7 @@ fun HomeScreen(
                 .padding(top = 16.dp)
                 .clickable { onConfig() }
         ) {
-            CanvasGearIcon()
+            GearSettingsIcon(iconSize = 16.dp)
         }
 
         Column(
@@ -91,24 +91,7 @@ fun HomeScreen(
 
             DividerLine(modifier = Modifier.padding(top = 48.dp))
             Spacer(modifier = Modifier.height(16.dp))
-            StatusLine(text = "CYBERDIVINER v6.0")
-        }
-    }
-}
-
-@Composable
-private fun CanvasGearIcon(modifier: Modifier = Modifier) {
-    Canvas(modifier = modifier.size(16.dp)) {
-        val sw = 1.dp.toPx()
-        val cx = size.width / 2f
-        val cy = size.height / 2f
-        val outerR = size.width * 0.4f
-        drawCircle(GrayCaption, radius = outerR, center = Offset(cx, cy), style = Stroke(sw, cap = StrokeCap.Square))
-        drawCircle(GrayCaption, radius = size.width * 0.15f, center = Offset(cx, cy), style = Stroke(sw, cap = StrokeCap.Square))
-        for (angle in listOf(0f, 90f, 180f, 270f)) {
-            val rad = Math.toRadians(angle.toDouble())
-            val endR = outerR + 3.dp.toPx()
-            drawLine(GrayCaption, Offset(cx + outerR * kotlin.math.cos(rad).toFloat(), cy + outerR * kotlin.math.sin(rad).toFloat()), Offset(cx + endR * kotlin.math.cos(rad).toFloat(), cy + endR * kotlin.math.sin(rad).toFloat()), sw, cap = StrokeCap.Square)
+            StatusLine(text = "CYBERDIVINER v${com.cyberdiviner.BuildConfig.VERSION_NAME}")
         }
     }
 }

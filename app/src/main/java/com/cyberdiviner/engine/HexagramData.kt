@@ -488,7 +488,11 @@ object HexagramData {
 
     enum class WuXing(val chinese: String, val english: String) {
         WOOD("木", "Wood"), FIRE("火", "Fire"), EARTH("土", "Earth"),
-        METAL("金", "Metal"), WATER("水", "Water")
+        METAL("金", "Metal"), WATER("水", "Water");
+
+        /** Returns true if this element is the same, produces, or is produced by [other]. */
+        fun isCompatibleWith(other: WuXing): Boolean =
+            this == other || produces(this, other) || produces(other, this)
     }
 
     /** Map element strings to WuXing */

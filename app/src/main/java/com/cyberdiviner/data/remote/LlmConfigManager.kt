@@ -31,7 +31,7 @@ class LlmConfigManager(private val context: Context) {
 
     // ── Reactive streams (for UI) ───────────────────────────────────────────
 
-    val apiKey: Flow<String> = context.dataStore.data.map { it[KEY_API_KEY] ?: "sk-REDACTED" }
+    val apiKey: Flow<String> = context.dataStore.data.map { it[KEY_API_KEY] ?: "" }
     val provider: Flow<String> = context.dataStore.data.map { it[KEY_PROVIDER] ?: LlmProvider.OPENAI_COMPATIBLE.name }
     val modelId: Flow<String> = context.dataStore.data.map { it[KEY_MODEL_ID] ?: "deepseek-chat" }
     val baseUrl: Flow<String> = context.dataStore.data.map { it[KEY_BASE_URL] ?: "https://api.deepseek.com" }

@@ -147,25 +147,27 @@ data class Persona(
         /** Get a persona by ID, falling back to default. */
         fun fromId(id: String): Persona = ALL[id] ?: DEFAULT
 
+        // ── Pre-compiled regex patterns for stripActionDescriptions ────────
+        private val REGEX_EMOJI = Regex("[\\x{10000}-\\x{10FFFF}]")
+        private val REGEX_PAREN_ACTIONS = Regex("[（(][^）)]*?[动作笑看点头沉思端详掐指皱眉叹气摇头微笑嘿嘿哈哈哼嗯啊哎呀叹]{1,20}[）)]")
+        private val REGEX_BRACKET_ACTIONS = Regex("\\[[^\\]]*?[动作笑看点头沉思端详掐指皱眉叹气摇头微笑]{1,20}]")
+        private val REGEX_ASTERISK_ACTIONS = Regex("\\*[^*]*?[动作笑看点头沉思端详掐指皱眉叹气摇头微笑嘿嘿哈哈]{1,20}\\*")
+        private val REGEX_SPEAKER_LINE = Regex("(?m)^.*?(?:算命师|先生|老人|大师|师傅|仙人|先知|老者).{0,10}(?:笑着|点点头|沉思|端详|掐指|皱眉|叹气|摇头|微笑|打量|看了看|注视|凝视|闭目|捋须|睁开|抬头|低头|轻声|低声).{0,30}(?:后|才|道|说|答|开口).{0,5}(?:说|道|答)?[：:,]")
+        private val REGEX_STANDALONE_ACTION = Regex("(?m)^.*?(?:笑着|点点头|沉思片刻|端详|掐指一算|皱眉|叹气|摇头|微笑|打量|嘿嘿|哈哈).{0,20}[。.]\\s*$")
+        private val REGEX_MULTI_BLANK_LINES = Regex("\\n{3,}")
+
         /**
          * Strip character action/expression descriptions from LLM output.
          * Removes patterns like "笑着打量你", "*点点头*", "(沉思片刻)", etc.
          */
         fun stripActionDescriptions(text: String): String {
-            // Client-side emoji kill regex: strip all supplementary plane chars (Emoji)
-            var result = text.replace(Regex("[\\x{10000}-\\x{10FFFF}]"), "")
-            // Remove parenthesized actions: (xxx) or （xxx）
-            result = result.replace(Regex("[（(][^）)]*?[动作笑看点头沉思端详掐指皱眉叹气摇头微笑嘿嘿哈哈哼嗯啊哎呀叹]{1,20}[）)]"), "")
-            // Remove bracketed actions: [xxx]
-            result = result.replace(Regex("\\[[^\\]]*?[动作笑看点头沉思端详掐指皱眉叹气摇头微笑]{1,20}]"), "")
-            // Remove asterisk-wrapped actions: *xxx*
-            result = result.replace(Regex("\\*[^*]*?[动作笑看点头沉思端详掐指皱眉叹气摇头微笑嘿嘿哈哈]{1,20}\\*"), "")
-            // Remove action lines that start with speaker description
-            result = result.replace(Regex("(?m)^.*?(?:算命师|先生|老人|大师|师傅|仙人|先知|老者).{0,10}(?:笑着|点点头|沉思|端详|掐指|皱眉|叹气|摇头|微笑|打量|看了看|注视|凝视|闭目|捋须|睁开|抬头|低头|轻声|低声).{0,30}(?:后|才|道|说|答|开口).{0,5}(?:说|道|答)?[：:,]"), "")
-            // Remove standalone action descriptions ending with period
-            result = result.replace(Regex("(?m)^.*?(?:笑着|点点头|沉思片刻|端详|掐指一算|皱眉|叹气|摇头|微笑|打量|嘿嘿|哈哈).{0,20}[。.]\\s*$"), "")
-            // Clean up multiple blank lines
-            result = result.replace(Regex("\\n{3,}"), "\n\n")
+            var result = REGEX_EMOJI.replace(text, "")
+            result = REGEX_PAREN_ACTIONS.replace(result, "")
+            result = REGEX_BRACKET_ACTIONS.replace(result, "")
+            result = REGEX_ASTERISK_ACTIONS.replace(result, "")
+            result = REGEX_SPEAKER_LINE.replace(result, "")
+            result = REGEX_STANDALONE_ACTION.replace(result, "")
+            result = REGEX_MULTI_BLANK_LINES.replace(result, "\n\n")
             return result.trim()
         }
     }
@@ -292,7 +294,7 @@ class PersonaEngine(
      * Could prepend a catchphrase, append a signature, etc.
      */
     fun postProcess(rawText: String): String {
-        var result = stripActionDescriptions(rawText)
+        var result = Persona.stripActionDescriptions(rawText)
 
         // Randomly prepend a catchphrase ~30% of the time for variety
         if (activePersona.catchphrases.isNotEmpty() && Math.random() < 0.3) {
@@ -301,28 +303,6 @@ class PersonaEngine(
         }
 
         return result
-    }
-
-    /**
-     * Strip character action/expression descriptions from LLM output.
-     * Removes patterns like "笑着打量你", "*点点头*", "(沉思片刻)", etc.
-     * Also strips full action lines like "算命师笑着打量你一番后说道："
-     */
-    private fun stripActionDescriptions(text: String): String {
-        var result = text.replace(Regex("[\\x{10000}-\\x{10FFFF}]"), "")
-        // Remove parenthesized actions: (xxx) or （xxx）
-        result = result.replace(Regex("[（(][^）)]*?[动作笑看点头沉思端详掐指皱眉叹气摇头微笑嘿嘿哈哈哼嗯啊哎呀叹]{1,20}[）)]"), "")
-        // Remove bracketed actions: [xxx]
-        result = result.replace(Regex("\\[[^\\]]*?[动作笑看点头沉思端详掐指皱眉叹气摇头微笑]{1,20}]"), "")
-        // Remove asterisk-wrapped actions: *xxx*
-        result = result.replace(Regex("\\*[^*]*?[动作笑看点头沉思端详掐指皱眉叹气摇头微笑嘿嘿哈哈]{1,20}\\*"), "")
-        // Remove action lines that start with speaker description
-        result = result.replace(Regex("(?m)^.*?(?:算命师|先生|老人|大师|师傅|仙人|先知|老者).{0,10}(?:笑着|点点头|沉思|端详|掐指|皱眉|叹气|摇头|微笑|打量|看了看|注视|凝视|闭目|捋须|睁开|抬头|低头|轻声|低声).{0,30}(?:后|才|道|说|答|开口).{0,5}(?:说|道|答)?[：:,]"), "")
-        // Remove standalone action descriptions ending with period
-        result = result.replace(Regex("(?m)^.*?(?:笑着|点点头|沉思片刻|端详|掐指一算|皱眉|叹气|摇头|微笑|打量|嘿嘿|哈哈).{0,20}[。.]\\s*$"), "")
-        // Clean up multiple blank lines
-        result = result.replace(Regex("\\n{3,}"), "\n\n")
-        return result.trim()
     }
 
     /**

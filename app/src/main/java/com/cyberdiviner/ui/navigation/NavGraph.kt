@@ -34,6 +34,7 @@ import com.cyberdiviner.ui.oracle.OracleScreen
 import com.cyberdiviner.ui.rituals.RitualsMenuScreen
 import com.cyberdiviner.ui.splash.SplashScreen
 import com.cyberdiviner.ui.tarot.TarotScreen
+import com.cyberdiviner.ui.shared.GearSettingsIcon
 import com.cyberdiviner.ui.theme.CyberBlack
 import com.cyberdiviner.ui.theme.GrayCaption
 import com.cyberdiviner.ui.vision.VisionScreen
@@ -59,35 +60,6 @@ object Routes {
 }
 
 private val bottomNavRoutes = setOf(Routes.ORACLE, Routes.RITUALS, Routes.ARCHIVE)
-
-@Composable
-private fun CanvasGearIcon() {
-    val color = GrayCaption
-    Canvas(modifier = Modifier.size(20.dp)) {
-        val sw = 1.5.dp.toPx()
-        val cx = size.width / 2f
-        val cy = size.height / 2f
-        val outerR = size.width * 0.4f
-        val innerR = size.width * 0.2f
-        // Outer circle (gear body)
-        drawCircle(color, radius = outerR, center = Offset(cx, cy), style = Stroke(sw, cap = StrokeCap.Square))
-        // Inner circle (hole)
-        drawCircle(color, radius = innerR, center = Offset(cx, cy), style = Stroke(sw, cap = StrokeCap.Square))
-        // Gear teeth (4 short lines at cardinal points)
-        val toothLen = 4.dp.toPx()
-        val angles = listOf(0f, 90f, 180f, 270f)
-        for (angle in angles) {
-            val rad = Math.toRadians(angle.toDouble())
-            val startR = outerR
-            val endR = outerR + toothLen
-            val startX = cx + startR * kotlin.math.cos(rad).toFloat()
-            val startY = cy + startR * kotlin.math.sin(rad).toFloat()
-            val endX = cx + endR * kotlin.math.cos(rad).toFloat()
-            val endY = cy + endR * kotlin.math.sin(rad).toFloat()
-            drawLine(color, Offset(startX, startY), Offset(endX, endY), sw, cap = StrokeCap.Square)
-        }
-    }
-}
 
 @Composable
 fun CyberDivinerNavGraph(navController: NavHostController) {
@@ -265,7 +237,7 @@ fun CyberDivinerNavGraph(navController: NavHostController) {
                         .statusBarsPadding()
                         .padding(top = 8.dp, end = 8.dp)
                 ) {
-                    CanvasGearIcon()
+                    GearSettingsIcon()
                 }
             }
         }

@@ -269,12 +269,10 @@ class LiuyaoEngine(
     // ─────────────────────────── NaJia Branch Assignment ───────────────────────────
 
     private fun assignBranches(hexagram: Hexagram): List<String> {
-        val lowerBranches = trigramBranches[hexagram.lowerTrigram] ?: listOf(
-            "子","丑","寅","卯","辰","巳","午","未","申","酉","戌","亥"
-        )
-        val upperBranches = trigramBranches[hexagram.upperTrigram] ?: listOf(
-            "子","丑","寅","卯","辰","巳","午","未","申","酉","戌","亥"
-        )
+        val lowerBranches = trigramBranches[hexagram.lowerTrigram]
+            ?: error("Unknown trigram for lower: ${hexagram.lowerTrigram}")
+        val upperBranches = trigramBranches[hexagram.upperTrigram]
+            ?: error("Unknown trigram for upper: ${hexagram.upperTrigram}")
         return listOf(
             lowerBranches[0], lowerBranches[1], lowerBranches[2],  // lines 1-3
             upperBranches[3], upperBranches[4], upperBranches[5],  // lines 4-6

@@ -10,6 +10,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
 import com.cyberdiviner.ui.theme.CyberWhite
+import com.cyberdiviner.ui.theme.GrayCaption
 
 // ── Canvas Icon Library ─────────────────────────────────────────────────────
 // Pure geometric icons drawn on Canvas. No Material Icons. No ASCII.
@@ -213,6 +214,36 @@ fun HexagramIcon(
                     cap = StrokeCap.Square
                 )
             }
+        }
+    }
+}
+
+/**
+ * Shared gear/settings icon — a circle with inner hole and 4 short teeth at cardinal points.
+ * Replaces the duplicate CanvasGearIcon in HomeScreen.kt and NavGraph.kt.
+ */
+@Composable
+fun GearSettingsIcon(
+    modifier: Modifier = Modifier,
+    iconSize: androidx.compose.ui.unit.Dp = 20.dp,
+    color: androidx.compose.ui.graphics.Color = GrayCaption
+) {
+    Canvas(modifier = modifier.size(iconSize)) {
+        val sw = (iconSize.value * 0.075f).dp.toPx()
+        val cx = size.width / 2f
+        val cy = size.height / 2f
+        val outerR = size.width * 0.4f
+        val innerR = size.width * 0.15f
+        drawCircle(color, radius = outerR, center = Offset(cx, cy), style = Stroke(sw, cap = StrokeCap.Square))
+        drawCircle(color, radius = innerR, center = Offset(cx, cy), style = Stroke(sw, cap = StrokeCap.Square))
+        val toothLen = iconSize.value * 0.15f
+        for (angle in listOf(0f, 90f, 180f, 270f)) {
+            val rad = Math.toRadians(angle.toDouble())
+            val startX = cx + outerR * kotlin.math.cos(rad).toFloat()
+            val startY = cy + outerR * kotlin.math.sin(rad).toFloat()
+            val endX = cx + (outerR + toothLen) * kotlin.math.cos(rad).toFloat()
+            val endY = cy + (outerR + toothLen) * kotlin.math.sin(rad).toFloat()
+            drawLine(color, Offset(startX, startY), Offset(endX, endY), sw, cap = StrokeCap.Square)
         }
     }
 }
