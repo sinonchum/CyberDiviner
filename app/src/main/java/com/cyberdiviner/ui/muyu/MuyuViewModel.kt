@@ -210,11 +210,11 @@ class MuyuViewModel @Inject constructor(
             try {
                 soundPool?.play(
                     soundId,
-                    0.85f,  // leftVolume  — slightly below max for natural loudness
-                    0.85f,  // rightVolume
+                    0.95f,  // leftVolume — full resonance
+                    0.95f,  // rightVolume
                     1,      // priority
                     0,      // loop (0 = no loop)
-                    0.9f    // rate — slightly slower for deeper, more wooden/resonant tone
+                    0.85f   // rate — slower for deeper, more wooden/resonant tone
                 )
             } catch (e: Exception) {
                 Log.w(TAG, "Failed to play sound: ${e.message}")
