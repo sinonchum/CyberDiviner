@@ -170,7 +170,7 @@ class TarotViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            val spread = state.recommendedSpread ?: state.selectedSpread
+            val spread = state.selectedSpread
             _uiState.value = _uiState.value.copy(
                 phase = TarotPhase.DRAWING,
                 selectedSpread = spread,

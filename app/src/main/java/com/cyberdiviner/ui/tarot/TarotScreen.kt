@@ -32,6 +32,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -62,6 +65,13 @@ import com.cyberdiviner.ui.theme.GrayCaption
 import com.cyberdiviner.ui.theme.GrayMuted
 import com.cyberdiviner.ui.theme.GrayTitle
 import com.cyberdiviner.ui.theme.HuiwenFontFamily
+import com.cyberdiviner.ui.theme.AccentRed
+import com.cyberdiviner.ui.theme.WenKaiFontFamily
+import com.cyberdiviner.ui.theme.MonoFontFamily
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.input.pointer.pointerInput
 
 // ═══════════════════════════════════════════════════════════════════════════
 // TarotScreen — elegant B&W protocol-style layout
@@ -396,7 +406,7 @@ private fun InterpretingPhase(uiState: TarotUiState) {
     }
 }
 
-// ── Result phase ──────────────────────────────────────────────────────────
+// ── Result phase — matches Liuyao古书风格 ─────────────────────────────────
 
 @Composable
 private fun ResultPhase(
@@ -404,95 +414,323 @@ private fun ResultPhase(
     onNewReading: () -> Unit,
     onBack: () -> Unit
 ) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
+    val cnNums = listOf("壹", "贰", "叁", "肆", "伍", "陆", "柒", "捌", "玖", "拾")
+    val totalPages = 2 // Page 1: cards, Page 2: interpretation
+    var currentPage by remember { mutableStateOf(0) }
+
+    // Swipe detection
+    var swipeOffset by remember { mutableStateOf(0f) }
+
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 24.dp)
-            .verticalScroll(rememberScrollState())
-    ) {
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // ── Archive header ────────────────────────────────────────────
-        Text(
-            text = "[ 档案：塔罗协议 ]",
-            color = GrayCaption,
-            fontSize = 11.sp,
-            fontFamily = HuiwenFontFamily,
-            letterSpacing = 2.sp
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // ── Dashed separator ──────────────────────────────────────────
-        DashedSeparator()
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // ── Geometric card spread ─────────────────────────────────────
-        CanvasSpreadLayout(
-            spread = uiState.selectedSpread,
-            cards = uiState.drawnCards,
-            revealedCount = uiState.drawnCards.size
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // ── Card titles in serif ──────────────────────────────────────
-        uiState.drawnCards.forEach { card ->
-            val orientation = if (card.isReversed) "逆位" else "正位"
-            Text(
-                text = "${card.nameZh} · $orientation",
-                color = GrayTitle,
-                fontSize = 18.sp,
-                fontFamily = HuiwenFontFamily,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(vertical = 6.dp)
-            )
-            if (card.position.isNotEmpty()) {
-                Text(
-                    text = card.position,
-                    color = GrayMuted,
-                    fontSize = 10.sp,
-                    fontFamily = MonoFontFamily,
-                    letterSpacing = 2.sp,
-                    modifier = Modifier.padding(bottom = 12.dp)
+            .background(CyberBlack)
+            .pointerInput(Unit) {
+                detectHorizontalDragGestures(
+                    onDragEnd = {
+                        if (swipeOffset < -80f && currentPage < totalPages - 1) {
+                            currentPage++
+                        } else if (swipeOffset > 80f && currentPage > 0) {
+                            currentPage--
+                        }
+                        swipeOffset = 0f
+                    },
+                    onDragCancel = { swipeOffset = 0f },
+                    onHorizontalDrag = { _, amount -> swipeOffset += amount }
                 )
             }
+    ) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            // ── Top bar (same as Liuyao) ──
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "< 返回",
+                    color = GrayCaption,
+                    fontSize = 13.sp,
+                    fontFamily = HuiwenFontFamily,
+                    modifier = Modifier.clickable { onBack() }
+                )
+                Text(
+                    text = "塔罗解读",
+                    color = GrayCaption,
+                    fontSize = 14.sp,
+                    fontFamily = HuiwenFontFamily,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 3.sp
+                )
+                Text(
+                    text = "${cnNums[currentPage]}/${cnNums[totalPages - 1]}",
+                    color = GrayMuted,
+                    fontSize = 12.sp,
+                    fontFamily = MonoFontFamily,
+                    letterSpacing = 2.sp
+                )
+            }
+
+            // ── Divider ──
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(1.dp)
+                    .background(GrayBorder)
+            )
+
+            // ── Card content (scrollable) ──
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+            ) {
+                // Book spine shadow
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.CenterStart)
+                        .width(3.dp)
+                        .fillMaxHeight()
+                        .background(
+                            Brush.horizontalGradient(
+                                colors = listOf(
+                                    Color.Black.copy(alpha = 0.6f),
+                                    Color.Transparent
+                                )
+                            )
+                        )
+                )
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 8.dp)
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    if (currentPage == 0) {
+                        // ── Page 1: 牌阵 ──
+                        Text(
+                            text = "牌阵",
+                            color = CyberWhite,
+                            fontSize = 22.sp,
+                            fontFamily = HuiwenFontFamily,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 6.sp
+                        )
+                        Text(
+                            text = "SPREAD",
+                            color = GrayMuted,
+                            fontSize = 10.sp,
+                            fontFamily = MonoFontFamily,
+                            letterSpacing = 3.sp
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Box(
+                            modifier = Modifier
+                                .width(28.dp)
+                                .height(1.dp)
+                                .background(AccentRed)
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // Spread layout
+                        CanvasSpreadLayout(
+                            spread = uiState.selectedSpread,
+                            cards = uiState.drawnCards,
+                            revealedCount = uiState.drawnCards.size
+                        )
+
+                        Spacer(modifier = Modifier.height(20.dp))
+
+                        // Card list
+                        uiState.drawnCards.forEach { card ->
+                            val orientation = if (card.isReversed) "逆位" else "正位"
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 6.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = card.position,
+                                    color = GrayMuted,
+                                    fontSize = 11.sp,
+                                    fontFamily = HuiwenFontFamily,
+                                    modifier = Modifier.width(72.dp)
+                                )
+                                Text(
+                                    text = card.nameZh,
+                                    color = CyberWhite,
+                                    fontSize = 16.sp,
+                                    fontFamily = HuiwenFontFamily,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                Text(
+                                    text = orientation,
+                                    color = if (card.isReversed) AccentRed else GrayBody,
+                                    fontSize = 12.sp,
+                                    fontFamily = WenKaiFontFamily
+                                )
+                            }
+                        }
+                    } else {
+                        // ── Page 2: 解读 ──
+                        Text(
+                            text = "解读",
+                            color = CyberWhite,
+                            fontSize = 22.sp,
+                            fontFamily = HuiwenFontFamily,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 6.sp
+                        )
+                        Text(
+                            text = "INTERPRETATION",
+                            color = GrayMuted,
+                            fontSize = 10.sp,
+                            fontFamily = MonoFontFamily,
+                            letterSpacing = 3.sp
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Box(
+                            modifier = Modifier
+                                .width(28.dp)
+                                .height(1.dp)
+                                .background(AccentRed)
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // Clean interpretation text
+                        val cleanInterp = uiState.interpretation
+                            .replace(Regex("[━─═]{4,}"), "")
+                            .replace(Regex("━━━ .+ ━━━"), "")
+                            .trim()
+
+                        if (cleanInterp.isBlank()) {
+                            Text(
+                                text = "赛博先知解读中...",
+                                color = GrayMuted,
+                                fontSize = 13.sp,
+                                fontFamily = WenKaiFontFamily
+                            )
+                        } else {
+                            Text(
+                                text = cleanInterp,
+                                color = GrayBody,
+                                fontSize = 14.sp,
+                                fontFamily = WenKaiFontFamily,
+                                lineHeight = 26.sp
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(24.dp))
+                }
+
+                // Right page edge shadow
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .width(2.dp)
+                        .fillMaxHeight()
+                        .background(
+                            Brush.horizontalGradient(
+                                colors = listOf(
+                                    Color.Transparent,
+                                    GrayBorder.copy(alpha = 0.3f)
+                                )
+                            )
+                        )
+                )
+            }
+
+            // ── Bottom divider ──
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(1.dp)
+                    .background(GrayBorder)
+            )
+
+            // Swipe hint
+            Text(
+                text = if (currentPage < totalPages - 1) "< 左滑翻页 >" else "< 右滑返回 >",
+                color = GrayMuted,
+                fontSize = 10.sp,
+                fontFamily = MonoFontFamily,
+                letterSpacing = 2.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp)
+            )
+
+            // Page dots
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                repeat(totalPages) { i ->
+                    Box(
+                        modifier = Modifier
+                            .padding(horizontal = 4.dp)
+                            .width(if (i == currentPage) 16.dp else 6.dp)
+                            .height(3.dp)
+                            .background(
+                                if (i == currentPage) CyberWhite else GrayBorder,
+                                RoundedCornerShape(1.dp)
+                            )
+                    )
+                }
+            }
+
+            // Action buttons (same as Liuyao)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp)
+                    .padding(bottom = 20.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(40.dp)
+                        .border(1.dp, GrayBorder, RoundedCornerShape(6.dp))
+                        .background(CyberBlack, RoundedCornerShape(6.dp))
+                        .clickable { onBack() },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        "返回",
+                        color = GrayCaption,
+                        fontSize = 13.sp,
+                        fontFamily = HuiwenFontFamily
+                    )
+                }
+
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(40.dp)
+                        .background(CyberWhite, RoundedCornerShape(6.dp))
+                        .clickable { onNewReading() },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        "重新占卜",
+                        color = CyberBlack,
+                        fontSize = 13.sp,
+                        fontFamily = HuiwenFontFamily,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // ── Dashed separator ──────────────────────────────────────────
-        DashedSeparator()
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // ── Interpretation body ───────────────────────────────────────
-        Text(
-            text = uiState.interpretation,
-            color = GrayBody,
-            fontSize = 14.sp,
-            fontFamily = WenKaiFontFamily,
-            lineHeight = 26.sp
-        )
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        // ── Action buttons ────────────────────────────────────────────
-        CyberButton(
-            text = "重新占卜",
-            onClick = onNewReading
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        CyberButton(
-            text = "返回",
-            onClick = onBack
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
     }
 }
 
