@@ -147,7 +147,7 @@ object ElectronicStubGenerator {
         val intent = Intent(Intent.ACTION_SEND).apply {
             type = "image/png"
             putExtra(Intent.EXTRA_STREAM, uri)
-            putExtra(Intent.EXTRA_TEXT, "🔮 电子存根 — CyberDiviner")
+            putExtra(Intent.EXTRA_TEXT, "电子存根 — CyberDiviner")
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
         context.startActivity(Intent.createChooser(intent, "分享电子存根"))
@@ -364,7 +364,7 @@ object ElectronicStubGenerator {
             typeface = Typeface.MONOSPACE
             isFakeBoldText = true
         }
-        canvas.drawText("⚡ CYBERDIVINER ⚡", WIDTH / 2f, HEIGHT - 110f, paint)
+        canvas.drawText("CYBERDIVINER", WIDTH / 2f, HEIGHT - 110f, paint)
 
         paint.apply {
             textSize = 20f

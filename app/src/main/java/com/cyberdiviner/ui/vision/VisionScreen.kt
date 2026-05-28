@@ -343,7 +343,7 @@ fun VisionScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    "⚠ 系统错误",
+                    "系统错误",
                     color = GrayCaption,
                     fontSize = 16.sp,
                     fontFamily = HuiwenFontFamily
@@ -386,7 +386,7 @@ fun VisionScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    "✓ 面相分析完成",
+                    "面相分析完成",
                     color = GrayCaption,
                     fontSize = 18.sp,
                     fontFamily = HuiwenFontFamily

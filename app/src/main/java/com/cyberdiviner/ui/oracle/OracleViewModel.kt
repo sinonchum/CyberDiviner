@@ -150,25 +150,27 @@ class OracleViewModel @Inject constructor(
     private fun saveToArchive() {
         viewModelScope.launch {
             try {
-                // Build a summary from the conversation
-                val conversationSummary = _messages.value
-                    .filter { !it.isAgent }
-                    .take(3)
-                    .joinToString(" | ") { it.text.take(20) }
+                // Save the first user question separately for reference
+                val firstQuestion = _messages.value
+                    .firstOrNull { !it.isAgent }
+                    ?.text ?: ""
 
-                // Get the last AI response as the result
+                // Get the last AI response to generate a philosophical summary
                 val lastAiMessage = _messages.value
                     .lastOrNull { it.isAgent }
-                    ?.text ?: "无结果"
+                    ?.text ?: ""
+
+                // Generate a 4-character philosophical summary
+                val summary = generateFourCharSummary(lastAiMessage)
 
                 // Create result JSON
                 val resultJson = """
-                {"question": "$conversationSummary", "response": "${'$'}{lastAiMessage.take(200)}"}
+                {"question": "$firstQuestion", "summary": "$summary", "response": "${'$'}{lastAiMessage.take(200)}"}
                 """.trimIndent()
 
                 val reading = DivinationReading(
                     type = DivinationType.ORACLE,
-                    question = conversationSummary,
+                    question = summary,
                     resultJson = resultJson
                 )
                 divinationDao.insert(reading)
@@ -177,5 +179,51 @@ class OracleViewModel @Inject constructor(
                 Log.e(TAG, "Failed to save oracle session", e)
             }
         }
+    }
+
+    /**
+     * Generate a 4-character philosophical summary from the AI response.
+     * Extracts key themes and maps them to concise classical Chinese phrases.
+     */
+    private fun generateFourCharSummary(response: String): String {
+        if (response.isBlank()) return "玄机未显"
+
+        // Map thematic keywords to 4-character philosophical phrases
+        val themeMap = listOf(
+            listOf("事业", "工作", "职业", "升职", "创业") to "鹏程万里",
+            listOf("感情", "爱情", "恋爱", "婚姻", "桃花") to "情缘天定",
+            listOf("财运", "金钱", "财富", "投资", "发财") to "财源广进",
+            listOf("健康", "身体", "疾病", "养生") to "身心康泰",
+            listOf("学业", "考试", "学习", "智慧") to "金榜题名",
+            listOf("家庭", "亲人", "父母", "子女") to "家宅安宁",
+            listOf("贵人", "人缘", "人际", "社交") to "贵人相助",
+            listOf("小人", "是非", "口舌", "争端") to "明哲保身",
+            listOf("变动", "迁移", "出行", "旅行") to "逢凶化吉",
+            listOf("等待", "耐心", "时机", "蓄势") to "静待花开",
+            listOf("果断", "决定", "选择", "抉择") to "当机立断",
+            listOf("危机", "困难", "阻碍", "逆境") to "否极泰来",
+            listOf("顺利", "亨通", "吉祥", "好运") to "万事亨通",
+            listOf("转机", "变化", "革新", "突破") to "革故鼎新",
+            listOf("修行", "修心", "内省", "觉悟") to "明心见性",
+        )
+
+        // Find best matching theme based on keyword frequency
+        val bestMatch = themeMap
+            .map { (keywords, phrase) ->
+                val score = keywords.count { response.contains(it) }
+                phrase to score
+            }
+            .filter { it.second > 0 }
+            .maxByOrNull { it.second }
+
+        if (bestMatch != null) return bestMatch.first
+
+        // Fallback: pick based on response sentiment / length heuristics
+        val fallbackPhrases = listOf(
+            "玄机暗藏", "天机莫测", "因果相续", "缘起性空",
+            "顺其自然", "厚积薄发", "守正出奇", "行稳致远"
+        )
+        val index = (response.length + response.hashCode()).let { if (it < 0) -it else it } % fallbackPhrases.size
+        return fallbackPhrases[index]
     }
 }

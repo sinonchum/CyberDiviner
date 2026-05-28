@@ -801,7 +801,7 @@ class VisionViewModel @Inject constructor(
         }
 
         return buildString {
-            appendLine("👁️ 面相分析")
+            appendLine("面相分析")
             appendLine("━━━━━━━━━━━━━━━━━━━━")
             appendLine()
             appendLine("【脸型】${features.faceOval.shape}")
@@ -816,10 +816,10 @@ class VisionViewModel @Inject constructor(
             appendLine("━━━━━━━━━━━━━━━━━━━━")
             appendLine()
             if (question.isNotBlank()) {
-                appendLine("💡 你的问题：$question")
+                appendLine("你的问题：$question")
                 appendLine()
             }
-            appendLine("⚡ 信号提示：面相已扫描，但赛博先知暂时离线。")
+            appendLine("信号提示：面相已扫描，但赛博先知暂时离线。")
             appendLine("请在设置中配置 API 密钥以获取完整的解读。")
         }
     }

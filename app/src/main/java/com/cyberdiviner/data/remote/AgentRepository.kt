@@ -110,7 +110,7 @@ RULES:
         // Build LlmConfig from persisted settings
         val config = configManager.buildConfig(systemPrompt = systemPrompt)
             ?: return AgentResponse(
-                replyText = "⚠ System offline — API key not configured. " +
+                replyText = "System offline — API key not configured. " +
                     "Open Settings to connect to the neural grid."
             )
 
@@ -127,7 +127,7 @@ RULES:
         } catch (e: Exception) {
             Log.e(TAG, "chat() failed", e)
             AgentResponse(
-                replyText = "⚡ Signal lost in the static. The grid returned: ${e.message}",
+                replyText = "Signal lost in the static. The grid returned: ${e.message}",
                 requireMoreInfo = false
             )
         }

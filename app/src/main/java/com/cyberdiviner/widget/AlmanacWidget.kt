@@ -84,7 +84,7 @@ class AlmanacWidget : GlanceAppWidget() {
             ) {
                 // Header
                 Text(
-                    text = "⚡ CYBERDIVINER ALMANAC",
+                    text = "CYBERDIVINER ALMANAC",
                     style = TextStyle(
                         color = neonCyan,
                         fontSize = 11.sp,
@@ -175,7 +175,7 @@ class AlmanacWidget : GlanceAppWidget() {
                     )
                 )
                 Text(
-                    text = "✅ $luckyActivity",
+                    text = luckyActivity,
                     style = TextStyle(
                         color = neonGreen,
                         fontSize = 13.sp,

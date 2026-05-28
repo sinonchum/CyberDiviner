@@ -1,7 +1,6 @@
 package com.cyberdiviner.ui.splash
 
 import androidx.compose.animation.core.*
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -11,12 +10,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -28,20 +25,46 @@ import com.cyberdiviner.engine.AlmanacEngine
 import com.cyberdiviner.ui.theme.*
 import kotlinx.coroutines.delay
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 /**
- * SplashScreen -- 合并后的开屏页面（原SplashScreen + EpiphanyScreen）
+ * SplashScreen — 每日道字开屏
  *
- * 山景背景 + 干支大字 + 签语 + 点击进入/自动跳转。
- * 字体：汇文明朝体（HuiwenFontFamily）。文字：繁体中文。
+ * 布局：背景山景 → 阳历日期 → 每日道字（96sp hero）→ 干支一行 → 签语 → 底部
+ * 字体：汇文明朝体（HuiwenFontFamily）。
  * 交互：点击任意位置进入，或等待6秒自动跳转。
  */
 @Composable
 fun SplashScreen(onTimeout: () -> Unit) {
     val today = remember { LocalDate.now() }
     val reading = remember { AlmanacEngine.dailyReading(today) }
-    val solarFormatter = remember { DateTimeFormatter.ofPattern("yyyy.MM.dd") }
+
+    // 30个道家哲理字，按日轮转
+    val daoWords = remember {
+        listOf(
+            "道", "德", "無", "玄", "虛",
+            "靜", "和", "常", "明", "朴",
+            "柔", "反", "損", "益", "沖",
+            "盈", "歸", "化", "妙", "真",
+            "一", "清", "靈", "隱", "默",
+            "守", "復", "根", "命", "氣"
+        )
+    }
+    val dailyWord = remember(today) {
+        daoWords[today.dayOfYear % daoWords.size]
+    }
+
+    // 签语（保留五行判词）
+    val logicPhrase = remember(reading) {
+        val element = reading.dayGanzhi.branchElement
+        when (element) {
+            "Wood" -> "木氣延展，系統燃值升高。宜：拓展分支；忌：強行封閉。"
+            "Fire" -> "火氣邁進，信號強度過載。宜：釋放冗餘；忌：追加邏輯。"
+            "Earth" -> "土氣沉積，系統進入穩態。宜：修補冗餘邏輯；忌：強行建立鏈接。"
+            "Metal" -> "金氣收斂，精密度提升。宜：檢查邊界條件；忌：擴張輸入集。"
+            "Water" -> "水氣流動，網絡節點活躍。宜：充分緩存；忌：滲透未經驗證鏈路。"
+            else -> "系統運行中，等待下一個指令。"
+        }
+    }
 
     // 自动跳转（6秒后）
     LaunchedEffect(Unit) {
@@ -60,34 +83,28 @@ fun SplashScreen(onTimeout: () -> Unit) {
 
     // 逐级 fade-in
     var showDate by remember { mutableStateOf(false) }
-    var showYear by remember { mutableStateOf(false) }
-    var showMonth by remember { mutableStateOf(false) }
-    var showDay by remember { mutableStateOf(false) }
+    var showWord by remember { mutableStateOf(false) }
+    var showGanzhi by remember { mutableStateOf(false) }
     var showBottom by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         delay(200); showDate = true
-        delay(350); showYear = true
-        delay(250); showMonth = true
-        delay(250); showDay = true
-        delay(500); showBottom = true
+        delay(400); showWord = true
+        delay(500); showGanzhi = true
+        delay(400); showBottom = true
     }
 
     val dateAlpha by animateFloatAsState(
         targetValue = if (showDate) 1f else 0f,
         animationSpec = tween(700, easing = FastOutSlowInEasing), label = "dateFade"
     )
-    val yearAlpha by animateFloatAsState(
-        targetValue = if (showYear) 1f else 0f,
-        animationSpec = tween(700, easing = FastOutSlowInEasing), label = "yearFade"
+    val wordAlpha by animateFloatAsState(
+        targetValue = if (showWord) 1f else 0f,
+        animationSpec = tween(900, easing = FastOutSlowInEasing), label = "wordFade"
     )
-    val monthAlpha by animateFloatAsState(
-        targetValue = if (showMonth) 1f else 0f,
-        animationSpec = tween(700, easing = FastOutSlowInEasing), label = "monthFade"
-    )
-    val dayAlpha by animateFloatAsState(
-        targetValue = if (showDay) 1f else 0f,
-        animationSpec = tween(700, easing = FastOutSlowInEasing), label = "dayFade"
+    val ganzhiAlpha by animateFloatAsState(
+        targetValue = if (showGanzhi) 1f else 0f,
+        animationSpec = tween(700, easing = FastOutSlowInEasing), label = "ganzhiFade"
     )
     val bottomAlpha by animateFloatAsState(
         targetValue = if (showBottom) 1f else 0f,
@@ -97,24 +114,11 @@ fun SplashScreen(onTimeout: () -> Unit) {
     // 亮度提升矩阵
     val brightMatrix = remember {
         ColorMatrix(floatArrayOf(
-            1.2f, 0f,   0f,   0f, 15f,
-            0f,   1.2f, 0f,   0f, 15f,
-            0f,   0f,   1.2f, 0f, 15f,
+            1.3f, 0f,   0f,   0f, 20f,
+            0f,   1.3f, 0f,   0f, 20f,
+            0f,   0f,   1.3f, 0f, 20f,
             0f,   0f,   0f,   1f, 0f
         ))
-    }
-
-    // 签语
-    val logicPhrase = remember(reading) {
-        val element = reading.dayGanzhi.branchElement
-        when (element) {
-            "Wood" -> "木氣延展，系統燃值升高。宜：拓展分支；忌：強行封閉。"
-            "Fire" -> "火氣邁進，信號強度過載。宜：釋放冗餘；忌：追加邏輯。"
-            "Earth" -> "土氣沉積，系統進入穩態。宜：修補冗餘邏輯；忌：強行建立鏈接。"
-            "Metal" -> "金氣收斂，精密度提升。宜：檢查邊界條件；忌：擴張輸入集。"
-            "Water" -> "水氣流動，網絡節點活躍。宜：充分緩存；忌：滲透未經驗證鏈路。"
-            else -> "系統運行中，等待下一個指令。"
-        }
     }
 
     // 光标闪烁
@@ -163,63 +167,44 @@ fun SplashScreen(onTimeout: () -> Unit) {
                 .fillMaxSize()
                 .padding(horizontal = 32.dp)
         ) {
-            Spacer(modifier = Modifier.weight(0.08f))
+            Spacer(modifier = Modifier.weight(0.06f))
 
             // 阳历日期
             Text(
-                text = today.format(solarFormatter),
+                text = "${today.year}.${today.monthValue}.${today.dayOfMonth}",
                 color = GrayBody,
-                fontSize = 12.sp,
+                fontSize = 13.sp,
                 fontFamily = MonoFontFamily,
                 letterSpacing = 6.sp,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.alpha(dateAlpha)
             )
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.weight(0.08f))
 
-            // 干支年 — 汇文明朝体
+            // ── 每日道字（Hero Word）─────────────────────────────────
             Text(
-                text = "${reading.yearGanzhi.stem}${reading.yearGanzhi.branch}年",
+                text = dailyWord,
                 color = CyberWhite,
-                fontSize = 44.sp,
+                fontSize = 96.sp,
                 fontFamily = HuiwenFontFamily,
                 fontWeight = FontWeight.Normal,
-                letterSpacing = 10.sp,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.alpha(yearAlpha)
+                modifier = Modifier.alpha(wordAlpha)
             )
 
-            Spacer(modifier = Modifier.height(6.dp))
-            RedDivider(modifier = Modifier.alpha(yearAlpha))
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-            // 干支月
+            // 干支一行：年 月 日
             Text(
-                text = "${reading.monthGanzhi.stem}${reading.monthGanzhi.branch}月",
-                color = CyberWhite,
-                fontSize = 44.sp,
+                text = "${reading.yearGanzhi.combined}年  ${reading.monthGanzhi.combined}月  ${reading.dayGanzhi.combined}日",
+                color = Color(0xFFE0E0E0),
+                fontSize = 18.sp,
                 fontFamily = HuiwenFontFamily,
                 fontWeight = FontWeight.Normal,
-                letterSpacing = 10.sp,
+                letterSpacing = 4.sp,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.alpha(monthAlpha)
-            )
-
-            Spacer(modifier = Modifier.height(6.dp))
-            RedDivider(modifier = Modifier.alpha(monthAlpha))
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // 干支日 — 最大
-            Text(
-                text = "${reading.dayGanzhi.stem}${reading.dayGanzhi.branch}日",
-                color = CyberWhite,
-                fontSize = 60.sp,
-                fontFamily = HuiwenFontFamily,
-                fontWeight = FontWeight.Normal,
-                letterSpacing = 14.sp,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.alpha(dayAlpha)
+                modifier = Modifier.alpha(ganzhiAlpha)
             )
 
             Spacer(modifier = Modifier.weight(0.15f))
@@ -228,7 +213,7 @@ fun SplashScreen(onTimeout: () -> Unit) {
             reading.currentSolarTerm?.let {
                 Text(
                     text = "[ ${it.name} ]",
-                    color = CyberWhite,
+                    color = Color(0xFFE0E0E0),
                     fontSize = 13.sp,
                     fontFamily = MonoFontFamily,
                     letterSpacing = 4.sp,
@@ -237,7 +222,7 @@ fun SplashScreen(onTimeout: () -> Unit) {
                 Spacer(modifier = Modifier.height(20.dp))
             }
 
-            // 签语 — 终端风格
+            // 签语
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
@@ -277,11 +262,9 @@ fun SplashScreen(onTimeout: () -> Unit) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.padding(bottom = 48.dp)
             ) {
-                RedDivider(modifier = Modifier.alpha(bottomAlpha))
-                Spacer(modifier = Modifier.height(14.dp))
                 Text(
                     text = "CYBERDIVINER",
-                    color = GrayCaption,
+                    color = GrayBody,
                     fontSize = 10.sp,
                     fontFamily = MonoFontFamily,
                     letterSpacing = 8.sp,
@@ -300,18 +283,5 @@ fun SplashScreen(onTimeout: () -> Unit) {
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun RedDivider(modifier: Modifier = Modifier) {
-    Canvas(modifier = modifier.width(64.dp).height(1.dp)) {
-        drawLine(
-            AccentRed,
-            Offset(0f, size.height / 2f),
-            Offset(size.width, size.height / 2f),
-            1.5f,
-            StrokeCap.Square
-        )
     }
 }

@@ -303,7 +303,7 @@ private fun HexagramDiagram(result: LiuyaoEngine.DivinationResult) {
                 val isWorld = lineIndex == result.worldLine
                 val isResponse = lineIndex == result.responseLine
 
-                // Color: hidden lines dimmer, all others white
+                // Color: hidden lines dimmer, all others CyberWhite
                 val lineColor = when {
                     line.isHidden -> GrayMuted
                     else -> CyberWhite
@@ -315,7 +315,7 @@ private fun HexagramDiagram(result: LiuyaoEngine.DivinationResult) {
                         .fillMaxWidth()
                         .padding(vertical = 5.dp)
                 ) {
-                    // Line position label (初/二/三/四/五/上)
+                    // Line position label (初/二/三/四/五/上) in HuiwenFontFamily
                     Text(
                         text = lineLabels[i],
                         color = GrayCaption,
@@ -331,17 +331,18 @@ private fun HexagramDiagram(result: LiuyaoEngine.DivinationResult) {
                     Canvas(
                         modifier = Modifier
                             .weight(1f)
-                            .height(14.dp)
+                            .height(18.dp)
                     ) {
-                        // Changing lines get thicker stroke for visual distinction
-                        val sw = if (isChanging) 5.dp.toPx() else 3.dp.toPx()
-                        val centerGap = 8.dp.toPx()
+                        // Thicker strokes: 4dp normal, 6dp for changing lines
+                        val sw = if (isChanging) 6.dp.toPx() else 4.dp.toPx()
+                        // Wider yin line gap: 16dp
+                        val centerGap = 16.dp.toPx()
                         val lineLength = size.width * 0.85f
                         val cx = size.width / 2f
                         val cy = size.height / 2f
 
                         if (isYang) {
-                            // Yang (solid) line — single continuous line
+                            // Yang (solid) line — single continuous line in CyberWhite
                             drawLine(
                                 color = lineColor,
                                 start = Offset(cx - lineLength / 2f, cy),
@@ -350,7 +351,7 @@ private fun HexagramDiagram(result: LiuyaoEngine.DivinationResult) {
                                 cap = StrokeCap.Square
                             )
                         } else {
-                            // Yin (broken) line — two segments with center gap
+                            // Yin (broken) line — two segments with wider center gap
                             drawLine(
                                 color = lineColor,
                                 start = Offset(cx - lineLength / 2f, cy),
@@ -367,44 +368,76 @@ private fun HexagramDiagram(result: LiuyaoEngine.DivinationResult) {
                             )
                         }
 
-                        // Changing line indicators — AccentRed dots at line ends
+                        // Changing line indicator — AccentRed "×" marker
                         if (isChanging) {
-                            val r = 3.dp.toPx()
-                            drawCircle(
+                            val markSize = 5.dp.toPx()
+                            val markCx = cx
+                            val markCy = cy
+                            // Draw × using two crossing lines
+                            drawLine(
                                 color = AccentRed,
-                                radius = r,
-                                center = Offset(cx - lineLength / 2f - r * 2, cy)
+                                start = Offset(markCx - markSize, markCy - markSize),
+                                end = Offset(markCx + markSize, markCy + markSize),
+                                strokeWidth = 2.dp.toPx(),
+                                cap = StrokeCap.Round
                             )
-                            drawCircle(
+                            drawLine(
                                 color = AccentRed,
-                                radius = r,
-                                center = Offset(cx + lineLength / 2f + r * 2, cy)
+                                start = Offset(markCx + markSize, markCy - markSize),
+                                end = Offset(markCx - markSize, markCy + markSize),
+                                strokeWidth = 2.dp.toPx(),
+                                cap = StrokeCap.Round
                             )
                         }
                     }
 
                     Spacer(modifier = Modifier.width(8.dp))
 
-                    // World (世) = red dot, Response (应) = red square
+                    // World (世) = AccentRed circle with 世 character
+                    // Response (应) = AccentRed square with 应 character
                     when {
                         isWorld -> {
-                            Canvas(modifier = Modifier.size(10.dp)) {
-                                drawCircle(
-                                    color = AccentRed,
-                                    radius = size.minDimension / 2f
+                            Box(
+                                modifier = Modifier.size(20.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Canvas(modifier = Modifier.matchParentSize()) {
+                                    drawCircle(
+                                        color = AccentRed,
+                                        radius = size.minDimension / 2f
+                                    )
+                                }
+                                Text(
+                                    "世",
+                                    color = CyberWhite,
+                                    fontSize = 10.sp,
+                                    fontFamily = HuiwenFontFamily,
+                                    fontWeight = FontWeight.Bold
                                 )
                             }
                         }
                         isResponse -> {
-                            Canvas(modifier = Modifier.size(10.dp)) {
-                                drawRect(
-                                    color = AccentRed,
-                                    size = size
+                            Box(
+                                modifier = Modifier.size(20.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Canvas(modifier = Modifier.matchParentSize()) {
+                                    drawRect(
+                                        color = AccentRed,
+                                        size = size
+                                    )
+                                }
+                                Text(
+                                    "应",
+                                    color = CyberWhite,
+                                    fontSize = 10.sp,
+                                    fontFamily = HuiwenFontFamily,
+                                    fontWeight = FontWeight.Bold
                                 )
                             }
                         }
                         else -> {
-                            Spacer(modifier = Modifier.width(10.dp))
+                            Spacer(modifier = Modifier.width(20.dp))
                         }
                     }
                 }

@@ -102,7 +102,7 @@ object PosterGenerator {
         val intent = Intent(Intent.ACTION_SEND).apply {
             type = "image/png"
             putExtra(Intent.EXTRA_STREAM, uri)
-            putExtra(Intent.EXTRA_TEXT, "🔮 赛博算命 — 来自 CyberDiviner")
+            putExtra(Intent.EXTRA_TEXT, "赛博算命 — 来自 CyberDiviner")
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
         context.startActivity(Intent.createChooser(intent, "分享算命结果"))
@@ -339,7 +339,7 @@ object PosterGenerator {
             textAlign = Paint.Align.CENTER
             typeface = Typeface.MONOSPACE
         }
-        canvas.drawText("⚡ CYBERDIVINER v1.0 ⚡", WIDTH / 2f, HEIGHT - 100f, paint)
+        canvas.drawText("CYBERDIVINER v1.0", WIDTH / 2f, HEIGHT - 100f, paint)
         paint.apply {
             textSize = 20f
             color = Color.argb(80, 136, 136, 170)

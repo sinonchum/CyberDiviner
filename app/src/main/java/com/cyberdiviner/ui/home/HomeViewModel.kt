@@ -108,14 +108,14 @@ class HomeViewModel @Inject constructor(
         val solarTerm = reading.currentSolarTerm
 
         val sb = StringBuilder()
-        sb.appendLine("⚡ 赛博黄历初始化完毕")
+        sb.appendLine("赛博黄历初始化完毕")
         sb.appendLine()
-        sb.appendLine("\uD83D\uDCE1 今日干支信号: ${dayGz.combined} | ${dayGz.branchElementCn}气当令")
-        sb.appendLine("🐲 当前生肖频段: $zodiac")
+        sb.appendLine("今日干支信号: ${dayGz.combined} | ${dayGz.branchElementCn}气当令")
+        sb.appendLine("当前生肖频段: $zodiac")
         if (solarTerm != null) {
-            sb.appendLine("🌀 节气节点: ${solarTerm.name} (${solarTerm.englishName})")
+            sb.appendLine("节气节点: ${solarTerm.name} (${solarTerm.englishName})")
         }
-        sb.appendLine("🔮 能量状态: $energy")
+        sb.appendLine("能量状态: $energy")
         sb.appendLine()
         sb.appendLine("▸ 选择你的占卜协议, 开启今日的赛博问卜之旅")
 

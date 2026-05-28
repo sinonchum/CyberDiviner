@@ -114,15 +114,15 @@ class LiuyaoEngine(
     ) {
         fun summary(): String = buildString {
             appendLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-            appendLine("🔮 六爻占卜 — Liuyao Divination")
+            appendLine("六爻占卜 — Liuyao Divination")
             appendLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
             appendLine()
-            appendLine("📋 问事: $question")
+            appendLine("问事: $question")
             appendLine()
-            appendLine("☰ 本卦 (Primary): ${primaryHexagram.chineseName} ${primaryHexagram.englishName}")
+            appendLine("本卦 (Primary): ${primaryHexagram.chineseName} ${primaryHexagram.englishName}")
             appendLine("  卦辞: ${primaryHexagram.judgment}")
             if (hasChangingLines()) {
-                appendLine("☲ 变卦 (Changed): ${changedHexagram.chineseName} ${changedHexagram.englishName}")
+                appendLine("变卦 (Changed): ${changedHexagram.chineseName} ${changedHexagram.englishName}")
                 appendLine("  卦辞: ${changedHexagram.judgment}")
             }
             appendLine()

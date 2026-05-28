@@ -341,7 +341,7 @@ interpretation = com.cyberdiviner.engine.Persona.stripActionDescriptions(fullTex
         question: String
     ): String {
         val sb = StringBuilder()
-        sb.appendLine("🔮 ${spread.displayName}解读")
+        sb.appendLine("${spread.displayName}解读")
         sb.appendLine("━━━━━━━━━━━━━━━━━━━━")
         sb.appendLine()
         cards.forEach { card ->
@@ -350,9 +350,9 @@ interpretation = com.cyberdiviner.engine.Persona.stripActionDescriptions(fullTex
         }
         sb.appendLine()
         sb.appendLine("━━━━━━━━━━━━━━━━━━━━")
-        sb.appendLine("💡 你的问题：$question")
+        sb.appendLine("你的问题：$question")
         sb.appendLine()
-        sb.appendLine("⚡ 信号提示：牌阵已展开，但赛博先知暂时离线。")
+        sb.appendLine("信号提示：牌阵已展开，但赛博先知暂时离线。")
         sb.appendLine("请在设置中配置 API 密钥以获取完整的解读。")
         return sb.toString()
     }
