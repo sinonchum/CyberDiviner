@@ -200,7 +200,7 @@ fun SplashScreen(onTimeout: () -> Unit) {
             reading.currentSolarTerm?.let {
                 Text(
                     text = "[ ${it.name} ]",
-                    color = GrayBody,
+                    color = CyberWhite,
                     fontSize = 13.sp,
                     fontFamily = MonoFontFamily,
                     letterSpacing = 4.sp,
