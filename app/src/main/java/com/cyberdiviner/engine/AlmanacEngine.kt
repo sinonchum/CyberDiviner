@@ -233,10 +233,10 @@ object AlmanacEngine {
     ) {
         fun summary(): String = buildString {
             appendLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-            appendLine("📅 黄历 — Chinese Almanac")
+            appendLine("黄历 — Chinese Almanac")
             appendLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
             appendLine()
-            appendLine("📆 阳历: ${date.year}年${date.monthValue}月${date.dayOfMonth}日")
+            appendLine("阳历: ${date.year}年${date.monthValue}月${date.dayOfMonth}日")
             appendLine("   农历: ${lunarDate.monthName}${lunarDate.dayName}")
             appendLine("   干支: ${yearGanzhi.combined}年 ${monthGanzhi.combined}月 ${dayGanzhi.combined}日")
             if (hourGanzhi != null) {
@@ -252,12 +252,12 @@ object AlmanacEngine {
             appendLine()
             appendLine("━━━ 今日宜 (Auspicious) ━━━")
             auspiciousActivities.forEach { act ->
-                appendLine("  ✅ ${act.name} (${act.englishName})")
+                appendLine("  ${act.name} (${act.englishName})")
             }
             appendLine()
             appendLine("━━━ 今日忌 (Inauspicious) ━━━")
             inauspiciousActivities.forEach { act ->
-                appendLine("  ❌ ${act.name} (${act.englishName})")
+                appendLine("  ${act.name} (${act.englishName})")
             }
             appendLine()
             appendLine("━━━ 运势概览 ━━━")
@@ -266,7 +266,7 @@ object AlmanacEngine {
             appendLine("  吉祥色: ${luckyColors.joinToString("、")}")
             appendLine("  吉祥数: ${luckyNumbers.joinToString("、")}")
             if (warnings.isNotEmpty()) {
-                appendLine("  ⚠️ 注意:")
+                appendLine("  注意:")
                 warnings.forEach { w -> appendLine("    • $w") }
             }
             appendLine()
@@ -553,11 +553,11 @@ object AlmanacEngine {
 
         // Simple energy calculation based on branch position in cycle
         return when {
-            branchIdx in listOf(0, 4, 8) -> "⬆️ 旺 (Prosperous) — 今日能量充沛"
-            branchIdx in listOf(1, 5, 9) -> "➡️ 相 (Supportive) — 今日能量平稳"
-            branchIdx in listOf(2, 6, 10) -> "➡️ 休 (Resting) — 今日适合休养"
-            branchIdx in listOf(3, 7, 11) -> "⬇️ 囚 (Restricted) — 今日需谨慎"
-            else -> "⬇️ 死 (Dormant) — 今日宜守不宜攻"
+            branchIdx in listOf(0, 4, 8) -> "旺 (Prosperous) — 今日能量充沛"
+            branchIdx in listOf(1, 5, 9) -> "相 (Supportive) — 今日能量平稳"
+            branchIdx in listOf(2, 6, 10) -> "休 (Resting) — 今日适合休养"
+            branchIdx in listOf(3, 7, 11) -> "囚 (Restricted) — 今日需谨慎"
+            else -> "死 (Dormant) — 今日宜守不宜攻"
         }
     }
 

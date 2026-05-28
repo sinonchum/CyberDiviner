@@ -26,13 +26,10 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 /**
- * AlmanacScreen -- 赛博黄历 (Cyber Almanac)
+ * AlmanacScreen -- 赛博黄历
  *
- * Poster-quality, share-worthy card-based layout.
- * Designed for "screenshot → share to WeChat Moments" aesthetic.
- *
- * Pure B&W aesthetic with AccentRed accents.
- * No emoji, no Material ripple. StrokeCap.Square only.
+ * 海报级卡片布局，截图分享友好。
+ * 纯黑白 + AccentRed 点缀。无 emoji。
  */
 @Composable
 fun AlmanacScreen(
@@ -41,7 +38,6 @@ fun AlmanacScreen(
     val today = remember { LocalDate.now() }
     val reading = remember { AlmanacEngine.dailyReading(today) }
 
-    // Generate a deterministic hash for the watermark
     val dayHash = remember {
         val seed = today.toEpochDay()
         String.format("0x%08X", seed.hashCode())
@@ -55,76 +51,73 @@ fun AlmanacScreen(
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // ════════════════════════════════════════════════════════════════
-        // HERO SECTION — Day GanZhi as the dominant visual element
-        // ════════════════════════════════════════════════════════════════
+        // ══════════════════════════════════════════════════════════════
+        // HERO SECTION
+        // ══════════════════════════════════════════════════════════════
 
-        // Year / Month GanZhi (smaller, above the day)
+        // 年月 — 汇文明朝体
         Text(
             text = "${reading.yearGanzhi.combined}年  ${reading.monthGanzhi.combined}月",
-            color = GrayCaption,
+            color = CyberWhite,
             fontFamily = HuiwenFontFamily,
             fontSize = 20.sp,
-            letterSpacing = 4.sp,
+            letterSpacing = 6.sp,
             textAlign = TextAlign.Center
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Day GanZhi — HERO ELEMENT
+        // 日干支 — HERO
         Text(
             text = reading.dayGanzhi.combined,
-            color = GrayTitle,
+            color = CyberWhite,
             fontFamily = HuiwenFontFamily,
-            fontSize = 56.sp,
-            letterSpacing = 12.sp,
+            fontSize = 58.sp,
+            letterSpacing = 14.sp,
             textAlign = TextAlign.Center,
             fontWeight = FontWeight.Normal
         )
 
-        // Hour GanZhi if available
+        // 时辰
         reading.hourGanzhi?.let { hour ->
             Text(
                 text = hour.combined + "时",
                 color = GrayCaption,
                 fontFamily = HuiwenFontFamily,
                 fontSize = 16.sp,
-                letterSpacing = 2.sp,
+                letterSpacing = 3.sp,
                 textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.height(4.dp))
         }
 
-        // Solar date in monospace, small and muted
+        // 阳历
         Text(
             text = today.format(DateTimeFormatter.ofPattern("yyyy.MM.dd")),
-            color = GrayMuted,
+            color = GrayCaption,
             fontFamily = MonoFontFamily,
             fontSize = 12.sp,
-            letterSpacing = 2.sp,
+            letterSpacing = 3.sp,
             textAlign = TextAlign.Center
         )
 
-        // Lunar date
+        // 农历
         Text(
             text = "农历 ${reading.lunarDate.monthName}${reading.lunarDate.dayName}",
-            color = GrayMuted,
+            color = GrayCaption,
             fontFamily = WenKaiFontFamily,
             fontSize = 12.sp,
             letterSpacing = 1.sp,
             textAlign = TextAlign.Center
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // Thin AccentRed divider
-        AccentDivider()
-
         Spacer(modifier = Modifier.height(16.dp))
+        AccentDivider()
+        Spacer(modifier = Modifier.height(20.dp))
 
-        // ════════════════════════════════════════════════════════════════
-        // CARD: 天文 — Zodiac & Solar Term
-        // ════════════════════════════════════════════════════════════════
+        // ══════════════════════════════════════════════════════════════
+        // CARD: 天文
+        // ══════════════════════════════════════════════════════════════
         AlmanacCard(title = "天文") {
             CardInfoRow(label = "生肖", value = reading.zodiac)
             CardInfoRow(label = "EN", value = reading.zodiacEnglish, isMono = true)
@@ -135,37 +128,37 @@ fun AlmanacScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-        // ════════════════════════════════════════════════════════════════
-        // CARD: 签语 — Daily Quote
-        // ════════════════════════════════════════════════════════════════
+        // ══════════════════════════════════════════════════════════════
+        // CARD: 签语
+        // ══════════════════════════════════════════════════════════════
         AlmanacCard(title = "签语") {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(GraySurface, RoundedCornerShape(0.dp))
+                    .background(CyberBlack, RoundedCornerShape(0.dp))
                     .border(1.dp, GrayBorder, RoundedCornerShape(0.dp))
                     .padding(horizontal = 16.dp, vertical = 20.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = "「${reading.dailyQuote.text}」",
-                    color = GrayTitle,
-                    fontSize = 15.sp,
+                    color = CyberWhite,
+                    fontSize = 16.sp,
                     fontFamily = WenKaiFontFamily,
-                    lineHeight = 26.sp,
+                    lineHeight = 28.sp,
                     textAlign = TextAlign.Center,
                     letterSpacing = 1.sp
                 )
             }
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-        // ════════════════════════════════════════════════════════════════
-        // CARD: 宜 — Auspicious Activities
-        // ════════════════════════════════════════════════════════════════
+        // ══════════════════════════════════════════════════════════════
+        // CARD: 宜
+        // ══════════════════════════════════════════════════════════════
         AlmanacCard(title = "宜") {
             ActivityGrid(
                 activities = reading.auspiciousActivities,
@@ -173,11 +166,11 @@ fun AlmanacScreen(
             )
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-        // ════════════════════════════════════════════════════════════════
-        // CARD: 忌 — Inauspicious Activities
-        // ════════════════════════════════════════════════════════════════
+        // ══════════════════════════════════════════════════════════════
+        // CARD: 忌
+        // ══════════════════════════════════════════════════════════════
         AlmanacCard(title = "忌") {
             ActivityGrid(
                 activities = reading.inauspiciousActivities,
@@ -185,28 +178,28 @@ fun AlmanacScreen(
             )
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-        // ════════════════════════════════════════════════════════════════
-        // CARD: 五行 — Energy, Elements, Lucky
-        // ════════════════════════════════════════════════════════════════
+        // ══════════════════════════════════════════════════════════════
+        // CARD: 五行
+        // ══════════════════════════════════════════════════════════════
         AlmanacCard(title = "五行") {
             CardInfoRow(label = "能量", value = reading.dailyEnergy)
             CardInfoRow(label = "五行", value = reading.elementAdvice)
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
-            // Lucky Colors — displayed with small bordered squares
+            // 吉祥色
             Text(
                 text = "吉祥色",
-                color = GrayCaption,
-                fontFamily = WenKaiFontFamily,
+                color = CyberWhite,
+                fontFamily = HuiwenFontFamily,
                 fontSize = 12.sp,
-                letterSpacing = 1.sp
+                letterSpacing = 2.sp
             )
             Spacer(modifier = Modifier.height(6.dp))
             Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 reading.luckyColors.forEach { colorName ->
@@ -214,49 +207,45 @@ fun AlmanacScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        // Small bordered square (B&W aesthetic — shows color name)
                         Box(
                             modifier = Modifier
                                 .size(14.dp)
-                                .border(1.dp, GrayBorder, RoundedCornerShape(0.dp))
-                                .background(GraySurface, RoundedCornerShape(0.dp))
+                                .border(1.dp, CyberWhite, RoundedCornerShape(0.dp))
                         )
                         Text(
                             text = colorName,
-                            color = GrayBody,
+                            color = CyberWhite,
                             fontFamily = WenKaiFontFamily,
-                            fontSize = 12.sp
+                            fontSize = 13.sp
                         )
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
-            // Lucky Numbers
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            // 吉祥数
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = "吉祥数",
-                    color = GrayCaption,
-                    fontFamily = WenKaiFontFamily,
+                    color = CyberWhite,
+                    fontFamily = HuiwenFontFamily,
                     fontSize = 12.sp,
-                    letterSpacing = 1.sp
+                    letterSpacing = 2.sp
                 )
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(16.dp))
                 Text(
                     text = reading.luckyNumbers.joinToString("  "),
-                    color = GrayBody,
+                    color = CyberWhite,
                     fontFamily = MonoFontFamily,
-                    fontSize = 14.sp,
-                    letterSpacing = 2.sp
+                    fontSize = 15.sp,
+                    letterSpacing = 3.sp
                 )
             }
 
-            // Warnings
+            // 警告
             if (reading.warnings.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(10.dp))
                 reading.warnings.forEach { w ->
                     Text(
                         text = w,
@@ -269,27 +258,25 @@ fun AlmanacScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-        // ════════════════════════════════════════════════════════════════
-        // CARD: 综合 — Overview
-        // ════════════════════════════════════════════════════════════════
+        // ══════════════════════════════════════════════════════════════
+        // CARD: 综合
+        // ══════════════════════════════════════════════════════════════
         AlmanacCard(title = "综合") {
             Text(
                 text = reading.overview,
-                color = GrayBody,
-                fontSize = 13.sp,
+                color = CyberWhite,
+                fontSize = 14.sp,
                 fontFamily = WenKaiFontFamily,
-                lineHeight = 22.sp,
+                lineHeight = 24.sp,
                 letterSpacing = 0.5.sp
             )
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
-        // ════════════════════════════════════════════════════════════════
-        // WATERMARK HASH — authenticity feel
-        // ════════════════════════════════════════════════════════════════
+        // 哈希水印
         Text(
             text = "SIG:${dayHash}  EPOCH:${today.toEpochDay()}  GZ:${reading.dayGanzhi.combined}",
             color = GrayMuted,
@@ -302,13 +289,9 @@ fun AlmanacScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // ════════════════════════════════════════════════════════════════
-        // FOOTER — AccentRed line + version
-        // ════════════════════════════════════════════════════════════════
+        // Footer
         AccentDivider()
-
         Spacer(modifier = Modifier.height(12.dp))
-
         Text(
             text = "CYBERDIVINER v6.0",
             color = GrayMuted,
@@ -321,7 +304,6 @@ fun AlmanacScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Back button
         CyberButton(
             text = "[ 返回 ]",
             onClick = onBack,
@@ -332,13 +314,12 @@ fun AlmanacScreen(
     }
 }
 
-// ════════════════════════════════════════════════════════════════════════
-// REUSABLE COMPOSABLES
-// ════════════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════════════
+// 组件
+// ════════════════════════════════════════════════════════════════════
 
 /**
- * Card container with GrayBorder, sharp corners, internal padding.
- * Each card has a section title with AccentRed indicator line.
+ * 卡片容器 — 1dp CyberWhite 边框 + AccentRed 标题指示器
  */
 @Composable
 private fun AlmanacCard(
@@ -351,18 +332,16 @@ private fun AlmanacCard(
             .border(1.dp, GrayBorder, RoundedCornerShape(0.dp))
             .padding(16.dp)
     ) {
-        // Section header with red indicator line
+        // 红色方块指示器 + 标题
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(bottom = 12.dp)
         ) {
-            // Small red square indicator
             Canvas(modifier = Modifier.size(8.dp)) {
                 drawRect(
                     color = AccentRed,
                     topLeft = Offset.Zero,
-                    size = Size(size.width, size.height),
-                    style = androidx.compose.ui.graphics.drawscope.Fill
+                    size = Size(size.width, size.height)
                 )
             }
             Spacer(modifier = Modifier.width(8.dp))
@@ -371,18 +350,16 @@ private fun AlmanacCard(
                 color = AccentRed,
                 fontFamily = HuiwenFontFamily,
                 fontSize = 13.sp,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.Normal,
                 letterSpacing = 3.sp
             )
         }
-
-        // Card content
         content()
     }
 }
 
 /**
- * Thin AccentRed horizontal divider line (Canvas-based, square caps).
+ * AccentRed 水平分割线
  */
 @Composable
 private fun AccentDivider() {
@@ -402,7 +379,7 @@ private fun AccentDivider() {
 }
 
 /**
- * Key:value info row inside a card.
+ * 键值对信息行
  */
 @Composable
 private fun CardInfoRow(
@@ -413,7 +390,7 @@ private fun CardInfoRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 2.dp),
+            .padding(vertical = 3.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
@@ -426,8 +403,8 @@ private fun CardInfoRow(
         )
         Text(
             text = value,
-            color = GrayBody,
-            fontSize = 13.sp,
+            color = CyberWhite,
+            fontSize = 14.sp,
             fontFamily = if (isMono) MonoFontFamily else WenKaiFontFamily,
             letterSpacing = if (isMono) 1.sp else 0.5.sp
         )
@@ -435,17 +412,14 @@ private fun CardInfoRow(
 }
 
 /**
- * Grid-like layout for activities (2 columns).
- * Each item shows Chinese name + English name below in smaller muted text.
+ * 双列活动网格
  */
 @Composable
 private fun ActivityGrid(
     activities: List<AlmanacEngine.DailyActivity>,
     isAuspicious: Boolean
 ) {
-    // Split into pairs for 2-column layout
     val pairs = activities.chunked(2)
-
     pairs.forEach { pair ->
         Row(
             modifier = Modifier
@@ -461,7 +435,6 @@ private fun ActivityGrid(
                     modifier = Modifier.weight(1f)
                 )
             }
-            // Fill remaining space if odd number
             if (pair.size < 2) {
                 Spacer(modifier = Modifier.weight(1f))
             }
@@ -470,8 +443,7 @@ private fun ActivityGrid(
 }
 
 /**
- * Single activity item: Chinese name on top, English below in muted mono.
- * Preceded by a small square indicator.
+ * 单个活动项 — 方块指示器 + 中文名 + 英文名
  */
 @Composable
 private fun ActivityItem(
@@ -485,20 +457,18 @@ private fun ActivityItem(
         verticalAlignment = Alignment.Top,
         horizontalArrangement = Arrangement.spacedBy(6.dp)
     ) {
-        // Small square indicator
         Canvas(modifier = Modifier.padding(top = 5.dp).size(5.dp)) {
             drawRect(
-                color = if (isAuspicious) GrayBody else GrayCaption,
+                color = if (isAuspicious) CyberWhite else GrayCaption,
                 topLeft = Offset.Zero,
-                size = Size(size.width, size.height),
-                style = androidx.compose.ui.graphics.drawscope.Fill
+                size = Size(size.width, size.height)
             )
         }
         Column {
             Text(
                 text = name,
-                color = GrayBody,
-                fontSize = 13.sp,
+                color = CyberWhite,
+                fontSize = 14.sp,
                 fontFamily = WenKaiFontFamily,
                 letterSpacing = 0.5.sp
             )
