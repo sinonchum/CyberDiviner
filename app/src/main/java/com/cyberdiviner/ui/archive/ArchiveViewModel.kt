@@ -8,11 +8,12 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class ArchiveViewModel @Inject constructor(
-    divinationDao: DivinationDao
+    private val divinationDao: DivinationDao
 ) : ViewModel() {
 
     val readings: StateFlow<List<DivinationReading>> = divinationDao.getAll()
@@ -21,4 +22,10 @@ class ArchiveViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
         )
+
+    fun deleteReading(reading: DivinationReading) {
+        viewModelScope.launch {
+            divinationDao.delete(reading)
+        }
+    }
 }

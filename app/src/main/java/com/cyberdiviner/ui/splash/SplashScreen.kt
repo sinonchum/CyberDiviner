@@ -53,19 +53,6 @@ fun SplashScreen(onTimeout: () -> Unit) {
         daoWords[today.dayOfYear % daoWords.size]
     }
 
-    // 签语（保留五行判词）
-    val logicPhrase = remember(reading) {
-        val element = reading.dayGanzhi.branchElement
-        when (element) {
-            "Wood" -> "木氣延展，系統燃值升高。宜：拓展分支；忌：強行封閉。"
-            "Fire" -> "火氣邁進，信號強度過載。宜：釋放冗餘；忌：追加邏輯。"
-            "Earth" -> "土氣沉積，系統進入穩態。宜：修補冗餘邏輯；忌：強行建立鏈接。"
-            "Metal" -> "金氣收斂，精密度提升。宜：檢查邊界條件；忌：擴張輸入集。"
-            "Water" -> "水氣流動，網絡節點活躍。宜：充分緩存；忌：滲透未經驗證鏈路。"
-            else -> "系統運行中，等待下一個指令。"
-        }
-    }
-
     // 自动跳转（6秒后）
     LaunchedEffect(Unit) {
         delay(6000)
@@ -195,10 +182,10 @@ fun SplashScreen(onTimeout: () -> Unit) {
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // 干支一行：年 月 日
+            // 干支一行：年 月 日（提亮）
             Text(
                 text = "${reading.yearGanzhi.combined}年  ${reading.monthGanzhi.combined}月  ${reading.dayGanzhi.combined}日",
-                color = Color(0xFFE0E0E0),
+                color = CyberWhite,
                 fontSize = 18.sp,
                 fontFamily = HuiwenFontFamily,
                 fontWeight = FontWeight.Normal,
@@ -213,7 +200,7 @@ fun SplashScreen(onTimeout: () -> Unit) {
             reading.currentSolarTerm?.let {
                 Text(
                     text = "[ ${it.name} ]",
-                    color = Color(0xFFE0E0E0),
+                    color = GrayBody,
                     fontSize = 13.sp,
                     fontFamily = MonoFontFamily,
                     letterSpacing = 4.sp,
@@ -222,23 +209,13 @@ fun SplashScreen(onTimeout: () -> Unit) {
                 Spacer(modifier = Modifier.height(20.dp))
             }
 
-            // 签语
+            // 签语 — 仅保留哲理句
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
                     .padding(horizontal = 24.dp)
                     .alpha(bottomAlpha)
             ) {
-                Text(
-                    text = "> $logicPhrase",
-                    color = CyberWhite,
-                    fontSize = 14.sp,
-                    fontFamily = WenKaiFontFamily,
-                    lineHeight = 22.sp,
-                    letterSpacing = 1.sp,
-                    textAlign = TextAlign.Center
-                )
-                Spacer(modifier = Modifier.height(12.dp))
                 Text(
                     text = "萬物共歸道，演算法虛靈。",
                     color = CyberWhite,
