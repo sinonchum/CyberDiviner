@@ -18,6 +18,9 @@ import com.cyberdiviner.ui.shared.CyberMenuItem
 import com.cyberdiviner.ui.theme.AccentRed
 import com.cyberdiviner.ui.theme.*
 import com.cyberdiviner.ui.theme.GrayCaption
+import com.cyberdiviner.ui.shared.*
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 
 /**
  * HomeScreen -- The central hub. Three Chinese-only menu entries.
@@ -39,92 +42,73 @@ fun HomeScreen(
             .padding(start = 48.dp, top = 0.dp, end = 48.dp, bottom = 0.dp)
     ) {
         // CONFIG button — top-right
-        Text(
-            text = "[ CONFIG ]",
-            color = GrayCaption,
-            fontFamily = MonoFontFamily,
-            fontSize = 11.sp,
-            letterSpacing = 1.sp,
+        Box(
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .padding(top = 16.dp)
                 .clickable { onConfig() }
-        )
+        ) {
+            CanvasGearIcon()
+        }
 
         Column(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.Start
         ) {
-            // Title — uppercase monospace
-            Text(
-                text = "CYBERDIVINER",
-                color = GrayCaption,
-                fontFamily = MonoFontFamily,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 3.sp
-            )
-            // Red underline
-            Canvas(
-                modifier = Modifier
-                    .width(160.dp)
-                    .padding(top = 4.dp)
-                    .height(2.dp)
-            ) {
-                drawRect(
-                    color = AccentRed,
-                    topLeft = Offset.Zero,
-                    size = Size(size.width, size.height)
+            SectionHeader(title = "CYBERDIVINER", subtitle = "")
+
+            Spacer(modifier = Modifier.height(48.dp))
+
+            StaggeredItem(index = 0) {
+                CyberMenuItem(
+                    title = "叩问天机",
+                    subtitle = "",
+                    description = "",
+                    onClick = onOracle
+                )
+            }
+            Spacer(modifier = Modifier.height(48.dp))
+
+            StaggeredItem(index = 1) {
+                CyberMenuItem(
+                    title = "术数推演",
+                    subtitle = "",
+                    description = "",
+                    onClick = onRituals
+                )
+            }
+            Spacer(modifier = Modifier.height(48.dp))
+
+            StaggeredItem(index = 2) {
+                CyberMenuItem(
+                    title = "因果命簿",
+                    subtitle = "",
+                    description = "",
+                    onClick = onArchive
                 )
             }
 
-            Spacer(modifier = Modifier.height(48.dp))
-
-            CyberMenuItem(
-                title = "叩问天机",
-                subtitle = "",
-                description = "",
-                onClick = onOracle
-            )
-            Spacer(modifier = Modifier.height(48.dp))
-
-            CyberMenuItem(
-                title = "术数推演",
-                subtitle = "",
-                description = "",
-                onClick = onRituals
-            )
-            Spacer(modifier = Modifier.height(48.dp))
-
-            CyberMenuItem(
-                title = "因果命簿",
-                subtitle = "",
-                description = "",
-                onClick = onArchive
-            )
-
-            // Thin red divider
-            Canvas(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 48.dp)
-                    .height(1.dp)
-            ) {
-                drawRect(
-                    color = AccentRed,
-                    topLeft = Offset.Zero,
-                    size = Size(size.width, size.height)
-                )
-            }
+            DividerLine(modifier = Modifier.padding(top = 48.dp))
             Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = "CYBERDIVINER v1.0",
-                color = GrayCaption,
-                fontFamily = MonoFontFamily,
-                fontSize = 10.sp,
-                letterSpacing = 1.sp
-            )
+            StatusLine(text = "CYBERDIVINER v6.0")
+        }
+    }
+}
+
+@Composable
+private fun CanvasGearIcon(modifier: Modifier = Modifier) {
+    Canvas(modifier = modifier.size(16.dp)) {
+        val sw = 1.dp.toPx()
+        val cx = size.width / 2f
+        val cy = size.height / 2f
+        val outerR = size.width * 0.4f
+        drawCircle(GrayCaption, radius = outerR, center = Offset(cx, cy), style = Stroke(sw, cap = StrokeCap.Square))
+        drawCircle(GrayCaption, radius = size.width * 0.15f, center = Offset(cx, cy), style = Stroke(sw, cap = StrokeCap.Square))
+        for (angle in listOf(0f, 90f, 180f, 270f)) {
+            val rad = Math.toRadians(angle.toDouble())
+            val endR = outerR + 3.dp.toPx()
+            drawLine(GrayCaption, Offset(cx + outerR * kotlin.math.cos(rad).toFloat(), cy + outerR * kotlin.math.sin(rad).toFloat()), Offset(cx + endR * kotlin.math.cos(rad).toFloat(), cy + endR * kotlin.math.sin(rad).toFloat()), sw, cap = StrokeCap.Square)
         }
     }
 }

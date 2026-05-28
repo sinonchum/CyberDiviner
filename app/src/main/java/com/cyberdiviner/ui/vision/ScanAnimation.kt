@@ -82,7 +82,7 @@ fun ScanAnimation(
                     startAngle = 0f, sweepAngle = 270f, useCenter = false,
                     topLeft = Offset(cx - radius, cy - radius),
                     size = Size(radius * 2, radius * 2),
-                    style = Stroke(4.dp.toPx(), cap = StrokeCap.Round)
+                    style = Stroke(4.dp.toPx(), cap = StrokeCap.Square)
                 )
                 // Bright leading segment
                 drawArc(
@@ -90,7 +90,7 @@ fun ScanAnimation(
                     startAngle = 0f, sweepAngle = 40f, useCenter = false,
                     topLeft = Offset(cx - radius, cy - radius),
                     size = Size(radius * 2, radius * 2),
-                    style = Stroke(4.dp.toPx(), cap = StrokeCap.Round)
+                    style = Stroke(4.dp.toPx(), cap = StrokeCap.Square)
                 )
             }
 
@@ -108,7 +108,7 @@ fun ScanAnimation(
                 startAngle = -90f, sweepAngle = sweepAngle, useCenter = false,
                 topLeft = Offset(cx - innerR, cy - innerR),
                 size = Size(innerR * 2, innerR * 2),
-                style = Stroke(3.dp.toPx(), cap = StrokeCap.Round)
+                style = Stroke(3.dp.toPx(), cap = StrokeCap.Square)
             )
 
             // ── Crosshair ──

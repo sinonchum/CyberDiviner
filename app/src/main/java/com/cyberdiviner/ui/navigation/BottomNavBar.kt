@@ -1,64 +1,113 @@
 package com.cyberdiviner.ui.navigation
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Archive
-import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material.icons.filled.Chat
-import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
-import androidx.compose.material3.Text
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.cyberdiviner.ui.theme.CyberBlack
-import com.cyberdiviner.ui.theme.CyberWhite
-import com.cyberdiviner.ui.theme.GrayCaption
-import com.cyberdiviner.ui.theme.HuiwenFontFamily
+import com.cyberdiviner.ui.theme.*
 
-/**
- * Bottom navigation item definition.
- */
 sealed class BottomNavItem(
     val route: String,
     val label: String,
-    val icon: @Composable () -> Unit
+    val icon: @Composable (Boolean) -> Unit  // selected -> Unit
 ) {
     data object Oracle : BottomNavItem(
         route = Routes.ORACLE,
         label = "叩问天机",
-        icon = {
-            Icon(
-                imageVector = Icons.Default.Chat,
-                contentDescription = "叩问天机"
-            )
-        }
+        icon = { selected -> OracleIcon(selected) }
     )
-
     data object Rituals : BottomNavItem(
         route = Routes.RITUALS,
         label = "术数推演",
-        icon = {
-            Icon(
-                imageVector = Icons.Default.AutoAwesome,
-                contentDescription = "术数推演"
-            )
-        }
+        icon = { selected -> TrigramIcon(selected) }
     )
-
     data object Archive : BottomNavItem(
         route = Routes.ARCHIVE,
         label = "因果命簿",
-        icon = {
-            Icon(
-                imageVector = Icons.Default.Archive,
-                contentDescription = "因果命簿"
-            )
-        }
+        icon = { selected -> ScrollIcon(selected) }
     )
+}
+
+@Composable
+private fun OracleIcon(selected: Boolean) {
+    val color = if (selected) CyberWhite else GrayCaption
+    Canvas(modifier = Modifier.size(24.dp)) {
+        val sw = 1.5.dp.toPx()
+        val cx = size.width / 2f
+        val cy = size.height / 2f
+        val rx = size.width * 0.42f
+        val ry = size.height * 0.22f
+        // Eye outline (almond shape using two arcs)
+        val eyePath = Path().apply {
+            moveTo(cx - rx, cy)
+            quadraticBezierTo(cx, cy - ry * 2.5f, cx + rx, cy)
+            quadraticBezierTo(cx, cy + ry * 2.5f, cx - rx, cy)
+            close()
+        }
+        drawPath(eyePath, color, style = Stroke(sw, cap = StrokeCap.Square))
+        // Iris circle
+        drawCircle(color, radius = ry * 0.7f, center = Offset(cx, cy), style = Stroke(sw, cap = StrokeCap.Square))
+    }
+}
+
+@Composable
+private fun TrigramIcon(selected: Boolean) {
+    val color = if (selected) CyberWhite else GrayCaption
+    Canvas(modifier = Modifier.size(24.dp)) {
+        val sw = 1.5.dp.toPx()
+        val lineLen = size.width * 0.7f
+        val cx = size.width / 2f
+        for (i in 0..2) {
+            val y = size.height * 0.25f + i * (size.height * 0.25f)
+            val left = cx - lineLen / 2f
+            val right = cx + lineLen / 2f
+            if (i == 1) {
+                // Yin line (broken)
+                val midGap = 4.dp.toPx()
+                drawLine(color, Offset(left, y), Offset(cx - midGap, y), sw, cap = StrokeCap.Square)
+                drawLine(color, Offset(cx + midGap, y), Offset(right, y), sw, cap = StrokeCap.Square)
+            } else {
+                // Yang line (solid)
+                drawLine(color, Offset(left, y), Offset(right, y), sw, cap = StrokeCap.Square)
+            }
+        }
+    }
+}
+
+@Composable
+private fun ScrollIcon(selected: Boolean) {
+    val color = if (selected) CyberWhite else GrayCaption
+    Canvas(modifier = Modifier.size(24.dp)) {
+        val sw = 1.5.dp.toPx()
+        val pad = 3.dp.toPx()
+        val left = pad
+        val top = pad
+        val right = size.width - pad
+        val bottom = size.height - pad
+        // Document outline
+        drawLine(color, Offset(left, top), Offset(right, top), sw, cap = StrokeCap.Square)
+        drawLine(color, Offset(right, top), Offset(right, bottom), sw, cap = StrokeCap.Square)
+        drawLine(color, Offset(right, bottom), Offset(left, bottom), sw, cap = StrokeCap.Square)
+        drawLine(color, Offset(left, bottom), Offset(left, top), sw, cap = StrokeCap.Square)
+        // Inner lines (text representation)
+        val lineY1 = top + size.height * 0.28f
+        val lineY2 = top + size.height * 0.5f
+        val lineY3 = top + size.height * 0.72f
+        val innerLeft = left + 5.dp.toPx()
+        val innerRight = right - 5.dp.toPx()
+        drawLine(color, Offset(innerLeft, lineY1), Offset(innerRight, lineY1), sw * 0.7f, cap = StrokeCap.Square)
+        drawLine(color, Offset(innerLeft, lineY2), Offset(innerRight * 0.8f, lineY2), sw * 0.7f, cap = StrokeCap.Square)
+        drawLine(color, Offset(innerLeft, lineY3), Offset(innerRight * 0.6f, lineY3), sw * 0.7f, cap = StrokeCap.Square)
+    }
 }
 
 val bottomNavItems = listOf(
@@ -83,7 +132,7 @@ fun BottomNavBar(
         bottomNavItems.forEach { item ->
             val selected = currentRoute == item.route
             NavigationBarItem(
-                icon = item.icon,
+                icon = { item.icon(selected) },
                 label = {
                     Text(
                         text = item.label,

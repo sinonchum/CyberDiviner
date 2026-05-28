@@ -53,7 +53,7 @@ fun AROverlay(
 
         // ── Corner brackets ──
         val bracketLen = 40.dp.toPx()
-        val bracketStroke = Stroke(3.dp.toPx(), cap = StrokeCap.Round)
+        val bracketStroke = Stroke(3.dp.toPx(), cap = StrokeCap.Square)
         val bracketInset = 32.dp.toPx()
         val corners = listOf(
             // top-left
@@ -130,7 +130,7 @@ fun AROverlay(
                             Offset(a.x * w, a.y * h),
                             Offset(b.x * w, b.y * h),
                             strokeWidth = 1f,
-                            cap = StrokeCap.Round
+                            cap = StrokeCap.Square
                         )
                     }
                 }
@@ -176,7 +176,7 @@ fun AROverlay(
                 start = Offset(0f, beamY),
                 end = Offset(w, beamY),
                 strokeWidth = 3.dp.toPx(),
-                cap = StrokeCap.Round
+                cap = StrokeCap.Square
             )
             // Glow below beam
             val glowGrad = Brush.verticalGradient(

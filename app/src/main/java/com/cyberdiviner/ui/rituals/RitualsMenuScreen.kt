@@ -9,6 +9,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.cyberdiviner.ui.shared.CyberMenuItem
 import com.cyberdiviner.ui.theme.CyberBlack
+import com.cyberdiviner.ui.shared.SectionHeader
+import com.cyberdiviner.ui.shared.StaggeredItem
 
 /**
  * RitualsMenuScreen -- Tab for ritual selection (bottom nav destination).
@@ -36,44 +38,57 @@ fun RitualsMenuScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.Start
         ) {
-            CyberMenuItem(
-                title = "周易六爻",
-                subtitle = "",
-                description = "",
-                onClick = onIChing
-            )
+            SectionHeader(title = "术数推演", subtitle = "RITUAL EXECUTION")
+            Spacer(modifier = Modifier.height(48.dp))
+
+            StaggeredItem(index = 0) {
+                CyberMenuItem(
+                    title = "周易六爻",
+                    subtitle = "I-CHING",
+                    description = "摇钱起卦，六爻断事",
+                    onClick = onIChing
+                )
+            }
             Spacer(modifier = Modifier.height(24.dp))
 
-            CyberMenuItem(
-                title = "赛博塔罗",
-                subtitle = "",
-                description = "",
-                onClick = onTarot
-            )
+            StaggeredItem(index = 1) {
+                CyberMenuItem(
+                    title = "赛博塔罗",
+                    subtitle = "CYBER TAROT",
+                    description = "七十八牌，阵法推演",
+                    onClick = onTarot
+                )
+            }
             Spacer(modifier = Modifier.height(24.dp))
 
-            CyberMenuItem(
-                title = "视界摸骨",
-                subtitle = "",
-                description = "",
-                onClick = onVision
-            )
+            StaggeredItem(index = 2) {
+                CyberMenuItem(
+                    title = "视界摸骨",
+                    subtitle = "FACE SCAN",
+                    description = "MediaPipe 面部特征分析",
+                    onClick = onVision
+                )
+            }
             Spacer(modifier = Modifier.height(24.dp))
 
-            CyberMenuItem(
-                title = "电子木鱼",
-                subtitle = "",
-                description = "",
-                onClick = onMuyu
-            )
+            StaggeredItem(index = 3) {
+                CyberMenuItem(
+                    title = "电子木鱼",
+                    subtitle = "WOODEN FISH",
+                    description = "敲击积功德",
+                    onClick = onMuyu
+                )
+            }
             Spacer(modifier = Modifier.height(24.dp))
 
-            CyberMenuItem(
-                title = "赛博黄历",
-                subtitle = "",
-                description = "",
-                onClick = onAlmanac
-            )
+            StaggeredItem(index = 4) {
+                CyberMenuItem(
+                    title = "赛博黄历",
+                    subtitle = "ALMANAC",
+                    description = "干支黄历，每日宜忌",
+                    onClick = onAlmanac
+                )
+            }
         }
     }
 }

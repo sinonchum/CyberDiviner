@@ -21,6 +21,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cyberdiviner.ui.theme.*
+import com.cyberdiviner.ui.shared.SectionHeader
 
 // ── Data model ─────────────────────────────────────────────────────────────
 
@@ -96,36 +97,8 @@ fun ArchiveScreen(@Suppress("UNUSED_PARAMETER") onBack: () -> Unit) {
             .padding(horizontal = 32.dp, vertical = 32.dp)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            // ── Header: Bridgewater uppercase monospace + red underline ──
-            Text(
-                text = "因果命簿",
-                color = GrayCaption,
-                fontFamily = HuiwenFontFamily,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 3.sp
-            )
-            // Red underline
-            Canvas(
-                modifier = Modifier
-                    .width(120.dp)
-                    .padding(top = 4.dp)
-                    .height(2.dp)
-            ) {
-                drawRect(
-                    color = AccentRed,
-                    topLeft = Offset.Zero,
-                    size = Size(size.width, size.height)
-                )
-            }
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = "CAUSAL LEDGER",
-                color = GrayCaption,
-                fontSize = 11.sp,
-                fontFamily = MonoFontFamily,
-                letterSpacing = 2.sp
-            )
+            // ── Header ──
+            SectionHeader(title = "因果命簿", subtitle = "CAUSAL LEDGER")
             Spacer(modifier = Modifier.height(48.dp))
 
             // ── Card stream ─────────────────────────
@@ -147,6 +120,33 @@ fun ArchiveScreen(@Suppress("UNUSED_PARAMETER") onBack: () -> Unit) {
                 }
             }
         }
+    }
+}
+
+// ── Empty state ───────────────────────────────────────────────────────
+
+@Composable
+private fun EmptyArchive() {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = "因果链为空",
+            color = GrayCaption,
+            fontFamily = HuiwenFontFamily,
+            fontSize = 18.sp,
+            letterSpacing = 4.sp
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "NO CAUSAL RECORDS",
+            color = TextMuted,
+            fontSize = 11.sp,
+            fontFamily = MonoFontFamily,
+            letterSpacing = 2.sp
+        )
     }
 }
 

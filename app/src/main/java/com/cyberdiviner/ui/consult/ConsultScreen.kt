@@ -17,6 +17,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cyberdiviner.engine.agent.AgentInterviewEngine
 import com.cyberdiviner.ui.theme.*
+import com.cyberdiviner.ui.shared.SectionHeader
+import com.cyberdiviner.ui.shared.DividerLine
 import kotlinx.coroutines.launch
 
 /**
@@ -60,33 +62,10 @@ fun ConsultScreen(
             .padding(16.dp)
     ) {
         // ── Header ─────────────────────────────────────────────────
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "[ \u54A8\u8BE2\u4EE3\u7406 ]",
-                color = TextMuted,
-                fontSize = 11.sp,
-                fontFamily = MonoFontFamily,
-                letterSpacing = 2.sp
-            )
-            Text(
-                text = "ROUND ${engine.getCurrentRound()}/${engine.getMaxRounds()}",
-                color = TextMuted,
-                fontSize = 11.sp,
-                fontFamily = MonoFontFamily
-            )
-        }
+        SectionHeader(title = "咨询代理", subtitle = "AGENT CONSULTATION")
 
         Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = "\u2500".repeat(50),
-            color = TextMuted,
-            fontSize = 11.sp,
-            fontFamily = MonoFontFamily
-        )
+        DividerLine(color = GrayBorder)
         Spacer(modifier = Modifier.height(12.dp))
 
         // ── Chat messages ──────────────────────────────────────────
@@ -138,12 +117,7 @@ fun ConsultScreen(
         }
 
         Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = "\u2500".repeat(50),
-            color = TextMuted,
-            fontSize = 11.sp,
-            fontFamily = MonoFontFamily
-        )
+        DividerLine(color = GrayBorder)
     }
 
     // -- Handle send --

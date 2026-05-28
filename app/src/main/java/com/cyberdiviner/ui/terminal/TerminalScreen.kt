@@ -39,7 +39,7 @@ fun TerminalScreen(
         ) {
             // ── Terminal header ─────────────────────────────────────
             Text(
-                text = "CYBERDIVINER v5.0",
+                text = "CYBERDIVINER v6.0",
                 color = TextMuted,
                 fontSize = 11.sp,
                 fontFamily = MonoFontFamily,
@@ -84,7 +84,7 @@ fun TerminalScreen(
 
             // ── Footer status line ──────────────────────────────────
             Text(
-                text = "CAUSAL CHAIN ACTIVE  |  SOUL HASH PENDING  |  NODE v5.0",
+                text = "CAUSAL CHAIN ACTIVE  |  SOUL HASH PENDING  |  NODE v6.0",
                 color = TextMuted,
                 fontSize = 10.sp,
                 fontFamily = MonoFontFamily,
