@@ -1,3 +1,5 @@
+> ⚠️ **过期文档** — 本 PLAN.md 描述的是 v5.0 霓虹赛博朋克设计。当前版本 (v6.3.1+) 已切换为 Bridgewater 极简黑白风格。请参考代码和提交历史了解当前架构。
+
 # CyberDiviner (赛博算命) Implementation Plan
 
 > **For Hermes:** Use autonomous-dev-framework skill to execute this plan. L4 execution with L5 aspirations (parallel subagents, project memory, autonomous quality gates).

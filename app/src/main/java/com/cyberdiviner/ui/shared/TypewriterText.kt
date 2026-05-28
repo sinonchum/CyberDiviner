@@ -23,6 +23,9 @@ import kotlinx.coroutines.delay
  * @param charDelayMs Milliseconds between each character reveal.
  * @param onComplete Called once the entire text has been typed out.
  * @param style Text style — defaults to monospace.
+ * @param showCursorAfterComplete Whether the cursor continues blinking after
+ *   typing finishes. Defaults to `true` (legacy behavior). When `false` the
+ *   cursor is hidden 5 seconds after typing completes.
  */
 @Composable
 fun TypewriterText(
@@ -30,7 +33,8 @@ fun TypewriterText(
     modifier: Modifier = Modifier,
     charDelayMs: Long = 30,
     onComplete: (() -> Unit)? = null,
-    style: TextStyle = LocalTextStyle.current
+    style: TextStyle = LocalTextStyle.current,
+    showCursorAfterComplete: Boolean = true
 ) {
     val context = LocalContext.current
 
@@ -56,9 +60,16 @@ fun TypewriterText(
     LaunchedEffect(text) {
         // Keep cursor visible during typing, then let it blink after completion
         delay(text.length * charDelayMs)
-        while (true) {
-            cursorVisible = !cursorVisible
-            delay(500)
+
+        if (showCursorAfterComplete) {
+            while (true) {
+                cursorVisible = !cursorVisible
+                delay(500)
+            }
+        } else {
+            // Auto-hide cursor 5 seconds after typing completes
+            delay(5000)
+            cursorVisible = false
         }
     }
 

@@ -30,6 +30,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -73,6 +74,7 @@ import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.input.pointer.pointerInput
+import kotlinx.coroutines.delay
 
 // ═══════════════════════════════════════════════════════════════════════════
 // TarotScreen — elegant B&W protocol-style layout
@@ -127,6 +129,10 @@ fun TarotScreen(
                     onQuestionChange = viewModel::updateQuestion,
                     onSelectSpread = viewModel::selectSpread,
                     onStartReading = viewModel::startReading
+                )
+
+                TarotPhase.SHUFFLING -> ShufflePhase(
+                    onShuffleComplete = viewModel::shuffleAndDraw
                 )
 
                 TarotPhase.DRAWING, TarotPhase.REVEALING -> DrawingPhase(uiState)
@@ -284,6 +290,86 @@ private fun SelectSpreadPhase(
         )
 
         Spacer(modifier = Modifier.height(24.dp))
+    }
+}
+
+// ── Shuffle phase ────────────────────────────────────────────────────────
+
+@Composable
+private fun ShufflePhase(
+    onShuffleComplete: () -> Unit
+) {
+    var isShuffling by remember { mutableStateOf(false) }
+    var shuffleTextIndex by remember { mutableStateOf(0) }
+    val shuffleTexts = listOf("洗牌中", "洗牌中.", "洗牌中..", "洗牌中...")
+
+    val infiniteTransition = rememberInfiniteTransition(label = "shuffle")
+    val rotation by infiniteTransition.animateFloat(
+        initialValue = -5f,
+        targetValue = 5f,
+        animationSpec = infiniteRepeatable(animation = tween(200)),
+        label = "shuffle_rotation"
+    )
+
+    LaunchedEffect(isShuffling) {
+        if (isShuffling) {
+            // Cycle shuffle text
+            repeat(8) {
+                delay(125L)
+                shuffleTextIndex = (shuffleTextIndex + 1) % shuffleTexts.size
+            }
+            onShuffleComplete()
+        }
+    }
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp)
+    ) {
+        if (isShuffling) {
+            Text(
+                text = shuffleTexts[shuffleTextIndex],
+                color = GrayCaption,
+                fontSize = 16.sp,
+                fontFamily = MonoFontFamily,
+                letterSpacing = 2.sp,
+                modifier = Modifier.graphicsLayer { rotationZ = rotation }
+            )
+        } else {
+            Text(
+                text = "准备好了吗？",
+                color = GrayCaption,
+                fontSize = 14.sp,
+                fontFamily = WenKaiFontFamily,
+                letterSpacing = 2.sp,
+                modifier = Modifier.padding(bottom = 32.dp)
+            )
+
+            Text(
+                text = "洗 牌",
+                color = CyberWhite,
+                fontSize = 20.sp,
+                fontFamily = HuiwenFontFamily,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 6.sp,
+                modifier = Modifier
+                    .border(1.dp, CyberWhite)
+                    .clickable { isShuffling = true }
+                    .padding(horizontal = 40.dp, vertical = 16.dp)
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "轻触牌堆开始",
+                color = GrayMuted,
+                fontSize = 11.sp,
+                fontFamily = WenKaiFontFamily,
+                letterSpacing = 1.sp
+            )
+        }
     }
 }
 

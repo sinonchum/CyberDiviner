@@ -113,6 +113,7 @@ private val fullDeck: List<TarotCard> = majorArcana + suitNames.flatMapIndexed {
 
 enum class TarotPhase {
     SELECT_SPREAD,
+    SHUFFLING,
     DRAWING,
     REVEALING,
     INTERPRETING,
@@ -175,8 +176,18 @@ class TarotViewModel @Inject constructor(
         viewModelScope.launch {
             val spread = state.selectedSpread
             _uiState.value = _uiState.value.copy(
-                phase = TarotPhase.DRAWING,
+                phase = TarotPhase.SHUFFLING,
                 selectedSpread = spread,
+                progressMessage = ""
+            )
+        }
+    }
+
+    fun shuffleAndDraw() {
+        viewModelScope.launch {
+            val spread = _uiState.value.selectedSpread
+            _uiState.value = _uiState.value.copy(
+                phase = TarotPhase.DRAWING,
                 progressMessage = "正在抽取 ${spread.displayName}..."
             )
 
@@ -196,7 +207,7 @@ class TarotViewModel @Inject constructor(
             }
 
             // Save reading
-            val readingId = saveReading(cards, spread, state.question)
+            val readingId = saveReading(cards, spread, _uiState.value.question)
 
             // Interpret
             _uiState.value = _uiState.value.copy(
@@ -205,7 +216,7 @@ class TarotViewModel @Inject constructor(
                 progressMessage = "赛博先知正在解读..."
             )
 
-            streamInterpretation(cards, spread, state.question)
+            streamInterpretation(cards, spread, _uiState.value.question)
         }
     }
 
