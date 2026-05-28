@@ -59,7 +59,7 @@ private val mockArchive = listOf(
     ),
     ArchiveEntry(
         lunarDate = "癸未日",
-        type = "Agent访谈",
+        type = "叩问天机",
         title = "灵魂校准",
         interpretation = "人格频谱已锁定，因果变量组已写入永久链。",
         hash = "0x7C3E2A8B1D64F091"

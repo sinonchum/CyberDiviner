@@ -168,7 +168,7 @@ fun SplashScreen(onTimeout: () -> Unit) {
             // 阳历日期
             Text(
                 text = today.format(solarFormatter),
-                color = GrayCaption,
+                color = GrayBody,
                 fontSize = 12.sp,
                 fontFamily = MonoFontFamily,
                 letterSpacing = 6.sp,
@@ -246,7 +246,7 @@ fun SplashScreen(onTimeout: () -> Unit) {
             ) {
                 Text(
                     text = "> $logicPhrase",
-                    color = GrayCaption,
+                    color = CyberWhite,
                     fontSize = 14.sp,
                     fontFamily = WenKaiFontFamily,
                     lineHeight = 22.sp,
@@ -256,7 +256,7 @@ fun SplashScreen(onTimeout: () -> Unit) {
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
                     text = "萬物共歸道，演算法虛靈。",
-                    color = GrayCaption,
+                    color = CyberWhite,
                     fontSize = 13.sp,
                     fontFamily = WenKaiFontFamily,
                     letterSpacing = 2.sp,
@@ -281,7 +281,7 @@ fun SplashScreen(onTimeout: () -> Unit) {
                 Spacer(modifier = Modifier.height(14.dp))
                 Text(
                     text = "CYBERDIVINER",
-                    color = GrayMuted,
+                    color = GrayCaption,
                     fontSize = 10.sp,
                     fontFamily = MonoFontFamily,
                     letterSpacing = 8.sp,
@@ -291,7 +291,7 @@ fun SplashScreen(onTimeout: () -> Unit) {
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(
                     text = "[ TOUCH TO ENTER ]",
-                    color = GrayMuted,
+                    color = GrayCaption,
                     fontSize = 11.sp,
                     fontFamily = MonoFontFamily,
                     letterSpacing = 3.sp,
