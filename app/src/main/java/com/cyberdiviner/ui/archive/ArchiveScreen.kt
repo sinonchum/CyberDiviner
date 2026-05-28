@@ -91,7 +91,7 @@ fun ArchiveScreen(
                                 DivinationType.LIUYAO -> {
                                     val hexName = viewModel.getHexagramName(reading.id)
                                     title = hexName?.takeIf { it.isNotBlank() }
-                                        ?: reading.question.takeIf { it.length <= 6 }
+                                        ?: reading.question.takeIf { it.length in 2..6 }
                                         ?: "六爻占卜"
                                     interp = ""
                                 }
@@ -102,8 +102,13 @@ fun ArchiveScreen(
                                         ?: "塔罗占卜"
                                     interp = summary?.interpretation ?: ""
                                 }
+                                DivinationType.VISION -> {
+                                    val summary = viewModel.getVisionSummary(reading.id)
+                                    title = summary?.first ?: "面相玄机"
+                                    interp = summary?.second ?: ""
+                                }
                                 else -> {
-                                    // ORACLE/MUYU/VISION: use existing logic
+                                    // ORACLE/MUYU: question field is already 4-char summary
                                     val base = reading.toDisplayEntry()
                                     title = base.title
                                     interp = base.interpretation

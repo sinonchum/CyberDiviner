@@ -73,11 +73,9 @@ class MuyuViewModel @Inject constructor(
     private val _totalHitsCached = MutableStateFlow(prefs.getInt(KEY_TOTAL_HITS_CACHE, 0))
 
     init {
-        // Initialize SoundPool with audio attributes suited for percussion instruments
-        // USAGE_ASSISTANCE_SONIFICATION + CONTENT_TYPE_SONIFICATION gives a cleaner,
-        // more natural percussion sound than USAGE_GAME.
+        // Initialize SoundPool for percussion
         val audioAttributes = AudioAttributes.Builder()
-            .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
+            .setUsage(AudioAttributes.USAGE_MEDIA)
             .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
             .build()
 
@@ -87,20 +85,15 @@ class MuyuViewModel @Inject constructor(
             .build()
 
         soundPool?.setOnLoadCompleteListener { _, sampleId, status ->
-            if (status == 0) {
-                soundLoaded = true
-                Log.d(TAG, "Sound loaded successfully (sampleId=$sampleId)")
-            } else {
-                Log.w(TAG, "Sound load failed with status=$status")
-            }
+            soundLoaded = (status == 0)
+            Log.d(TAG, "Sound loaded: sampleId=$sampleId, status=$status, loaded=$soundLoaded")
         }
 
-        // Load the wooden fish sound (gracefully handles missing/invalid mp3)
         try {
             soundId = soundPool!!.load(application, R.raw.muyu, 1)
-            Log.d(TAG, "SoundPool.load() called, soundId=$soundId")
+            Log.d(TAG, "Loading muyu.wav, soundId=$soundId")
         } catch (e: Exception) {
-            Log.w(TAG, "Failed to load muyu sound: ${e.message}")
+            Log.e(TAG, "Failed to load muyu sound: ${e.message}", e)
         }
     }
 

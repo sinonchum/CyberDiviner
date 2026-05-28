@@ -3,22 +3,16 @@ package com.cyberdiviner.ui.muyu
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -33,8 +27,7 @@ import androidx.navigation.NavController
 import com.cyberdiviner.ui.theme.*
 
 /**
- * 电子木鱼 — Digital Wooden Fish screen.
- * Matches the app's B&W institutional design with Canvas-drawn wooden fish icon.
+ * 电子木鱼 — Temple Wooden Fish (圆锤形法器)
  */
 @Composable
 fun MuyuScreen(
@@ -47,11 +40,10 @@ fun MuyuScreen(
 
     val hapticFeedback = LocalHapticFeedback.current
 
-    // ── Hit animation state ──────────────────────────────────────
     var isPressed by remember { mutableStateOf(false) }
 
     val bounceScale by animateFloatAsState(
-        targetValue = if (isPressed) 0.9f else 1f,
+        targetValue = if (isPressed) 0.92f else 1f,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
             stiffness = Spring.StiffnessMedium
@@ -59,14 +51,28 @@ fun MuyuScreen(
         label = "bounceScale"
     )
 
+    // Mallet swing animation
+    var malletSwing by remember { mutableStateOf(false) }
+    val malletAngle by animateFloatAsState(
+        targetValue = if (malletSwing) -25f else 0f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessHigh
+        ),
+        label = "malletAngle"
+    )
+
     LaunchedEffect(isPressed) {
         if (isPressed) {
-            kotlinx.coroutines.delay(80)
+            kotlinx.coroutines.delay(100)
             isPressed = false
+            malletSwing = true
+            kotlinx.coroutines.delay(200)
+            malletSwing = false
         }
     }
 
-    // ── Floating +1 merit animation ──────────────────────────────
+    // Floating +1 merit animation
     val meritAnimatable = remember { Animatable(0f) }
     var meritActive by remember { mutableStateOf(false) }
 
@@ -82,7 +88,7 @@ fun MuyuScreen(
         }
     }
 
-    // ── Ambient glow pulse ───────────────────────────────────────
+    // Ambient glow pulse
     val infiniteTransition = rememberInfiniteTransition(label = "glow")
     val glowPhase by infiniteTransition.animateFloat(
         initialValue = 0f,
@@ -93,9 +99,8 @@ fun MuyuScreen(
         ),
         label = "glowPhase"
     )
-    val glowAlpha = 0.06f + 0.03f * kotlin.math.sin(glowPhase)
 
-    // ── Ripple ring pulse ────────────────────────────────────────
+    // Ripple ring pulse
     val rippleTransition = rememberInfiniteTransition(label = "ripple")
     val rippleProgress by rippleTransition.animateFloat(
         initialValue = 0f,
@@ -116,7 +121,7 @@ fun MuyuScreen(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // ── Top bar (matching app style) ──────────────────────
+            // ── Top bar ──────────────────────────────────────────
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
@@ -140,7 +145,6 @@ fun MuyuScreen(
                     letterSpacing = 3.sp
                 )
                 Spacer(modifier = Modifier.weight(1f))
-                // Reset button
                 Text(
                     text = "重置",
                     color = GrayMuted,
@@ -150,7 +154,6 @@ fun MuyuScreen(
                 )
             }
 
-            // Divider
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -173,14 +176,14 @@ fun MuyuScreen(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            // ── Wooden fish area ──────────────────────────────────
+            // ── Temple wooden fish area ──────────────────────────
             Box(
                 contentAlignment = Alignment.Center,
-                modifier = Modifier.size(280.dp)
+                modifier = Modifier.size(300.dp)
             ) {
                 // Ripple rings
                 for (i in 1..3) {
-                    val ringAlpha = ((1f - rippleProgress) * 0.2f).coerceIn(0f, 0.2f)
+                    val ringAlpha = ((1f - rippleProgress) * 0.15f).coerceIn(0f, 0.15f)
                     Canvas(
                         modifier = Modifier
                             .size((180 + i * 40).dp)
@@ -191,18 +194,18 @@ fun MuyuScreen(
                             }
                     ) {
                         drawCircle(
-                            color = AccentMuyu,
+                            color = CyberWhite,
                             radius = size.minDimension / 2f,
                             style = Stroke(width = 1.dp.toPx())
                         )
                     }
                 }
 
-                // Main wooden fish — Canvas icon
+                // Wooden fish body + mallet
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
-                        .size(200.dp)
+                        .size(220.dp)
                         .graphicsLayer {
                             scaleX = bounceScale
                             scaleY = bounceScale
@@ -216,15 +219,15 @@ fun MuyuScreen(
                             viewModel.hit()
                         }
                 ) {
-                    Canvas(modifier = Modifier.size(160.dp)) {
-                        drawWoodenFish()
+                    Canvas(modifier = Modifier.fillMaxSize()) {
+                        drawTempleWoodenFish(malletAngle)
                     }
                 }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // ── Floating +1 merit text ────────────────────────────
+            // ── Floating +1 merit ────────────────────────────────
             Box(
                 modifier = Modifier
                     .height(48.dp)
@@ -234,7 +237,7 @@ fun MuyuScreen(
                 if (meritActive) {
                     Text(
                         text = "＋1 功德",
-                        color = AccentMuyu,
+                        color = CyberWhite,
                         fontSize = 20.sp,
                         fontFamily = WenKaiFontFamily,
                         fontWeight = FontWeight.Bold,
@@ -246,7 +249,6 @@ fun MuyuScreen(
                 }
             }
 
-            // ── Instruction ───────────────────────────────────────
             Text(
                 text = "轻触木鱼，积累功德",
                 color = GrayCaption,
@@ -257,7 +259,7 @@ fun MuyuScreen(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            // ── Bottom session info ───────────────────────────────
+            // ── Bottom ──────────────────────────────────────────
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -283,86 +285,122 @@ fun MuyuScreen(
     }
 }
 
-// ── Canvas wooden fish icon ────────────────────────────────────────
+// ── Canvas: Temple Wooden Fish (寺庙木鱼) ────────────────────────
+// A round, hollow percussion instrument with ornamental pattern and a mallet
 
-private fun DrawScope.drawWoodenFish() {
+private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawTempleWoodenFish(malletAngle: Float) {
     val cx = size.width / 2f
     val cy = size.height / 2f
-    val scale = size.minDimension * 0.42f
+    val r = size.minDimension * 0.35f  // main radius
     val sw = 2.dp.toPx()
-    val color = AccentMuyu
-    val colorDim = AccentMuyu.copy(alpha = 0.4f)
+    val color = CyberWhite
+    val colorDim = CyberWhite.copy(alpha = 0.3f)
+    val colorMid = CyberWhite.copy(alpha = 0.6f)
 
-    // Fish body — rounded oval shape (木鱼 is traditionally a hollowed fish-shaped block)
-    // Draw the main body as an elliptical outline
-    drawOval(
-        color = color,
-        topLeft = Offset(cx - scale * 0.8f, cy - scale * 0.55f),
-        size = androidx.compose.ui.geometry.Size(scale * 1.6f, scale * 1.1f),
-        style = Stroke(sw, cap = StrokeCap.Round)
-    )
-
-    // Inner body line (the "split" down the middle of a wooden fish)
-    drawLine(
-        color = colorDim,
-        start = Offset(cx - scale * 0.5f, cy),
-        end = Offset(cx + scale * 0.5f, cy),
-        strokeWidth = sw * 0.8f,
-        cap = StrokeCap.Round
-    )
-
-    // Tail fin — V-shape at the right
-    val tailPath = Path().apply {
-        moveTo(cx + scale * 0.7f, cy - scale * 0.2f)
-        lineTo(cx + scale * 1.1f, cy - scale * 0.45f)
-        moveTo(cx + scale * 0.7f, cy + scale * 0.2f)
-        lineTo(cx + scale * 1.1f, cy + scale * 0.45f)
-    }
-    drawPath(tailPath, color, style = Stroke(sw, cap = StrokeCap.Round))
-
-    // Mouth — small opening at the left (where the mallet strikes)
-    drawArc(
-        color = color,
-        startAngle = -45f,
-        sweepAngle = -90f,
-        useCenter = false,
-        topLeft = Offset(cx - scale * 1.0f, cy - scale * 0.2f),
-        size = androidx.compose.ui.geometry.Size(scale * 0.4f, scale * 0.4f),
-        style = Stroke(sw, cap = StrokeCap.Round)
-    )
-
-    // Eye — small circle on the upper left
+    // ── Main body: circle (round wooden fish head) ──
     drawCircle(
         color = color,
-        radius = scale * 0.06f,
-        center = Offset(cx - scale * 0.35f, cy - scale * 0.25f)
+        radius = r,
+        center = Offset(cx, cy),
+        style = Stroke(sw, cap = StrokeCap.Round)
     )
 
-    // Scales — decorative arcs on the body
-    for (i in 0..2) {
-        val sx = cx + scale * (i * 0.2f - 0.15f)
-        drawArc(
-            color = colorDim,
-            startAngle = -30f,
-            sweepAngle = -120f,
-            useCenter = false,
-            topLeft = Offset(sx - scale * 0.12f, cy - scale * 0.35f),
-            size = androidx.compose.ui.geometry.Size(scale * 0.24f, scale * 0.24f),
-            style = Stroke(sw * 0.6f, cap = StrokeCap.Round)
-        )
-    }
+    // Inner circle (hollow cavity)
+    drawCircle(
+        color = colorMid,
+        radius = r * 0.75f,
+        center = Offset(cx, cy),
+        style = Stroke(sw * 0.7f, cap = StrokeCap.Round)
+    )
 
-    // Mallet — small diagonal line near the fish (suggesting the striker)
+    // Center dot (striking point)
+    drawCircle(
+        color = color,
+        radius = r * 0.08f,
+        center = Offset(cx, cy)
+    )
+
+    // Cross-hatch pattern inside (traditional ornamental lines)
+    val innerR = r * 0.7f
+    // Horizontal line
     drawLine(
-        color = color.copy(alpha = 0.3f),
-        start = Offset(cx - scale * 0.9f, cy - scale * 0.65f),
-        end = Offset(cx - scale * 0.6f, cy - scale * 0.15f),
-        strokeWidth = sw * 1.2f,
+        color = colorDim,
+        start = Offset(cx - innerR, cy),
+        end = Offset(cx + innerR, cy),
+        strokeWidth = sw * 0.5f,
         cap = StrokeCap.Round
+    )
+    // Vertical line
+    drawLine(
+        color = colorDim,
+        start = Offset(cx, cy - innerR),
+        end = Offset(cx, cy + innerR),
+        strokeWidth = sw * 0.5f,
+        cap = StrokeCap.Round
+    )
+
+    // Diagonal lines (X pattern)
+    val diag = innerR * 0.707f
+    drawLine(
+        color = colorDim.copy(alpha = 0.15f),
+        start = Offset(cx - diag, cy - diag),
+        end = Offset(cx + diag, cy + diag),
+        strokeWidth = sw * 0.4f,
+        cap = StrokeCap.Round
+    )
+    drawLine(
+        color = colorDim.copy(alpha = 0.15f),
+        start = Offset(cx + diag, cy - diag),
+        end = Offset(cx - diag, cy + diag),
+        strokeWidth = sw * 0.4f,
+        cap = StrokeCap.Round
+    )
+
+    // ── Mallet (木槌) — positioned at top-right, angled toward center ──
+    val malletLen = r * 1.3f
+    val malletHeadR = r * 0.12f
+
+    // Mallet handle: from top-right toward center
+    val malletStartX = cx + r * 0.8f
+    val malletStartY = cy - r * 1.0f
+    val malletEndX = cx + r * 0.1f
+    val malletEndY = cy - r * 0.1f
+
+    // Apply swing rotation around the mallet's grip end
+    val angleRad = Math.toRadians(malletAngle.toDouble())
+    val pivotX = malletStartX
+    val pivotY = malletStartY
+
+    // Rotate mallet end around pivot
+    val dx = malletEndX - pivotX
+    val dy = malletEndY - pivotY
+    val rotEndX = pivotX + (dx * kotlin.math.cos(angleRad) - dy * kotlin.math.sin(angleRad)).toFloat()
+    val rotEndY = pivotY + (dx * kotlin.math.sin(angleRad) + dy * kotlin.math.cos(angleRad)).toFloat()
+
+    // Handle
+    drawLine(
+        color = colorMid,
+        start = Offset(pivotX, pivotY),
+        end = Offset(rotEndX, rotEndY),
+        strokeWidth = sw * 1.5f,
+        cap = StrokeCap.Round
+    )
+
+    // Mallet head (round)
+    drawCircle(
+        color = color,
+        radius = malletHeadR,
+        center = Offset(rotEndX, rotEndY),
+        style = Stroke(sw, cap = StrokeCap.Round)
+    )
+    drawCircle(
+        color = color,
+        radius = malletHeadR * 0.4f,
+        center = Offset(rotEndX, rotEndY)
     )
 }
 
-// ── Stat badge composable ──────────────────────────────────────
+// ── Stat badge ──────────────────────────────────────────────
 
 @Composable
 private fun StatBadge(label: String, value: String) {

@@ -49,6 +49,34 @@ class ArchiveViewModel @Inject constructor(
         } catch (e: Exception) { null }
     }
 
+    /** Get vision reading summary: Pair(title, interpretation) */
+    suspend fun getVisionSummary(readingId: Long): Pair<String, String>? {
+        return try {
+            val reading = divinationDao.getById(readingId) ?: return null
+            val json = reading.resultJson
+
+            // Extract conclusion from featuresJson if available
+            val conclusion = Regex("\"conclusion\"\\s*:\\s*\"([^\"]+)\"").find(json)?.groupValues?.get(1)
+
+            // Generate 4-char title from features
+            val title = when {
+                json.contains("\"eyes\"") && json.contains("phoenix") -> "凤眼呈祥"
+                json.contains("\"forehead\"") && json.contains("broad") -> "天庭饱满"
+                json.contains("\"nose\"") && json.contains("dragon") -> "龙鼻主贵"
+                json.contains("\"mouth\"") && json.contains("cherry") -> "樱桃小口"
+                json.contains("\"chin\"") && json.contains("strong") -> "地阁方圆"
+                json.contains("\"ears\"") && json.contains("lotus") -> "福耳垂珠"
+                conclusion != null -> "面相玄机"
+                else -> "面相玄机"
+            }
+
+            // Brief interpretation
+            val interp = conclusion?.take(60) ?: ""
+
+            Pair(title, interp)
+        } catch (e: Exception) { null }
+    }
+
     fun deleteReading(reading: DivinationReading) {
         viewModelScope.launch {
             divinationDao.delete(reading)
