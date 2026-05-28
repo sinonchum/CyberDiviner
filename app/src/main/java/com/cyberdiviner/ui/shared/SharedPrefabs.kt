@@ -4,6 +4,7 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -31,6 +32,14 @@ import com.cyberdiviner.ui.theme.GrayCaption
 import com.cyberdiviner.ui.theme.HuiwenFontFamily
 import com.cyberdiviner.ui.theme.MonoFontFamily
 import com.cyberdiviner.ui.theme.GrayMuted
+
+object DesignTokens {
+    val ScreenHorizontalPadding = 32.dp
+    val CardPadding = 24.dp
+    val ItemSpacing = 12.dp
+    val SectionSpacing = 48.dp
+    val HeaderBottomMargin = 24.dp
+}
 
 /**
  * Bridgewater-style section header.
@@ -154,4 +163,20 @@ fun StaggeredItem(
     ) {
         content()
     }
+}
+
+@Composable
+fun BackButton(
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Text(
+        text = "< 返回",
+        color = GrayCaption,
+        fontSize = 13.sp,
+        fontFamily = HuiwenFontFamily,
+        modifier = modifier
+            .clickable { onBack() }
+            .padding(4.dp)
+    )
 }

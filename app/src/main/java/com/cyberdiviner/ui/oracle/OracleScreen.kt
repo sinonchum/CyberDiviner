@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.cyberdiviner.ui.shared.TypewriterText
 import com.cyberdiviner.ui.shared.VoiceInputField
+import com.cyberdiviner.ui.shared.SectionHeader
 import com.cyberdiviner.ui.theme.*
 
 
@@ -66,36 +67,7 @@ fun OracleScreen(
             .systemBarsPadding()
             .padding(horizontal = 32.dp, vertical = 32.dp)
     ) {
-        // -- Header: Bridgewater uppercase monospace + red underline ----------
-        Text(
-            text = "叩问天机",
-            color = GrayCaption,
-            fontFamily = HuiwenFontFamily,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Bold,
-            letterSpacing = 3.sp
-        )
-        // Red underline
-        Canvas(
-            modifier = Modifier
-                .width(120.dp)
-                .padding(top = 4.dp)
-                .height(2.dp)
-        ) {
-            drawRect(
-                color = AccentRed,
-                topLeft = Offset.Zero,
-                size = Size(size.width, size.height)
-            )
-        }
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = "ROUND ${round}/${viewModel.maxRounds}",
-            color = AccentRed,
-            fontSize = 12.sp,
-            fontFamily = MonoFontFamily,
-            letterSpacing = 2.sp
-        )
+        SectionHeader(title = "叩问天机", subtitle = "ROUND $round/${viewModel.maxRounds}")
         Spacer(modifier = Modifier.height(24.dp))
 
         // -- Chat messages ---------------------------------------------------

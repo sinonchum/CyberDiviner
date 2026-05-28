@@ -23,7 +23,7 @@ object ScreenTransitions {
 
     // Exit to left (being pushed back)
     val slideOutToLeft: ExitTransition = slideOutHorizontally(
-        targetOffsetX = { -it / 3 },
+        targetOffsetX = { -it },
         animationSpec = tween(DURATION)
     ) + fadeOut(animationSpec = tween(DURATION))
 

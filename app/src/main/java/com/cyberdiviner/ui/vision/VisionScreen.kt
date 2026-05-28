@@ -8,12 +8,11 @@ import androidx.compose.animation.core.*
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -295,16 +294,16 @@ fun VisionScreen(
                 .align(Alignment.TopCenter),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(onClick = {
-                if (cameraActive) viewModel.resetScan()
-                navController.popBackStack()
-            }) {
-                Icon(
-                    Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
-                    tint = AccentRed
-                )
-            }
+            Text(
+                text = "< 返回",
+                color = GrayCaption,
+                fontSize = 13.sp,
+                fontFamily = HuiwenFontFamily,
+                modifier = Modifier.clickable {
+                    if (cameraActive) viewModel.resetScan()
+                    navController.popBackStack()
+                }
+            )
             Spacer(Modifier.weight(1f))
             Text(
                 "VISION // FACE SCAN",

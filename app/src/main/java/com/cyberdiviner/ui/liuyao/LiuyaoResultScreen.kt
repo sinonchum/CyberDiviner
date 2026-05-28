@@ -4,6 +4,7 @@ import androidx.compose.animation.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -100,9 +101,7 @@ fun LiuyaoResultScreen(
                     color = GrayCaption,
                     fontSize = 13.sp,
                     fontFamily = HuiwenFontFamily,
-                    modifier = Modifier.pointerInput(Unit) {
-                        detectHorizontalDragGestures { _, _ -> }
-                    }
+                    modifier = Modifier.clickable { navController.popBackStack() }
                 )
 
                 // Title
@@ -265,6 +264,7 @@ fun LiuyaoResultScreen(
                     modifier = Modifier
                         .weight(1f)
                         .height(40.dp)
+                        .clickable { navController.popBackStack() }
                         .border(1.dp, GrayBorder, RoundedCornerShape(6.dp))
                         .background(CyberBlack, RoundedCornerShape(6.dp)),
                     contentAlignment = Alignment.Center
