@@ -58,6 +58,28 @@ private fun firstSentence(text: String): String {
     return if (sentence.length > 50) sentence.take(47) + "..." else sentence
 }
 
+/** Strip known LLM template section headers from liuyao interpretation text */
+private fun cleanLiuyaoInterpretation(text: String): String {
+    if (text.isBlank()) return text
+    val headerPatterns = listOf(
+        "卦象识别与起卦", "卦象识别", "本卦意义分析", "变爻解读",
+        "五行生克动态", "断卦——最终指引", "断卦",
+        "上卦解读", "下卦解读", "综合分析"
+    )
+    var cleaned = text.trim()
+    for (header in headerPatterns) {
+        // Remove "N. header" or "N、header" patterns (with optional trailing punctuation/spaces)
+        cleaned = cleaned.replace(Regex("\\d+[.、．]\\s*${Regex.escape(header)}[^\\n]*\\n?"), "")
+        // Remove bare header lines
+        cleaned = cleaned.replace(Regex("(?m)^\\s*${Regex.escape(header)}\\s*$"), "")
+    }
+    // Remove leading separator lines (━━━, ───, ===)
+    cleaned = cleaned.replace(Regex("(?m)^\\s*[━─═=]{3,}\\s*$"), "")
+    // Remove blank lines at the start
+    cleaned = cleaned.trimStart('\n', '\r', ' ')
+    return cleaned
+}
+
 // ── Screen ─────────────────────────────────────────────────────────────────
 
 @Composable
@@ -99,12 +121,11 @@ fun ArchiveScreen(
                             val interp: String
                             when (reading.type) {
                                 DivinationType.LIUYAO -> {
-                                    val hexName = viewModel.getHexagramName(reading.id)
-                                    title = hexName?.takeIf { it.isNotBlank() }
+                                    val summary = viewModel.getLiuyaoSummary(reading.id)
+                                    title = summary?.title
                                         ?: reading.question.takeIf { it.length in 2..6 }
                                         ?: "六爻占卜"
-                                    val fullInterp = viewModel.getInterpretation(reading.id, reading.type)
-                                    interp = firstSentence(fullInterp)
+                                    interp = summary?.interpretation ?: "卦象已起，静心体悟天机"
                                 }
                                 DivinationType.TAROT -> {
                                     val summary = viewModel.getTarotSummary(reading.id)

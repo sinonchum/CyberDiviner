@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import com.cyberdiviner.engine.FortuneEngine
 
 @HiltViewModel
 class ArchiveViewModel @Inject constructor(
@@ -44,10 +45,21 @@ class ArchiveViewModel @Inject constructor(
             if (cards.isEmpty()) return null
 
             val first = cards[0]
-            val title = generateTarotFourCharSummary(first.nameZh, first.isReversed)
+            val title = FortuneEngine.tarotFortune(first.nameZh, first.isReversed)
             val interp = generateTarotInterpretation(cards)
 
             TarotArchiveSummary(title = title, interpretation = interp)
+        } catch (e: Exception) { null }
+    }
+
+    /** Get 4-char liuyao summary + one-line interpretation */
+    suspend fun getLiuyaoSummary(readingId: Long): LiuyaoArchiveSummary? {
+        return try {
+            val hexName = liuyaoDao.getByReadingId(readingId)?.hexagramName
+                ?: return null
+            val title = FortuneEngine.liuyaoFortune(hexName)
+            val interp = FortuneEngine.liuyaoMeaning(title)
+            LiuyaoArchiveSummary(title = title, interpretation = interp)
         } catch (e: Exception) { null }
     }
 
@@ -58,46 +70,31 @@ class ArchiveViewModel @Inject constructor(
             val interp = visionDao.getByReadingId(readingId)?.interpretation ?: ""
 
             // Generate 4-char fortune summary from interpretation text
-            val title = generateVisionFourCharSummary(interp)
+            val title = FortuneEngine.visionFortune(interp)
 
-            // One-sentence: first sentence of interpretation, or short default
-            val oneSentence = if (interp.isNotBlank()) {
+            // One-sentence: first sentence of interpretation, or contextual fallback from title
+            val oneSentence = if (interp.isNotBlank() && !isVisionTechnicalData(interp)) {
                 val end = interp.indexOfFirst { it == '。' || it == '！' || it == '？' || it == '.' }
                 val s = if (end > 0) interp.substring(0, end + 1) else interp.take(50)
                 if (s.length > 50) s.take(47) + "..." else s
-            } else "面相已解析，点击查看详细解读"
+            } else {
+                FortuneEngine.visionMeaning(title)
+            }
 
             Pair(title, oneSentence)
         } catch (e: Exception) { null }
     }
 
-    /** Generate 4-char fortune summary for vision readings — same style as Oracle */
-    private fun generateVisionFourCharSummary(text: String): String {
-        if (text.isBlank()) return "面相玄机"
-
-        val themeMap = listOf(
-            listOf("事业", "工作", "职业", "升职", "发展") to "鹏程万里",
-            listOf("财运", "金钱", "财富", "投资", "富贵") to "财源广进",
-            listOf("感情", "爱情", "桃花", "婚姻", "异性") to "情缘天定",
-            listOf("健康", "身体", "精力", "长寿") to "身心康泰",
-            listOf("贵人", "人缘", "人际", "助力") to "贵人相助",
-            listOf("智慧", "聪明", "悟性", "学习") to "慧根深厚",
-            listOf("权力", "领导", "管理", "地位") to "权柄在握",
-            listOf("福气", "福报", "好运", "吉祥") to "福泽绵长",
-            listOf("性格", "坚毅", "果断", "意志") to "刚毅果决",
-            listOf("潜力", "未来", "突破", "转机") to "破局之象",
-            listOf("危机", "困难", "阻碍", "注意") to "明哲保身",
-            listOf("变动", "迁移", "出行") to "逢凶化吉",
-            listOf("修行", "内省", "修养") to "明心见性",
+    /** Detect if vision interpretation is raw technical/fallback data, not a meaningful reading */
+    private fun isVisionTechnicalData(text: String): Boolean {
+        val markers = listOf(
+            "面相分析", "脸型", "对称性", "神经影像", "面部扫描",
+            "━━━", "【脸型】", "【额头】", "【眼睛】", "【鼻子】",
+            "信号提示", "赛博先知暂时离线"
         )
-
-        val best = themeMap
-            .map { (keywords, phrase) -> phrase to keywords.count { text.contains(it) } }
-            .filter { it.second > 0 }
-            .maxByOrNull { it.second }
-
-        return best?.first ?: "面相玄机"
+        return markers.any { text.contains(it) }
     }
+
 
     /** Get interpretation from the sub-reading table for any type */
     suspend fun getInterpretation(readingId: Long, type: com.cyberdiviner.data.model.DivinationType): String {
@@ -137,90 +134,26 @@ class ArchiveViewModel @Inject constructor(
         return cards
     }
 
-    /** Generate 4-char thematic summary from first tarot card */
-    private fun generateTarotFourCharSummary(cardName: String, isReversed: Boolean): String {
-        // Map card themes to 4-char classical Chinese phrases
-        val themeMap = mapOf(
-            // Major Arcana
-            "愚者" to if (isReversed) "迷途知返" else "无畏启程",
-            "魔术师" to if (isReversed) "力不从心" else "心想事成",
-            "女祭司" to if (isReversed) "表里不一" else "静待花开",
-            "女皇" to if (isReversed) "丰盛受阻" else "万物生长",
-            "皇帝" to if (isReversed) "刚愎自用" else "掌控全局",
-            "教皇" to if (isReversed) "离经叛道" else "正道指引",
-            "恋人" to if (isReversed) "情路坎坷" else "天作之合",
-            "战车" to if (isReversed) "方向迷失" else "势如破竹",
-            "力量" to if (isReversed) "信心动摇" else "以柔克刚",
-            "隐者" to if (isReversed) "闭门造车" else "明心见性",
-            "命运之轮" to if (isReversed) "时运不济" else "否极泰来",
-            "正义" to if (isReversed) "偏颇失衡" else "公正无私",
-            "倒吊人" to if (isReversed) "无谓牺牲" else "柳暗花明",
-            "死神" to if (isReversed) "故步自封" else "涅槃重生",
-            "节制" to if (isReversed) "失衡失调" else "中正平和",
-            "恶魔" to if (isReversed) "挣脱枷锁" else "执念深重",
-            "塔" to if (isReversed) "危机将至" else "大厦将倾",
-            "星星" to if (isReversed) "希望渺茫" else "曙光初现",
-            "月亮" to if (isReversed) "拨云见日" else "迷雾重重",
-            "太阳" to if (isReversed) "短暂阴霾" else "光明普照",
-            "审判" to if (isReversed) "逃避反思" else "浴火重生",
-            "世界" to if (isReversed) "功亏一篑" else "功德圆满",
-            // Minor Arcana — suits
-            "权杖" to if (isReversed) "热情消退" else "行动果决",
-            "圣杯" to if (isReversed) "情感受挫" else "心灵丰盈",
-            "宝剑" to if (isReversed) "思绪混乱" else "洞察真相",
-            "星币" to if (isReversed) "财运不稳" else "稳扎稳打"
-        )
-
-        // Try exact match first
-        themeMap[cardName]?.let { return it }
-
-        // Try partial match (for minor arcana: "权杖一", "圣杯王后", etc.)
-        for ((key, value) in themeMap) {
-            if (cardName.startsWith(key)) return value
-        }
-
-        // Fallback: generate based on reversal
-        return if (isReversed) "逆境待变" else "顺势而为"
-    }
 
     /** Generate one-line interpretation from tarot cards */
     private fun generateTarotInterpretation(cards: List<ParsedCard>): String {
         val first = cards[0]
 
         // Always return just the fortune meaning, never card names
-        return cardBriefMeaning(first.nameZh, first.isReversed)
+        return FortuneEngine.tarotMeaning(first.nameZh, first.isReversed)
     }
 
-    /** Brief one-line meaning for a card */
-    private fun cardBriefMeaning(nameZh: String, isReversed: Boolean): String {
-        val meanings = mapOf(
-            "愚者" to if (isReversed) "冲动行事将导致失控，应回归理性" else "新的旅程即将开始，保持纯真与勇气",
-            "魔术师" to if (isReversed) "才华被误用，需重新聚焦目标" else "你拥有实现目标的一切资源",
-            "女祭司" to if (isReversed) "忽视直觉的警示，需倾听内心" else "静心聆听内心深处的智慧",
-            "女皇" to if (isReversed) "创造力枯竭，需滋养身心" else "丰饶与创造力正在涌流",
-            "皇帝" to if (isReversed) "控制欲过强，需学会放手" else "建立秩序与稳固的基础",
-            "死神" to if (isReversed) "抗拒必要的改变，需勇敢放手" else "旧阶段结束，新生命萌芽",
-            "塔" to if (isReversed) "勉强维持将导致更大崩塌" else "旧有结构崩塌后方能重建",
-            "星星" to if (isReversed) "信心受挫，但黎明终将到来" else "希望之光正在指引方向",
-            "月亮" to if (isReversed) "迷雾渐散，真相即将显现" else "表象之下暗藏玄机，需谨慎",
-            "太阳" to if (isReversed) "暂时的困难遮不住光明" else "成功与喜悦正在降临",
-            "命运之轮" to if (isReversed) "运势低迷，需蛰伏待机" else "命运转折已至，把握机遇",
-            "正义" to if (isReversed) "偏见蒙蔽判断，需客观审视" else "公正的裁决即将到来",
-            "审判" to if (isReversed) "逃避过去，需直面内心" else "觉醒之时，过往皆有答案",
-            "世界" to if (isReversed) "尚有未竟之事，需善始善终" else "圆满达成，进入新境界"
-        )
-        // Try exact match
-        meanings[nameZh]?.let { return it }
-        // Try partial match for minor arcana
-        for ((key, value) in meanings) {
-            if (nameZh.startsWith(key)) return value
-        }
-        // Fallback
-        return if (isReversed) "当前形势不利，宜守不宜进" else "天时地利，可以有所作为"
-    }
+    // ── Liuyao (六爻) Fortune Mapping ────────────────────────────────
+
+    // Fortune mapping logic now lives in FortuneEngine (shared with all divination screens)
 }
 
 data class TarotArchiveSummary(
+    val title: String,
+    val interpretation: String
+)
+
+data class LiuyaoArchiveSummary(
     val title: String,
     val interpretation: String
 )

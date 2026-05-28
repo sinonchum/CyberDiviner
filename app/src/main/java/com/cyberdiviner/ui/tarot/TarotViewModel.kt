@@ -13,6 +13,7 @@ import com.cyberdiviner.data.remote.LlmMessage
 import com.cyberdiviner.data.remote.LlmService
 import com.cyberdiviner.data.remote.PromptManager
 import com.cyberdiviner.engine.Persona
+import com.cyberdiviner.engine.FortuneEngine
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -130,7 +131,9 @@ data class TarotUiState(
     val streamText: String = "",
     val readingId: Long? = null,
     val errorMessage: String? = null,
-    val progressMessage: String = ""
+    val progressMessage: String = "",
+    val fourCharFortune: String = "",
+    val fourCharMeaning: String = ""
 )
 
 // ── ViewModel ─────────────────────────────────────────────────────────────
@@ -309,7 +312,9 @@ class TarotViewModel @Inject constructor(
                 val fallback = buildFallbackInterpretation(cards, spread, question)
                 _uiState.value = _uiState.value.copy(
                     interpretation = fallback,
-                    phase = TarotPhase.RESULT
+                    phase = TarotPhase.RESULT,
+                    fourCharFortune = FortuneEngine.tarotFortune(cards[0].nameZh, cards[0].isReversed),
+                    fourCharMeaning = FortuneEngine.tarotMeaning(cards[0].nameZh, cards[0].isReversed)
                 )
                 return
             }
@@ -325,7 +330,9 @@ class TarotViewModel @Inject constructor(
             val finalText = com.cyberdiviner.engine.Persona.stripActionDescriptions(fullText).ifBlank { buildFallbackInterpretation(cards, spread, question) }
             _uiState.value = _uiState.value.copy(
                 interpretation = finalText,
-                phase = TarotPhase.RESULT
+                phase = TarotPhase.RESULT,
+                fourCharFortune = FortuneEngine.tarotFortune(cards[0].nameZh, cards[0].isReversed),
+                fourCharMeaning = FortuneEngine.tarotMeaning(cards[0].nameZh, cards[0].isReversed)
             )
             // Persist interpretation to database
             try {
@@ -341,7 +348,9 @@ class TarotViewModel @Inject constructor(
             val fallback = buildFallbackInterpretation(cards, spread, question)
             _uiState.value = _uiState.value.copy(
                 interpretation = fallback,
-                phase = TarotPhase.RESULT
+                phase = TarotPhase.RESULT,
+                fourCharFortune = FortuneEngine.tarotFortune(cards[0].nameZh, cards[0].isReversed),
+                fourCharMeaning = FortuneEngine.tarotMeaning(cards[0].nameZh, cards[0].isReversed)
             )
         }
     }

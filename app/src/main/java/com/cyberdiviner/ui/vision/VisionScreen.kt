@@ -393,6 +393,36 @@ fun VisionScreen(
                 )
                 Spacer(Modifier.height(12.dp))
 
+                // ── 四字批命 fortune ──
+                if (uiState.fourCharFortune.isNotBlank()) {
+                    Text(
+                        text = uiState.fourCharFortune,
+                        color = GrayTitle,
+                        fontSize = 32.sp,
+                        fontFamily = HuiwenFontFamily,
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                        letterSpacing = 8.sp
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        text = uiState.fourCharMeaning,
+                        color = GrayBody,
+                        fontSize = 14.sp,
+                        fontFamily = WenKaiFontFamily,
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(Modifier.height(16.dp))
+                    // Thin divider
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(0.4f)
+                            .height(1.dp)
+                            .background(GrayBorder)
+                            .align(Alignment.CenterHorizontally)
+                    )
+                    Spacer(Modifier.height(16.dp))
+                }
+
                 // ── Interpretation text ──
                 if (cameraActive && uiState.interpretation.isNotBlank()) {
                     // Real LLM interpretation from VisionViewModel

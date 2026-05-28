@@ -56,7 +56,7 @@ fun LiuyaoResultScreen(
         return
     }
 
-    val cards = buildCardList(result, uiState.llmInterpretation.ifBlank { uiState.llmStreamChunks })
+    val cards = buildCardList(result, uiState.llmInterpretation.ifBlank { uiState.llmStreamChunks }, uiState.fourCharFortune, uiState.fourCharMeaning)
     var currentPage by remember { mutableIntStateOf(0) }
     val totalPages = cards.size
 
@@ -309,14 +309,45 @@ private data class CardInfo(
 @Composable
 private fun buildCardList(
     result: LiuyaoEngine.DivinationResult,
-    llmText: String
+    llmText: String,
+    fourCharFortune: String,
+    fourCharMeaning: String
 ): List<CardInfo> = listOf(
+    CardInfo("批命", "FORTUNE") { FortuneCard(fourCharFortune, fourCharMeaning) },
     CardInfo("卦象", "HEXAGRAM") { HexagramCard(result) },
     CardInfo("爻象", "LINES") { LinesCard(result) },
     CardInfo("六神", "SPIRITS") { SpiritsCard(result) },
     CardInfo("断卦", "ANALYSIS") { AnalysisCard(result) },
     CardInfo("解读", "INTERPRETATION") { InterpretationCard(result, llmText) }
 )
+
+// ── Card 0: Fortune 四字批命 ─────────────────────────────────────────────
+
+@Composable
+private fun FortuneCard(fortune: String, meaning: String) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Spacer(modifier = Modifier.height(40.dp))
+        Text(
+            text = fortune.ifBlank { "天机莫测" },
+            color = GrayTitle,
+            fontSize = 32.sp,
+            fontFamily = HuiwenFontFamily,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 8.sp
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = meaning.ifBlank { "卦象已起，静心体悟天机" },
+            color = GrayBody,
+            fontSize = 14.sp,
+            fontFamily = WenKaiFontFamily,
+            lineHeight = 22.sp
+        )
+    }
+}
 
 // ── Card 1: Hexagram ──────────────────────────────────────────────────────
 

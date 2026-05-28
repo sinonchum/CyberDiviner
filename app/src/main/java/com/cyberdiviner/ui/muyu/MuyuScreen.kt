@@ -2,6 +2,8 @@ package com.cyberdiviner.ui.muyu
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -211,9 +213,16 @@ fun MuyuScreen(
                             viewModel.hit()
                         }
                 ) {
-                    Canvas(modifier = Modifier.fillMaxSize()) {
-                        drawTempleWoodenFish(malletAngle)
-                    }
+                    Image(
+                        painter = painterResource(id = com.cyberdiviner.R.drawable.muyu_icon),
+                        contentDescription = "木鱼",
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .graphicsLayer {
+                                rotationZ = malletAngle * 0.1f  // slight wobble on hit
+                            },
+                        contentScale = androidx.compose.ui.layout.ContentScale.Fit
+                    )
                 }
             }
 
@@ -277,161 +286,115 @@ fun MuyuScreen(
     }
 }
 
-// ── Temple Wooden Fish (寺庙木鱼) ────────────────────────────────
+// ── Temple Wooden Fish (寺庙木鱼 / 小圆木鱼) ─────────────────────
 //
-//   Shape: Rounded square body with slightly concave top edge,
-//          decorative "scale" pattern, central strike point,
-//          short handle stem at bottom, and a mallet to the side.
+//   Based on real Buddhist temple wooden fish reference:
+//   - Nearly spherical hollow wooden body
+//   - Horizontal slit (鱼口/开口) at equator — sound resonance opening
+//   - Fish scale pattern (鱼鳞) on upper hemisphere — overlapping semicircles
+//   - Two decorative eyes on upper section
+//   - Central strike point where mallet hits
+//   - Rests on a small wooden cradle/cushion (no handle — rests on surface)
+//   - Mallet with round bulbous head
 //
-//        ╭──────────────╮
-//       │  ╱╲  ╱╲  ╱╲   │
-//       │ ╱  ╲╱  ╲╱  ╲  │   ← scale pattern
-//       │   ── ◉ ──     │   ← strike point
-//       │ ╲  ╱╲  ╱╲  ╱  │
-//       │  ╲╱  ╲╱  ╲╱   │
-//        ╰──────┬───────╯
-//               │            ← handle stem
-//               ▼
+//            ╭─────────────╮
+//          ╱  ◯  ╌╌╌  ◯   ╲       ← eyes
+//        ╱  ⌇⌇⌇⌇⌇⌇⌇⌇⌇⌇⌇  ╲     ← fish scales
+//       │   ╌╌╌╌╌ ◉ ╌╌╌╌╌  │     ← strike point
+//       │   ═══════════════  │     ← mouth slit (equator)
+//        ╲                 ╱
+//          ╲             ╱
+//            ╰─────────╯
+//           ───┤     ├───         ← cradle base
 
 private fun DrawScope.drawTempleWoodenFish(malletAngleDeg: Float) {
-    val cx = size.width / 2f
+    // Center the fish body slightly left to make room for the mallet
+    val cx = size.width / 2f - size.width * 0.05f
     val cy = size.height / 2f
-    val bodyR = size.minDimension * 0.34f
     val sw = 2.dp.toPx()
-    val color = CyberWhite
-    val colorMid = CyberWhite.copy(alpha = 0.5f)
-    val colorDim = CyberWhite.copy(alpha = 0.2f)
+    val W = CyberWhite
+    val W50 = W.copy(alpha = 0.5f)
+    val W30 = W.copy(alpha = 0.3f)
 
-    // ── Body: rounded square (superellipse approximation) ──
-    // Draw as a rounded rectangle path
-    val bodyW = bodyR * 1.7f
-    val bodyH = bodyR * 1.5f
-    val cornerR = bodyR * 0.4f
+    // ═══════════════════════════════════════════════════
+    // 1. PEAR/GOURD SHAPE — the body of the wooden fish
+    //    Wider at top, narrower at bottom, smooth organic curve
+    // ═══════════════════════════════════════════════════
+    val bodyW = size.minDimension * 0.36f   // half-width at widest
+    val bodyH = size.minDimension * 0.42f   // half-height
+    val stemW = size.minDimension * 0.04f   // stem width
+    val stemH = size.minDimension * 0.06f   // stem height
 
     val bodyPath = Path().apply {
-        // Start at top-left corner
-        moveTo(cx - bodyW + cornerR, cy - bodyH)
-        // Top edge
-        lineTo(cx + bodyW - cornerR, cy - bodyH)
-        // Top-right corner
-        arcTo(
-            rect = androidx.compose.ui.geometry.Rect(
-                cx + bodyW - cornerR * 2, cy - bodyH,
-                cx + bodyW, cy - bodyH + cornerR * 2
-            ),
-            startAngleDegrees = -90f, sweepAngleDegrees = 90f, forceMoveTo = false
+        // Start at bottom center (stem junction)
+        moveTo(cx, cy + bodyH * 0.85f)
+        // Right side — smooth curve outward then back in
+        cubicTo(
+            cx + bodyW * 0.6f, cy + bodyH * 0.85f,   // control 1: out to the right
+            cx + bodyW, cy + bodyH * 0.2f,             // control 2: wide at upper-right
+            cx + bodyW * 0.95f, cy - bodyH * 0.1f     // end: near top-right
         )
-        // Right edge
-        lineTo(cx + bodyW, cy + bodyH - cornerR)
-        // Bottom-right corner
-        arcTo(
-            rect = androidx.compose.ui.geometry.Rect(
-                cx + bodyW - cornerR * 2, cy + bodyH - cornerR * 2,
-                cx + bodyW, cy + bodyH
-            ),
-            startAngleDegrees = 0f, sweepAngleDegrees = 90f, forceMoveTo = false
+        // Top — round dome
+        cubicTo(
+            cx + bodyW * 0.85f, cy - bodyH * 0.7f,    // control 1
+            cx - bodyW * 0.85f, cy - bodyH * 0.7f,    // control 2
+            cx - bodyW * 0.95f, cy - bodyH * 0.1f     // end: top-left
         )
-        // Bottom edge (with gap for handle)
-        lineTo(cx + bodyW * 0.3f, cy + bodyH)
-        moveTo(cx - bodyW * 0.3f, cy + bodyH)
-        lineTo(cx - bodyW + cornerR, cy + bodyH)
-        // Bottom-left corner
-        arcTo(
-            rect = androidx.compose.ui.geometry.Rect(
-                cx - bodyW, cy + bodyH - cornerR * 2,
-                cx - bodyW + cornerR * 2, cy + bodyH
-            ),
-            startAngleDegrees = 90f, sweepAngleDegrees = 90f, forceMoveTo = false
-        )
-        // Left edge
-        lineTo(cx - bodyW, cy - bodyH + cornerR)
-        // Top-left corner
-        arcTo(
-            rect = androidx.compose.ui.geometry.Rect(
-                cx - bodyW, cy - bodyH,
-                cx - bodyW + cornerR * 2, cy - bodyH + cornerR * 2
-            ),
-            startAngleDegrees = 180f, sweepAngleDegrees = 90f, forceMoveTo = false
+        // Left side — mirror of right
+        cubicTo(
+            cx - bodyW, cy + bodyH * 0.2f,
+            cx - bodyW * 0.6f, cy + bodyH * 0.85f,
+            cx, cy + bodyH * 0.85f
         )
         close()
     }
-    drawPath(bodyPath, color, style = Stroke(sw, cap = StrokeCap.Round))
+    drawPath(bodyPath, W, style = Stroke(sw * 1.5f, cap = StrokeCap.Round))
 
-    // ── Top slit (开口 / mouth of the fish) ──
-    val slitW = bodyW * 0.5f
-    drawLine(
-        color = colorMid,
-        start = Offset(cx - slitW, cy - bodyH + bodyH * 0.25f),
-        end = Offset(cx + slitW, cy - bodyH + bodyH * 0.25f),
-        strokeWidth = sw * 1.2f,
-        cap = StrokeCap.Round
-    )
+    // ═══════════════════════════════════════════════════
+    // 2. MOUTH SLIT (开口) — curved horizontal opening
+    //    Follows the curvature of the pear shape
+    // ═══════════════════════════════════════════════════
+    val slitY = cy - bodyH * 0.05f  // slightly above center
+    val slitW = bodyW * 0.75f       // how wide the slit extends
 
-    // ── Scale pattern (鱼鳞纹) — concentric arcs inside ──
-    val scaleRows = 3
-    val scaleCols = 4
-    val scaleStartY = cy - bodyH * 0.1f
-    val scaleSpacingX = bodyW * 1.4f / (scaleCols + 1)
-    val scaleSpacingY = bodyH * 1.2f / (scaleRows + 1)
-
-    for (row in 0 until scaleRows) {
-        for (col in 0 until scaleCols) {
-            val sx = cx - bodyW * 0.7f + (col + 1) * scaleSpacingX
-            val sy = scaleStartY + row * scaleSpacingY
-            val arcR = scaleSpacingX * 0.35f
-
-            // Alternating direction for fish-scale effect
-            if ((row + col) % 2 == 0) {
-                drawArc(
-                    color = colorDim,
-                    startAngle = 0f,
-                    sweepAngle = 180f,
-                    useCenter = false,
-                    topLeft = Offset(sx - arcR, sy - arcR),
-                    size = Size(arcR * 2, arcR * 2),
-                    style = Stroke(sw * 0.5f, cap = StrokeCap.Round)
-                )
-            } else {
-                drawArc(
-                    color = colorDim,
-                    startAngle = 180f,
-                    sweepAngle = 180f,
-                    useCenter = false,
-                    topLeft = Offset(sx - arcR, sy - arcR),
-                    size = Size(arcR * 2, arcR * 2),
-                    style = Stroke(sw * 0.5f, cap = StrokeCap.Round)
-                )
-            }
-        }
+    // The slit is a curved line (arc) that follows the sphere's surface
+    val slitPath = Path().apply {
+        moveTo(cx - slitW, slitY + bodyH * 0.06f)  // left end, slightly lower
+        // Arc upward in the middle, following the sphere curvature
+        quadraticBezierTo(
+            cx, slitY - bodyH * 0.12f,              // peak of the arc (curves up)
+            cx + slitW, slitY + bodyH * 0.06f       // right end, slightly lower
+        )
     }
+    drawPath(slitPath, W, style = Stroke(sw * 1.4f, cap = StrokeCap.Round))
 
-    // ── Central strike point (圆心 / 击打点) ──
-    val dotR = bodyR * 0.06f
-    drawCircle(color, radius = dotR, center = Offset(cx, cy))
-    drawCircle(color, radius = dotR * 2.5f, center = Offset(cx, cy), style = Stroke(sw * 0.6f))
-
-    // ── Handle stem (把手) at bottom ──
-    val handleW = bodyW * 0.2f
-    val handleH = bodyH * 0.45f
-    val handleTop = cy + bodyH
-    val handlePath = Path().apply {
-        moveTo(cx - handleW, handleTop)
-        lineTo(cx - handleW * 0.7f, handleTop + handleH)
-        lineTo(cx + handleW * 0.7f, handleTop + handleH)
-        lineTo(cx + handleW, handleTop)
-        close()
+    // Second line slightly below — creates the "gap" / depth of the slit
+    val slitPath2 = Path().apply {
+        moveTo(cx - slitW * 0.85f, slitY + bodyH * 0.12f)
+        quadraticBezierTo(
+            cx, slitY - bodyH * 0.04f,
+            cx + slitW * 0.85f, slitY + bodyH * 0.12f
+        )
     }
-    drawPath(handlePath, color, style = Stroke(sw, cap = StrokeCap.Round))
+    drawPath(slitPath2, W30, style = Stroke(sw * 0.8f, cap = StrokeCap.Round))
 
-    // ── Mallet (木槌) — top-right, angled toward strike point ──
-    val malletLen = bodyR * 1.4f
-    val malletHeadR = bodyR * 0.1f
-    val malletPivotX = cx + bodyW * 1.1f
-    val malletPivotY = cy - bodyH * 1.0f
+    // ═══════════════════════════════════════════════════
+    // 3. STEM (茎) — small tiered detail at the bottom
+    // ═══════════════════════════════════════════════════
+    val stemTop = cy + bodyH * 0.85f
+    // Stepped ridges
+    drawLine(W50, Offset(cx - stemW * 1.5f, stemTop), Offset(cx + stemW * 1.5f, stemTop), sw, StrokeCap.Round)
+    drawLine(W50, Offset(cx - stemW, stemTop + stemH * 0.4f), Offset(cx + stemW, stemTop + stemH * 0.4f), sw, StrokeCap.Round)
+    drawLine(W50, Offset(cx - stemW * 0.5f, stemTop + stemH * 0.8f), Offset(cx + stemW * 0.5f, stemTop + stemH * 0.8f), sw, StrokeCap.Round)
+
+    // ═══════════════════════════════════════════════════
+    // 4. MALLET (木槌) — separate stick with round head
+    // ═══════════════════════════════════════════════════
+    val malletPivotX = cx + bodyW * 1.8f
+    val malletPivotY = cy - bodyH * 0.9f
     val malletTipX0 = cx + bodyW * 0.2f
-    val malletTipY0 = cy - bodyH * 0.1f
+    val malletTipY0 = cy + bodyH * 0.15f
 
-    // Rotate mallet around pivot
     val angleRad = Math.toRadians(malletAngleDeg.toDouble())
     val dx = malletTipX0 - malletPivotX
     val dy = malletTipY0 - malletPivotY
@@ -439,16 +402,10 @@ private fun DrawScope.drawTempleWoodenFish(malletAngleDeg: Float) {
     val tipY = malletPivotY + (dx * kotlin.math.sin(angleRad) + dy * kotlin.math.cos(angleRad)).toFloat()
 
     // Handle
-    drawLine(
-        color = colorMid,
-        start = Offset(malletPivotX, malletPivotY),
-        end = Offset(tipX, tipY),
-        strokeWidth = sw * 1.5f,
-        cap = StrokeCap.Round
-    )
-    // Head
-    drawCircle(color, radius = malletHeadR, center = Offset(tipX, tipY), style = Stroke(sw))
-    drawCircle(color, radius = malletHeadR * 0.35f, center = Offset(tipX, tipY))
+    drawLine(W50, Offset(malletPivotX, malletPivotY), Offset(tipX, tipY), sw * 2f, StrokeCap.Round)
+    // Head — solid round bulb
+    val headR = bodyW * 0.1f
+    drawCircle(W, radius = headR, center = Offset(tipX, tipY))
 }
 
 // ── Stat badge ──────────────────────────────────────────────

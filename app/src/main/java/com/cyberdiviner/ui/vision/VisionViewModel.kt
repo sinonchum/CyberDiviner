@@ -26,6 +26,7 @@ import com.cyberdiviner.data.remote.LlmMessage
 import com.cyberdiviner.data.remote.LlmService
 import com.cyberdiviner.data.remote.PromptManager
 import com.cyberdiviner.engine.Persona
+import com.cyberdiviner.engine.FortuneEngine
 import com.google.mediapipe.framework.image.BitmapImageBuilder
 import com.google.mediapipe.framework.image.MediaImageBuilder
 import com.google.mediapipe.tasks.core.BaseOptions
@@ -154,7 +155,9 @@ data class VisionUiState(
     val streamText: String = "",
     val readingId: Long? = null,
     val errorMessage: String? = null,
-    val progressMessage: String = ""
+    val progressMessage: String = "",
+    val fourCharFortune: String = "",
+    val fourCharMeaning: String = ""
 )
 
 // ── ViewModel ────────────────────────────────────────────────────────────
@@ -742,8 +745,10 @@ class VisionViewModel @Inject constructor(
                 val fallback = buildFallbackInterpretation(featuresJson, question)
                 _uiState.value = _uiState.value.copy(
                     interpretation = fallback,
-                    phase = VisionPhase.RESULT
-                )
+                    phase = VisionPhase.RESULT,
+                    fourCharFortune = FortuneEngine.visionFortune(fallback),
+                    fourCharMeaning = FortuneEngine.visionMeaning(FortuneEngine.visionFortune(fallback))
+                    )
                 return
             }
 
@@ -756,9 +761,12 @@ class VisionViewModel @Inject constructor(
             }
 
             val finalText = com.cyberdiviner.engine.Persona.stripActionDescriptions(fullText).ifBlank { buildFallbackInterpretation(featuresJson, question) }
+            val fortune = FortuneEngine.visionFortune(finalText)
             _uiState.value = _uiState.value.copy(
                 interpretation = finalText,
-                phase = VisionPhase.RESULT
+                phase = VisionPhase.RESULT,
+                fourCharFortune = fortune,
+                fourCharMeaning = FortuneEngine.visionMeaning(fortune)
             )
             // Persist interpretation to database
             try {
@@ -775,7 +783,9 @@ class VisionViewModel @Inject constructor(
             val fallback = buildFallbackInterpretation(featuresJson, question)
             _uiState.value = _uiState.value.copy(
                 interpretation = fallback,
-                phase = VisionPhase.RESULT
+                phase = VisionPhase.RESULT,
+                fourCharFortune = FortuneEngine.visionFortune(fallback),
+                fourCharMeaning = FortuneEngine.visionMeaning(FortuneEngine.visionFortune(fallback))
             )
         }
     }

@@ -15,6 +15,7 @@ import com.cyberdiviner.data.remote.PromptManager
 import com.cyberdiviner.engine.HexagramData.LineState
 import com.cyberdiviner.engine.LiuyaoEngine
 import com.cyberdiviner.engine.ShakeDetector
+import com.cyberdiviner.engine.FortuneEngine
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -58,7 +59,9 @@ data class LiuyaoUiState(
     val llmStreamChunks: String = "",
     val readingId: Long? = null,
     val errorMessage: String? = null,
-    val progressMessage: String = ""
+    val progressMessage: String = "",
+    val fourCharFortune: String = "",
+    val fourCharMeaning: String = ""
 )
 
 @HiltViewModel
@@ -230,7 +233,9 @@ class LiuyaoViewModel @Inject constructor(
             )
             _uiState.value = _uiState.value.copy(
                 divinationResult = result,
-                progressMessage = "卦象已成，解读中..."
+                progressMessage = "卦象已成，解读中...",
+                fourCharFortune = FortuneEngine.liuyaoFortune(result.primaryHexagram.chineseName),
+                fourCharMeaning = FortuneEngine.liuyaoMeaning(FortuneEngine.liuyaoFortune(result.primaryHexagram.chineseName))
             )
 
             // Save to database

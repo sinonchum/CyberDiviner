@@ -415,7 +415,7 @@ private fun ResultPhase(
     onBack: () -> Unit
 ) {
     val cnNums = listOf("壹", "贰", "叁", "肆", "伍", "陆", "柒", "捌", "玖", "拾")
-    val totalPages = 2 // Page 1: cards, Page 2: interpretation
+    val totalPages = 3 // Page 0: fortune, Page 1: cards, Page 2: interpretation
     var currentPage by remember { mutableStateOf(0) }
 
     // Swipe detection
@@ -510,6 +510,52 @@ private fun ResultPhase(
                         .verticalScroll(rememberScrollState())
                 ) {
                     if (currentPage == 0) {
+                        // ── Page 0: 批命 四字批命 ──
+                        Text(
+                            text = "批命",
+                            color = CyberWhite,
+                            fontSize = 22.sp,
+                            fontFamily = HuiwenFontFamily,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 6.sp
+                        )
+                        Text(
+                            text = "FORTUNE",
+                            color = GrayMuted,
+                            fontSize = 10.sp,
+                            fontFamily = MonoFontFamily,
+                            letterSpacing = 3.sp
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Box(
+                            modifier = Modifier
+                                .width(28.dp)
+                                .height(1.dp)
+                                .background(AccentRed)
+                        )
+                        Spacer(modifier = Modifier.height(40.dp))
+
+                        Text(
+                            text = uiState.fourCharFortune.ifBlank { "顺势而为" },
+                            color = GrayTitle,
+                            fontSize = 32.sp,
+                            fontFamily = HuiwenFontFamily,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 8.sp,
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = uiState.fourCharMeaning.ifBlank { "天时地利，可以有所作为" },
+                            color = GrayBody,
+                            fontSize = 14.sp,
+                            fontFamily = WenKaiFontFamily,
+                            lineHeight = 22.sp,
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Center
+                        )
+                    } else if (currentPage == 1) {
                         // ── Page 1: 牌阵 ──
                         Text(
                             text = "牌阵",
