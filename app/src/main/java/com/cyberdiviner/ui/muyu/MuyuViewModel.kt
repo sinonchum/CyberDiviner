@@ -30,7 +30,7 @@ import javax.inject.Inject
  * ViewModel for the 电子木鱼 (electronic wooden fish) meditation screen.
  *
  * Features:
- * - SoundPool audio playback with USAGE_GAME / CONTENT_TYPE_SONIFICATION
+ * - SoundPool audio playback with USAGE_ASSISTANCE_SONIFICATION / CONTENT_TYPE_SONIFICATION
  * - Light haptic feedback on each hit
  * - Room-backed totalHits persistence (via MuyuDao)
  * - SharedPreferences fast-cache for instant totalHits display on launch
@@ -73,9 +73,11 @@ class MuyuViewModel @Inject constructor(
     private val _totalHitsCached = MutableStateFlow(prefs.getInt(KEY_TOTAL_HITS_CACHE, 0))
 
     init {
-        // Initialize SoundPool with game-quality audio attributes
+        // Initialize SoundPool with audio attributes suited for percussion instruments
+        // USAGE_ASSISTANCE_SONIFICATION + CONTENT_TYPE_SONIFICATION gives a cleaner,
+        // more natural percussion sound than USAGE_GAME.
         val audioAttributes = AudioAttributes.Builder()
-            .setUsage(AudioAttributes.USAGE_GAME)
+            .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
             .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
             .build()
 
@@ -192,16 +194,27 @@ class MuyuViewModel @Inject constructor(
 
     // ── Internal helpers ─────────────────────────────────────────
 
+    /**
+     * Play the wooden fish strike sound.
+     *
+     * NOTE: The bundled muyu.wav (44KB, mono, 44100Hz, 16-bit PCM) is a very short/simple
+     * WAV that doesn't fully capture the resonant, wooden tone of a real wooden fish.
+     * For best results, replace it with a higher-quality recording of an actual wooden fish
+     * strike that includes the natural decay and overtones.
+     *
+     * The playback rate is set to 0.9 to lower the pitch slightly, giving a deeper and
+     * more resonant/wooden quality to the sound.
+     */
     private fun playSound() {
         if (soundLoaded && soundId != 0) {
             try {
                 soundPool?.play(
                     soundId,
-                    1.0f,   // leftVolume
-                    1.0f,   // rightVolume
+                    0.85f,  // leftVolume  — slightly below max for natural loudness
+                    0.85f,  // rightVolume
                     1,      // priority
                     0,      // loop (0 = no loop)
-                    1.0f    // rate (1.0 = normal)
+                    0.9f    // rate — slightly slower for deeper, more wooden/resonant tone
                 )
             } catch (e: Exception) {
                 Log.w(TAG, "Failed to play sound: ${e.message}")

@@ -276,7 +276,7 @@ private fun HexagramDiagram(result: LiuyaoEngine.DivinationResult) {
         colors = CardDefaults.cardColors(
             containerColor = CyberDark.copy(alpha = 0.8f)
         ),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(0.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(
@@ -284,90 +284,128 @@ private fun HexagramDiagram(result: LiuyaoEngine.DivinationResult) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                "━━━ 六爻排列 ━━━",
-                color = TextMuted,
-                fontSize = 12.sp,
+                "六爻排列",
+                color = AccentRed,
+                fontSize = 13.sp,
                 fontFamily = HuiwenFontFamily,
-                letterSpacing = 2.sp
+                letterSpacing = 3.sp
             )
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-            // Canvas-based hexagram diagram — draws all 6 lines bottom to top
-            Canvas(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp)
-            ) {
-                val strokeWidth = 2.dp.toPx()
-                val lineLength = size.width * 0.75f
-                val centerGap = 8.dp.toPx()
-                val centerX = size.width / 2f
-                val lineCount = 6
-                val verticalMargin = size.height * 0.1f
-                val usableHeight = size.height - 2 * verticalMargin
-                val spacing = usableHeight / (lineCount - 1)
+            // Hexagram lines from top (上/yao6) to bottom (初/yao1)
+            val lineLabels = listOf("上", "五", "四", "三", "二", "初")
 
-                for (i in 0 until lineCount) {
-                    // y increases downward in Canvas; i=0 is top line (yao 6), i=5 is bottom line (yao 1)
-                    val y = verticalMargin + i * spacing
-                    val lineIndex = 5 - i  // lineIndex 5 = yao 1 (bottom), lineIndex 0 = yao 6 (top)
-                    val line = result.lines[lineIndex]
-                    val isYang = line.state == LineState.OLD_YANG || line.state == LineState.YOUNG_YANG
-                    val isChanging = line.state == LineState.OLD_YANG || line.state == LineState.OLD_YIN
+            for (i in 0 until 6) {
+                val lineIndex = 5 - i
+                val line = result.lines[lineIndex]
+                val isYang = line.state == LineState.OLD_YANG || line.state == LineState.YOUNG_YANG
+                val isChanging = line.state == LineState.OLD_YANG || line.state == LineState.OLD_YIN
+                val isWorld = lineIndex == result.worldLine
+                val isResponse = lineIndex == result.responseLine
 
-                    val lineColor = when {
-                        isChanging -> NeonOrange
-                        lineIndex == result.worldLine -> NeonCyan
-                        lineIndex == result.responseLine -> NeonMagenta
-                        line.isHidden -> TextMuted
-                        else -> CyberWhite
+                // Color: hidden lines dimmer, all others white
+                val lineColor = when {
+                    line.isHidden -> GrayMuted
+                    else -> CyberWhite
+                }
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 5.dp)
+                ) {
+                    // Line position label (初/二/三/四/五/上)
+                    Text(
+                        text = lineLabels[i],
+                        color = GrayCaption,
+                        fontSize = 11.sp,
+                        fontFamily = HuiwenFontFamily,
+                        modifier = Modifier.width(24.dp),
+                        textAlign = TextAlign.End
+                    )
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    // Hexagram line drawing
+                    Canvas(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(14.dp)
+                    ) {
+                        // Changing lines get thicker stroke for visual distinction
+                        val sw = if (isChanging) 5.dp.toPx() else 3.dp.toPx()
+                        val centerGap = 8.dp.toPx()
+                        val lineLength = size.width * 0.85f
+                        val cx = size.width / 2f
+                        val cy = size.height / 2f
+
+                        if (isYang) {
+                            // Yang (solid) line — single continuous line
+                            drawLine(
+                                color = lineColor,
+                                start = Offset(cx - lineLength / 2f, cy),
+                                end = Offset(cx + lineLength / 2f, cy),
+                                strokeWidth = sw,
+                                cap = StrokeCap.Square
+                            )
+                        } else {
+                            // Yin (broken) line — two segments with center gap
+                            drawLine(
+                                color = lineColor,
+                                start = Offset(cx - lineLength / 2f, cy),
+                                end = Offset(cx - centerGap / 2f, cy),
+                                strokeWidth = sw,
+                                cap = StrokeCap.Square
+                            )
+                            drawLine(
+                                color = lineColor,
+                                start = Offset(cx + centerGap / 2f, cy),
+                                end = Offset(cx + lineLength / 2f, cy),
+                                strokeWidth = sw,
+                                cap = StrokeCap.Square
+                            )
+                        }
+
+                        // Changing line indicators — AccentRed dots at line ends
+                        if (isChanging) {
+                            val r = 3.dp.toPx()
+                            drawCircle(
+                                color = AccentRed,
+                                radius = r,
+                                center = Offset(cx - lineLength / 2f - r * 2, cy)
+                            )
+                            drawCircle(
+                                color = AccentRed,
+                                radius = r,
+                                center = Offset(cx + lineLength / 2f + r * 2, cy)
+                            )
+                        }
                     }
 
-                    if (isYang) {
-                        // Yang (solid) line — single贯通线
-                        drawLine(
-                            color = lineColor,
-                            start = Offset(centerX - lineLength / 2f, y),
-                            end = Offset(centerX + lineLength / 2f, y),
-                            strokeWidth = strokeWidth,
-                            cap = StrokeCap.Square
-                        )
-                    } else {
-                        // Yin (broken) line — two segments with centerGap
-                        val leftStart = centerX - lineLength / 2f
-                        val leftEnd = centerX - centerGap / 2f
-                        val rightStart = centerX + centerGap / 2f
-                        val rightEnd = centerX + lineLength / 2f
+                    Spacer(modifier = Modifier.width(8.dp))
 
-                        drawLine(
-                            color = lineColor,
-                            start = Offset(leftStart, y),
-                            end = Offset(leftEnd, y),
-                            strokeWidth = strokeWidth,
-                            cap = StrokeCap.Square
-                        )
-                        drawLine(
-                            color = lineColor,
-                            start = Offset(rightStart, y),
-                            end = Offset(rightEnd, y),
-                            strokeWidth = strokeWidth,
-                            cap = StrokeCap.Square
-                        )
-                    }
-
-                    // Moving line indicator — small circles at line ends
-                    if (isChanging) {
-                        val markerRadius = 3.dp.toPx()
-                        drawCircle(
-                            color = lineColor,
-                            radius = markerRadius,
-                            center = Offset(centerX - lineLength / 2f - markerRadius * 2, y)
-                        )
-                        drawCircle(
-                            color = lineColor,
-                            radius = markerRadius,
-                            center = Offset(centerX + lineLength / 2f + markerRadius * 2, y)
-                        )
+                    // World (世) = red dot, Response (应) = red square
+                    when {
+                        isWorld -> {
+                            Canvas(modifier = Modifier.size(10.dp)) {
+                                drawCircle(
+                                    color = AccentRed,
+                                    radius = size.minDimension / 2f
+                                )
+                            }
+                        }
+                        isResponse -> {
+                            Canvas(modifier = Modifier.size(10.dp)) {
+                                drawRect(
+                                    color = AccentRed,
+                                    size = size
+                                )
+                            }
+                        }
+                        else -> {
+                            Spacer(modifier = Modifier.width(10.dp))
+                        }
                     }
                 }
             }

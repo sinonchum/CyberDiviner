@@ -228,7 +228,7 @@ fun SplashScreen(onTimeout: () -> Unit) {
             reading.currentSolarTerm?.let {
                 Text(
                     text = "[ ${it.name} ]",
-                    color = GrayMuted,
+                    color = CyberWhite,
                     fontSize = 13.sp,
                     fontFamily = MonoFontFamily,
                     letterSpacing = 4.sp,
@@ -251,6 +251,15 @@ fun SplashScreen(onTimeout: () -> Unit) {
                     fontFamily = WenKaiFontFamily,
                     lineHeight = 22.sp,
                     letterSpacing = 1.sp,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = "萬物共歸道，演算法虛靈。",
+                    color = GrayCaption,
+                    fontSize = 13.sp,
+                    fontFamily = WenKaiFontFamily,
+                    letterSpacing = 2.sp,
                     textAlign = TextAlign.Center
                 )
                 Text(
