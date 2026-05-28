@@ -28,7 +28,6 @@ import com.cyberdiviner.ui.almanac.AlmanacScreen
 import com.cyberdiviner.ui.archive.ArchiveScreen
 import com.cyberdiviner.ui.config.ConfigScreen
 import com.cyberdiviner.ui.consult.ConsultScreen
-import com.cyberdiviner.ui.epiphany.EpiphanyScreen
 import com.cyberdiviner.ui.liuyao.LiuyaoScreen
 import com.cyberdiviner.ui.muyu.MuyuScreen
 import com.cyberdiviner.ui.oracle.OracleScreen
@@ -47,7 +46,6 @@ import com.cyberdiviner.ui.vision.VisionScreen
  */
 object Routes {
     const val SPLASH = "splash"
-    const val EPIPHANY = "epiphany"
     const val ORACLE = "oracle"
     const val CONSULT = "consult"
     const val RITUALS = "rituals"
@@ -132,22 +130,8 @@ fun CyberDivinerNavGraph(navController: NavHostController) {
                 ) {
                     SplashScreen(
                         onTimeout = {
-                            navController.navigate(Routes.EPIPHANY) {
-                                popUpTo(Routes.SPLASH) { inclusive = true }
-                            }
-                        }
-                    )
-                }
-
-                composable(
-                    Routes.EPIPHANY,
-                    enterTransition = { fadeIn(animationSpec = tween(500)) },
-                    exitTransition = { fadeOut(animationSpec = tween(300)) }
-                ) {
-                    EpiphanyScreen(
-                        onEnter = {
                             navController.navigate(Routes.ORACLE) {
-                                popUpTo(Routes.EPIPHANY) { inclusive = true }
+                                popUpTo(Routes.SPLASH) { inclusive = true }
                             }
                         }
                     )

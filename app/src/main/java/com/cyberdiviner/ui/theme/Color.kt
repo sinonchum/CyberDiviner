@@ -6,13 +6,13 @@ import androidx.compose.ui.graphics.Color
 val CyberBlack = Color(0xFF000000)
 val CyberWhite = Color(0xFFFFFFFF)
 
-// ── Gray hierarchy (visual depth without color) ─────────────────────────────
-val GrayTitle = CyberWhite                  // Primary titles — pure white
-val GrayBody = Color(0xFFAAAAAA)            // Body / interpretation text
-val GrayCaption = Color(0xFF777777)         // Timestamps, status, secondary
-val GrayMuted = Color(0xFF555555)           // Hash watermarks, dividers
-val GrayBorder = Color(0xFF333333)          // Card borders, separators
-val GraySurface = Color(0xFF111111)         // Subtle surface differentiation
+// ── Gray hierarchy — 提亮版本，保证黑色背景上清晰可读 ─────────────────────
+val GrayTitle = CyberWhite                  // 标题 — 纯白
+val GrayBody = Color(0xFFD0D0D0)            // 正文 — 浅灰（原0xFFAAAAAA）
+val GrayCaption = Color(0xFF999999)         // 时间戳/状态 — 中灰（原0xFF777777）
+val GrayMuted = Color(0xFF777777)           // 水印/次要信息 — 中灰（原0xFF555555）
+val GrayBorder = Color(0xFF555555)          // 边框 — 可见灰（原0xFF333333）
+val GraySurface = Color(0xFF1A1A1A)         // 表面 — 微亮（原0xFF111111）
 
 // ── Legacy aliases (map to B&W) ───────────────────────────────────────────
 val CyberPrimary = CyberWhite
@@ -26,8 +26,8 @@ val CyberSurface = GraySurface
 val CyberGray = GraySurface
 val CyberDark = CyberBlack
 
-// ── Bridgewater accent ─────────────────────────────────────────────────────
-val AccentRed = Color(0xFF80241E)     // Bridgewater deep red — section labels, category text
+// ── Bridgewater accent — 提亮红色 ─────────────────────────────────────────
+val AccentRed = Color(0xFFCC3333)           // 提亮红（原0xFF80241E太暗）
 
 // ── Legacy accent aliases (for existing screens) ───────────────────────────
 val AccentVision = CyberWhite
