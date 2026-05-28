@@ -96,10 +96,11 @@ fun ArchiveScreen(
                                     interp = ""
                                 }
                                 DivinationType.TAROT -> {
-                                    title = viewModel.getTarotCardSummary(reading.id)
+                                    val summary = viewModel.getTarotSummary(reading.id)
+                                    title = summary?.title
                                         ?: reading.question.takeIf { it.length <= 8 }
                                         ?: "塔罗占卜"
-                                    interp = viewModel.getTarotCardNames(reading.id) ?: ""
+                                    interp = summary?.interpretation ?: ""
                                 }
                                 else -> {
                                     // ORACLE/MUYU/VISION: use existing logic
