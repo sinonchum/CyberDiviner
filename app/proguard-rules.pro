@@ -18,6 +18,14 @@
 
 # MediaPipe (native methods)
 -keep class com.google.mediapipe.** { *; }
+-dontwarn com.google.mediapipe.proto.CalculatorProfileProto$CalculatorProfile
+-dontwarn com.google.mediapipe.proto.GraphTemplateProto$CalculatorGraphTemplate
+
+# javax.lang.model (used by MediaPipe internally)
+-dontwarn javax.lang.model.**
+-dontwarn javax.lang.model.element.**
+-dontwarn javax.lang.model.type.**
+-dontwarn javax.lang.model.util.**
 
 # Hilt
 -keep class dagger.hilt.** { *; }
