@@ -110,7 +110,7 @@ fun ConsultScreen(
         } else {
             Text(
                 text = "> \u5904\u7406\u4E2D...",
-                color = TextMuted,
+                color = GrayMuted,
                 fontSize = 14.sp,
                 fontFamily = MonoFontFamily
             )
@@ -169,14 +169,14 @@ private fun ChatBubble(msg: ChatMessage) {
     val (prefix, color) = when (msg) {
         is ChatMessage.User -> Pair("\u7528\u6237 > ", CyberWhite)
         is ChatMessage.Agent -> Pair("AGENT > ", CyberWhite)
-        is ChatMessage.System -> Pair("", TextMuted)
+        is ChatMessage.System -> Pair("", GrayMuted)
     }
 
     Row(modifier = Modifier.fillMaxWidth()) {
         if (prefix.isNotEmpty()) {
             Text(
                 text = prefix,
-                color = TextMuted,
+                color = GrayMuted,
                 fontSize = 11.sp,
                 fontFamily = MonoFontFamily
             )

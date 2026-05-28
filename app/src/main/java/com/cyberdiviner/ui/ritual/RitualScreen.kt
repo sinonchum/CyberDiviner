@@ -15,7 +15,7 @@ import com.cyberdiviner.ui.shared.IChingIcon
 import com.cyberdiviner.ui.shared.TarotIcon
 import com.cyberdiviner.ui.shared.VisionIcon
 import com.cyberdiviner.ui.theme.CyberBlack
-import com.cyberdiviner.ui.theme.TextMuted
+import com.cyberdiviner.ui.theme.GrayMuted
 
 /**
  * RitualScreen -- Tool selection (Layer 3).
@@ -46,7 +46,7 @@ fun RitualScreen(
             // ── Header ─────────────────────────────────────
             Text(
                 text = "[ 仪规执行 ]",
-                color = TextMuted,
+                color = GrayMuted,
                 fontSize = 11.sp,
                 fontFamily = HuiwenFontFamily,
                 letterSpacing = 2.sp
@@ -54,7 +54,7 @@ fun RitualScreen(
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = "RITUAL EXECUTION",
-                color = TextMuted,
+                color = GrayMuted,
                 fontSize = 11.sp,
                 fontFamily = MonoFontFamily,
                 letterSpacing = 3.sp
@@ -113,7 +113,7 @@ fun RitualScreen(
             // ── Back ───────────────────────────────────────
             Text(
                 text = "[ RETURN ]",
-                color = TextMuted,
+                color = GrayMuted,
                 fontSize = 11.sp,
                 fontFamily = MonoFontFamily,
                 letterSpacing = 2.sp,

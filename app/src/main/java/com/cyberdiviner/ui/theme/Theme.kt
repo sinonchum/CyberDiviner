@@ -9,15 +9,15 @@ private val BinaryColorScheme = darkColorScheme(
     secondary = CyberWhite,
     tertiary = CyberWhite,
     background = CyberBlack,
-    surface = CyberDark,
-    surfaceVariant = CyberGray,
+    surface = CyberBlack,
+    surfaceVariant = GraySurface,
     onPrimary = CyberBlack,
     onSecondary = CyberBlack,
     onTertiary = CyberBlack,
     onBackground = CyberWhite,
     onSurface = CyberWhite,
-    onSurfaceVariant = TextSecondary,
-    outline = BorderColor
+    onSurfaceVariant = GrayBody,
+    outline = GrayBorder
 )
 
 @Composable

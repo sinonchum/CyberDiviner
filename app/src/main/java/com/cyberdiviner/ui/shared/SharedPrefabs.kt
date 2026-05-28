@@ -30,7 +30,7 @@ import com.cyberdiviner.ui.theme.AccentRed
 import com.cyberdiviner.ui.theme.GrayCaption
 import com.cyberdiviner.ui.theme.HuiwenFontFamily
 import com.cyberdiviner.ui.theme.MonoFontFamily
-import com.cyberdiviner.ui.theme.TextMuted
+import com.cyberdiviner.ui.theme.GrayMuted
 
 /**
  * Bridgewater-style section header.
@@ -107,7 +107,7 @@ fun StatusLine(
 ) {
     Text(
         text = text,
-        color = TextMuted,
+        color = GrayMuted,
         fontSize = 10.sp,
         fontFamily = MonoFontFamily,
         letterSpacing = 2.sp,

@@ -450,7 +450,7 @@ private fun EmptyArchive() {
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = "NO CAUSAL RECORDS",
-            color = TextMuted,
+            color = GrayMuted,
             fontSize = 11.sp,
             fontFamily = MonoFontFamily,
             letterSpacing = 2.sp

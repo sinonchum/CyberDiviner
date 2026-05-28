@@ -17,9 +17,9 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cyberdiviner.ui.theme.CyberBlack
-import com.cyberdiviner.ui.theme.CyberGray
+import com.cyberdiviner.ui.theme.GraySurface
 import com.cyberdiviner.ui.theme.CyberWhite
-import com.cyberdiviner.ui.theme.TextMuted
+import com.cyberdiviner.ui.theme.GrayMuted
 import kotlinx.coroutines.flow.collectLatest
 
 /**
@@ -61,13 +61,13 @@ fun CyberButton(
     }
 
     val bgColor = when {
-        !enabled -> CyberGray
+        !enabled -> GraySurface
         isPressed -> CyberWhite
         else -> CyberBlack
     }
 
     val textColor = when {
-        !enabled -> TextMuted
+        !enabled -> GrayMuted
         isPressed -> CyberBlack
         else -> CyberWhite
     }

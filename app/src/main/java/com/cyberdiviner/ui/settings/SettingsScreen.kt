@@ -65,9 +65,9 @@ fun SettingsScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = CyberGray,
-                    titleContentColor = TextPrimary,
-                    navigationIconContentColor = TextPrimary
+                    containerColor = GraySurface,
+                    titleContentColor = CyberWhite,
+                    navigationIconContentColor = CyberWhite
                 )
             )
         },
@@ -87,14 +87,14 @@ fun SettingsScreen(
             if (saved) {
                 Card(
                     colors = CardDefaults.cardColors(
-                        containerColor = CyberPrimary.copy(alpha = 0.15f)
+                        containerColor = CyberWhite.copy(alpha = 0.15f)
                     ),
                     shape = MaterialTheme.shapes.medium
                 ) {
                     Text(
                         "Configuration saved",
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
-                        color = CyberPrimary,
+                        color = CyberWhite,
                         fontSize = 13.sp,
                         fontFamily = MonoFontFamily
                     )
@@ -122,7 +122,7 @@ fun SettingsScreen(
                     textStyle = LocalTextStyle.current.copy(
                         fontFamily = MonoFontFamily,
                         fontSize = 14.sp,
-                        color = TextPrimary
+                        color = CyberWhite
                     )
                 )
 
@@ -169,7 +169,7 @@ fun SettingsScreen(
                     textStyle = LocalTextStyle.current.copy(
                         fontFamily = MonoFontFamily,
                         fontSize = 14.sp,
-                        color = TextPrimary
+                        color = CyberWhite
                     )
                 )
 
@@ -197,7 +197,7 @@ fun SettingsScreen(
 
             Text(
                 Persona.ALL[personaId]?.voiceDescription ?: "",
-                color = TextMuted,
+                color = GrayMuted,
                 fontSize = 11.sp,
                 lineHeight = 16.sp,
                 fontFamily = MonoFontFamily
@@ -220,7 +220,7 @@ fun SettingsScreen(
                             if (showApiKey) Icons.Default.VisibilityOff
                             else Icons.Default.Visibility,
                             contentDescription = "Toggle visibility",
-                            tint = TextMuted
+                            tint = GrayMuted
                         )
                     }
                 },
@@ -229,7 +229,7 @@ fun SettingsScreen(
                 textStyle = LocalTextStyle.current.copy(
                     fontFamily = MonoFontFamily,
                     fontSize = 14.sp,
-                    color = TextPrimary
+                    color = CyberWhite
                 )
             )
 
@@ -248,7 +248,7 @@ fun SettingsScreen(
                 textStyle = LocalTextStyle.current.copy(
                     fontFamily = MonoFontFamily,
                     fontSize = 14.sp,
-                    color = TextPrimary
+                    color = CyberWhite
                 )
             )
 
@@ -266,7 +266,7 @@ fun SettingsScreen(
                 textStyle = LocalTextStyle.current.copy(
                     fontFamily = MonoFontFamily,
                     fontSize = 14.sp,
-                    color = TextPrimary
+                    color = CyberWhite
                 )
             )
 
@@ -277,7 +277,7 @@ fun SettingsScreen(
                     .fillMaxWidth()
                     .height(50.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = CyberPrimary,
+                    containerColor = CyberWhite,
                     contentColor = CyberBlack
                 ),
                 shape = MaterialTheme.shapes.medium
@@ -294,7 +294,7 @@ fun SettingsScreen(
             Text(
                 "API key is stored locally on device using Android DataStore.\n" +
                 "For OpenAI-Compatible providers, enter your relay base URL.",
-                color = TextMuted,
+                color = GrayMuted,
                 fontSize = 12.sp,
                 lineHeight = 18.sp,
                 fontFamily = MonoFontFamily
@@ -309,7 +309,7 @@ fun SettingsScreen(
 private fun SectionHeader(title: String) {
     Text(
         title,
-        color = CyberPrimary,
+        color = CyberWhite,
         fontSize = 13.sp,
         fontWeight = FontWeight.Bold,
         fontFamily = MonoFontFamily,
@@ -319,11 +319,11 @@ private fun SectionHeader(title: String) {
 
 @Composable
 private fun settingsFieldColors() = OutlinedTextFieldDefaults.colors(
-    focusedBorderColor = CyberPrimary,
-    unfocusedBorderColor = TextMuted,
-    focusedContainerColor = CyberGray,
-    unfocusedContainerColor = CyberGray,
-    focusedLabelColor = CyberPrimary,
-    unfocusedLabelColor = TextMuted,
-    cursorColor = CyberPrimary
+    focusedBorderColor = CyberWhite,
+    unfocusedBorderColor = GrayMuted,
+    focusedContainerColor = GraySurface,
+    unfocusedContainerColor = GraySurface,
+    focusedLabelColor = CyberWhite,
+    unfocusedLabelColor = GrayMuted,
+    cursorColor = CyberWhite
 )

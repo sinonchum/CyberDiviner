@@ -16,7 +16,7 @@ fun SubtleBackground(modifier: Modifier = Modifier) {
         drawRect(
             brush = Brush.radialGradient(
                 colors = listOf(
-                    CyberGray,
+                    GraySurface,
                     CyberBlack
                 ),
                 center = Offset(size.width * 0.5f, size.height * 0.3f),

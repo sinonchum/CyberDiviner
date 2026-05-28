@@ -12,8 +12,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cyberdiviner.R
 import com.cyberdiviner.engine.AlmanacEngine
+import com.cyberdiviner.engine.AlmanacQuotes
 import com.cyberdiviner.ui.theme.*
 import kotlinx.coroutines.delay
 import java.time.LocalDate
@@ -98,14 +99,9 @@ fun SplashScreen(onTimeout: () -> Unit) {
         animationSpec = tween(700, easing = FastOutSlowInEasing), label = "bottomFade"
     )
 
-    // 亮度提升矩阵
-    val brightMatrix = remember {
-        ColorMatrix(floatArrayOf(
-            1.3f, 0f,   0f,   0f, 20f,
-            0f,   1.3f, 0f,   0f, 20f,
-            0f,   0f,   1.3f, 0f, 20f,
-            0f,   0f,   0f,   1f, 0f
-        ))
+    // 每日签语
+    val dailyQuote = remember(today) {
+        AlmanacQuotes.getQuoteForDate(today)
     }
 
     // 光标闪烁
@@ -126,7 +122,10 @@ fun SplashScreen(onTimeout: () -> Unit) {
             painter = painterResource(id = R.drawable.splash_mountain),
             contentDescription = null,
             contentScale = ContentScale.Crop,
-            colorFilter = ColorFilter.colorMatrix(brightMatrix),
+            colorFilter = ColorFilter.tint(
+                Color.White.copy(alpha = 0.15f),
+                BlendMode.Lighten
+            ),
             modifier = Modifier.fillMaxSize()
         )
 
@@ -217,7 +216,7 @@ fun SplashScreen(onTimeout: () -> Unit) {
                     .alpha(bottomAlpha)
             ) {
                 Text(
-                    text = "萬物共歸道，演算法虛靈。",
+                    text = dailyQuote.text,
                     color = CyberWhite,
                     fontSize = 13.sp,
                     fontFamily = WenKaiFontFamily,

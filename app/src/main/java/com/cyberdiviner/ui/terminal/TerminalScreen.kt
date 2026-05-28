@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cyberdiviner.ui.shared.CyberMenuItem
 import com.cyberdiviner.ui.theme.CyberBlack
-import com.cyberdiviner.ui.theme.TextMuted
+import com.cyberdiviner.ui.theme.GrayMuted
 
 /**
  * TerminalScreen — The中枢 layer.
@@ -40,7 +40,7 @@ fun TerminalScreen(
             // ── Terminal header ─────────────────────────────────────
             Text(
                 text = "CYBERDIVINER v6.0",
-                color = TextMuted,
+                color = GrayMuted,
                 fontSize = 11.sp,
                 fontFamily = MonoFontFamily,
                 letterSpacing = 3.sp
@@ -48,7 +48,7 @@ fun TerminalScreen(
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = "System initialized. Select protocol.",
-                color = TextMuted,
+                color = GrayMuted,
                 fontSize = 12.sp,
                 fontFamily = MonoFontFamily
             )
@@ -85,7 +85,7 @@ fun TerminalScreen(
             // ── Footer status line ──────────────────────────────────
             Text(
                 text = "CAUSAL CHAIN ACTIVE  |  SOUL HASH PENDING  |  NODE v6.0",
-                color = TextMuted,
+                color = GrayMuted,
                 fontSize = 10.sp,
                 fontFamily = MonoFontFamily,
                 letterSpacing = 2.sp

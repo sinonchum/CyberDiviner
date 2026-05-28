@@ -96,7 +96,7 @@ fun CoinTossAnimation(
         // Toss counter
         Text(
             text = "第 ${currentTossIndex + 1} / 6 爻",
-            color = NeonCyan,
+            color = GrayBody,
             fontSize = 14.sp,
             fontFamily = WenKaiFontFamily,
             fontWeight = FontWeight.Medium
@@ -145,10 +145,10 @@ fun CoinTossAnimation(
                 LineState.YOUNG_YIN -> "少阴 - -"
             }
             val stateColor = when (lineState) {
-                LineState.OLD_YANG -> NeonOrange
-                LineState.OLD_YIN -> NeonPurple
-                LineState.YOUNG_YANG -> NeonCyan
-                LineState.YOUNG_YIN -> NeonBlue
+                LineState.OLD_YANG -> AccentRed
+                LineState.OLD_YIN -> GrayMuted
+                LineState.YOUNG_YANG -> GrayBody
+                LineState.YOUNG_YIN -> GrayBody
             }
 
             Text(
@@ -160,7 +160,7 @@ fun CoinTossAnimation(
         } else if (isAnimating) {
             Text(
                 text = "抛掷铜钱中...",
-                color = TextSecondary,
+                color = GrayBody,
                 fontSize = 14.sp
             )
         }
@@ -182,7 +182,7 @@ private fun DrawScope.drawCoin(
     drawCircle(
         brush = Brush.radialGradient(
             colors = listOf(
-                NeonCyan.copy(alpha = glowAlpha * 0.4f),
+                GrayBody.copy(alpha = glowAlpha * 0.4f),
                 Color.Transparent
             ),
             center = center,
@@ -197,7 +197,7 @@ private fun DrawScope.drawCoin(
         drawCircle(
             brush = Brush.radialGradient(
                 colors = listOf(
-                    FortuneGold,
+                    AccentRed,
                     Color(0xFFB8860B),
                     Color(0xFF8B6914)
                 ),
@@ -226,7 +226,7 @@ private fun DrawScope.drawCoin(
     // Face text (shown when revealed, no rotation)
     if (isRevealed) {
         val faceText = if (isHeads) "字" else "花"
-        val faceColor = if (isHeads) NeonCyan else NeonMagenta
+        val faceColor = if (isHeads) GrayBody else GrayMuted
 
         drawIntoCanvas { canvas ->
             canvas.nativeCanvas.apply {
@@ -249,7 +249,7 @@ private fun DrawScope.drawCoin(
 
     // Changing line indicator
     if (isRevealed && isChanging) {
-        val indicatorColor = if (isHeads) NeonOrange else NeonPurple
+        val indicatorColor = if (isHeads) AccentRed else GrayMuted
         drawCircle(
             color = indicatorColor,
             radius = radius * 1.1f,
@@ -283,14 +283,14 @@ fun SixTossAnimation(
                 val color = when {
                     i < tossResults.size -> {
                         when (tossResults[i]) {
-                            LineState.OLD_YANG -> NeonOrange
-                            LineState.OLD_YIN -> NeonPurple
-                            LineState.YOUNG_YANG -> NeonCyan
-                            LineState.YOUNG_YIN -> NeonBlue
+                            LineState.OLD_YANG -> AccentRed
+                            LineState.OLD_YIN -> GrayMuted
+                            LineState.YOUNG_YANG -> GrayBody
+                            LineState.YOUNG_YIN -> GrayBody
                         }
                     }
-                    i == currentTossIndex -> NeonCyan
-                    else -> TextMuted
+                    i == currentTossIndex -> GrayBody
+                    else -> GrayMuted
                 }
                 Canvas(modifier = Modifier.size(12.dp)) {
                     drawCircle(color = color, radius = size.minDimension / 2)
@@ -312,7 +312,7 @@ fun SixTossAnimation(
             Spacer(modifier = Modifier.height(24.dp))
             Text(
                 text = "━━━ 已得爻象 ━━━",
-                color = TextMuted,
+                color = GrayMuted,
                 fontSize = 12.sp
             )
             Spacer(modifier = Modifier.height(8.dp))
@@ -324,10 +324,10 @@ fun SixTossAnimation(
                     else -> ""
                 }
                 val stateColor = when (state) {
-                    LineState.OLD_YANG -> NeonOrange
-                    LineState.OLD_YIN -> NeonPurple
-                    LineState.YOUNG_YANG -> NeonCyan
-                    LineState.YOUNG_YIN -> NeonBlue
+                    LineState.OLD_YANG -> AccentRed
+                    LineState.OLD_YIN -> GrayMuted
+                    LineState.YOUNG_YANG -> GrayBody
+                    LineState.YOUNG_YIN -> GrayBody
                 }
                 val isYang = state == LineState.YOUNG_YANG || state == LineState.OLD_YANG
                 Row(

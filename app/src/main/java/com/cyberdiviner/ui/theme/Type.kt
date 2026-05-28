@@ -119,7 +119,7 @@ val CyberTypography = Typography(
         fontWeight = FontWeight.Normal,
         fontSize = 12.sp,
         lineHeight = 18.sp,
-        color = TextSecondary
+        color = GrayBody
     ),
 
     // ── 存根/元数据/系统: JetBrains Mono (data, hashes, system) ──
@@ -135,13 +135,13 @@ val CyberTypography = Typography(
         fontWeight = FontWeight.Normal,
         fontSize = 12.sp,
         letterSpacing = 1.sp,
-        color = TextSecondary
+        color = GrayBody
     ),
     labelSmall = TextStyle(
         fontFamily = MonoFontFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 11.sp,
         letterSpacing = 1.sp,
-        color = TextSecondary
+        color = GrayBody
     )
 )

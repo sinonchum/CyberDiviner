@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cyberdiviner.ui.theme.CyberBlack
 import com.cyberdiviner.ui.theme.CyberWhite
-import com.cyberdiviner.ui.theme.TextMuted
+import com.cyberdiviner.ui.theme.GrayMuted
 import kotlinx.coroutines.flow.collectLatest
 
 /**
@@ -111,7 +111,7 @@ fun CyberMenuItem(
             if (subtitle.isNotEmpty()) {
                 Text(
                     text = subtitle,
-                    color = TextMuted,
+                    color = GrayMuted,
                     fontFamily = MonoFontFamily,
                     fontSize = 11.sp,
                     letterSpacing = 1.sp,
@@ -124,7 +124,7 @@ fun CyberMenuItem(
             if (description.isNotEmpty()) {
                 Text(
                     text = description,
-                    color = TextMuted,
+                    color = GrayMuted,
                     fontFamily = WenKaiFontFamily,
                     fontSize = 11.sp,
                     lineHeight = 16.sp,

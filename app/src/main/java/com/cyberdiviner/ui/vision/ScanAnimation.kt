@@ -59,10 +59,10 @@ fun ScanAnimation(
     )
     val dotCount = dotCountFloat.toInt()
 
-    val cyanColor = AccentVision
-    val magentaColor = CyberSecondary
-    val greenColor = AccentVision
-    val goldColor = FortuneGold
+    val cyanColor = GrayBody
+    val magentaColor = GrayMuted
+    val greenColor = GrayBody
+    val goldColor = AccentRed
 
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
         Canvas(
@@ -156,7 +156,7 @@ fun ScanAnimation(
         ) {
             Text(
                 text = phase + ".".repeat(dotCount % 4),
-                color = AccentVision.copy(alpha = pulse),
+                color = AccentRed.copy(alpha = pulse),
                 fontSize = 13.sp,
                 fontFamily = MonoFontFamily,
                 letterSpacing = 3.sp
@@ -166,7 +166,7 @@ fun ScanAnimation(
                 statusLines.forEach { line ->
                     Text(
                         text = line,
-                        color = TextSecondary,
+                        color = GrayBody,
                         fontSize = 10.sp,
                         fontFamily = MonoFontFamily,
                     )

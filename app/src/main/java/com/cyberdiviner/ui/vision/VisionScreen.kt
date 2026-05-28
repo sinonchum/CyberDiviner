@@ -265,7 +265,7 @@ fun VisionScreen(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(CyberDark)
+                    .background(CyberBlack)
             )
         }
 
@@ -302,13 +302,13 @@ fun VisionScreen(
                 Icon(
                     Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Back",
-                    tint = AccentVision
+                    tint = AccentRed
                 )
             }
             Spacer(Modifier.weight(1f))
             Text(
                 "VISION // FACE SCAN",
-                color = AccentVision,
+                color = AccentRed,
                 fontSize = 14.sp,
                 fontFamily = MonoFontFamily,
                 letterSpacing = 2.sp
@@ -323,8 +323,8 @@ fun VisionScreen(
                         when {
                             showResult -> GrayCaption
                             cameraActive && uiState.faceDetected -> GrayCaption
-                            isScanning -> AccentVision
-                            else -> TextMuted
+                            isScanning -> AccentRed
+                            else -> GrayMuted
                         }
                     )
             )
@@ -338,7 +338,7 @@ fun VisionScreen(
                     .align(Alignment.Center)
                     .padding(32.dp)
                     .clip(RoundedCornerShape(4.dp))
-                    .background(CyberSurface.copy(alpha = 0.95f))
+                    .background(GraySurface.copy(alpha = 0.95f))
                     .padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -351,7 +351,7 @@ fun VisionScreen(
                 Spacer(Modifier.height(8.dp))
                 Text(
                     uiState.errorMessage ?: "Unknown error",
-                    color = TextPrimary,
+                    color = CyberWhite,
                     fontSize = 13.sp,
                     textAlign = TextAlign.Center,
                     fontFamily = WenKaiFontFamily
@@ -380,7 +380,7 @@ fun VisionScreen(
                     .align(Alignment.BottomCenter)
                     .padding(20.dp)
                     .clip(RoundedCornerShape(4.dp))
-                    .background(CyberSurface.copy(alpha = 0.92f))
+                    .background(GraySurface.copy(alpha = 0.92f))
                     .padding(24.dp)
                     .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally
@@ -428,7 +428,7 @@ fun VisionScreen(
                     // Real LLM interpretation from VisionViewModel
                     Text(
                         uiState.interpretation,
-                        color = TextPrimary,
+                        color = CyberWhite,
                         fontSize = 14.sp,
                         lineHeight = 22.sp,
                         textAlign = TextAlign.Left,
@@ -438,7 +438,7 @@ fun VisionScreen(
                     // Streaming LLM text (in case interpretation isn't final yet)
                     Text(
                         uiState.streamText,
-                        color = TextPrimary,
+                        color = CyberWhite,
                         fontSize = 14.sp,
                         lineHeight = 22.sp,
                         textAlign = TextAlign.Left,
@@ -450,7 +450,7 @@ fun VisionScreen(
                         "此面相气场充沛，五行水旺而木辅，\n"
                                 + "主智慧深远，贵人运旺。\n"
                                 + "近期宜静心修炼，把握机遇。",
-                        color = TextPrimary,
+                        color = CyberWhite,
                         fontSize = 14.sp,
                         lineHeight = 22.sp,
                         textAlign = TextAlign.Center,
@@ -465,14 +465,14 @@ fun VisionScreen(
                     // Real extracted features from MediaPipe
                     val features = uiState.detectedFeatures
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        StatBadge("FACE", features.faceOval.shape.uppercase(), AccentVision)
+                        StatBadge("FACE", features.faceOval.shape.uppercase(), AccentRed)
                         StatBadge("EYES", features.eyes.eyeSize.uppercase(), GrayCaption)
-                        StatBadge("NOSE", features.nose.shape.uppercase(), AccentVision)
+                        StatBadge("NOSE", features.nose.shape.uppercase(), AccentRed)
                     }
                     Spacer(Modifier.height(8.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         StatBadge("MOUTH", features.mouth.shape.uppercase(), GrayCaption)
-                        StatBadge("CHIN", features.chin.shape.uppercase(), AccentVision)
+                        StatBadge("CHIN", features.chin.shape.uppercase(), AccentRed)
                         StatBadge(
                             "SYMMETRY",
                             "${String.format("%.0f", features.faceOval.symmetry * 100)}%",
@@ -482,9 +482,9 @@ fun VisionScreen(
                 } else {
                     // Simulated fallback badges
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        StatBadge("RATING", "S+", AccentVision)
+                        StatBadge("RATING", "S+", AccentRed)
                         StatBadge("FIELD", "432Hz", GrayCaption)
-                        StatBadge("ELEMENT", "WATER", AccentVision)
+                        StatBadge("ELEMENT", "WATER", AccentRed)
                     }
                 }
 
@@ -523,7 +523,7 @@ fun VisionScreen(
 private fun StatBadge(label: String, value: String, color: Color) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(value, color = color, fontSize = 16.sp, fontFamily = MonoFontFamily)
-        Text(label, color = TextSecondary, fontSize = 10.sp, fontFamily = MonoFontFamily)
+        Text(label, color = GrayBody, fontSize = 10.sp, fontFamily = MonoFontFamily)
     }
 }
 
