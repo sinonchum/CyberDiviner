@@ -1,6 +1,8 @@
 package com.cyberdiviner.ui.epiphany
 
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -9,24 +11,31 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ColorMatrix
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.cyberdiviner.R
 import com.cyberdiviner.engine.AlmanacEngine
 import com.cyberdiviner.ui.theme.*
-import com.cyberdiviner.ui.theme.CyberWhite
-import com.cyberdiviner.ui.theme.TextMuted
 import kotlinx.coroutines.delay
 import java.time.LocalDate
 
 /**
- * EpiphanyScreen -- The first face the user sees each day.
+ * EpiphanyScreen -- 每日干支顿悟页面
  *
- * Strictly monochrome. Giant GanZhi characters occupying 60% of screen height.
- * Vertical layout. A single AI-generated logic phrase at the bottom.
- * Tap center to dissolve into The Terminal.
+ * 背景：山景图 + 亮度提升。
+ * 字体：汇文明朝体（HuiwenFontFamily）。
+ * 文字：繁体中文。
+ * 交互：点击任意位置淡出进入主界面。
  */
 @Composable
 fun EpiphanyScreen(
@@ -46,7 +55,7 @@ fun EpiphanyScreen(
         label = "dissolve"
     )
 
-    // Blinking cursor effect
+    // Blinking cursor
     var cursorVisible by remember { mutableStateOf(true) }
     LaunchedEffect(Unit) {
         while (true) {
@@ -55,7 +64,47 @@ fun EpiphanyScreen(
         }
     }
 
-    // Generate logic phrase from day's energy
+    // Sequential fade-in
+    var showYear by remember { mutableStateOf(false) }
+    var showMonth by remember { mutableStateOf(false) }
+    var showDay by remember { mutableStateOf(false) }
+    var showBottom by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        delay(200); showYear = true
+        delay(300); showMonth = true
+        delay(300); showDay = true
+        delay(500); showBottom = true
+    }
+
+    val yearAlpha by animateFloatAsState(
+        targetValue = if (showYear) 1f else 0f,
+        animationSpec = tween(700, easing = FastOutSlowInEasing), label = "yearFade"
+    )
+    val monthAlpha by animateFloatAsState(
+        targetValue = if (showMonth) 1f else 0f,
+        animationSpec = tween(700, easing = FastOutSlowInEasing), label = "monthFade"
+    )
+    val dayAlpha by animateFloatAsState(
+        targetValue = if (showDay) 1f else 0f,
+        animationSpec = tween(700, easing = FastOutSlowInEasing), label = "dayFade"
+    )
+    val bottomAlpha by animateFloatAsState(
+        targetValue = if (showBottom) 1f else 0f,
+        animationSpec = tween(700, easing = FastOutSlowInEasing), label = "bottomFade"
+    )
+
+    // 亮度提升矩阵
+    val brightMatrix = remember {
+        ColorMatrix(floatArrayOf(
+            2.0f, 0f,   0f,   0f, 50f,
+            0f,   2.0f, 0f,   0f, 50f,
+            0f,   0f,   2.0f, 0f, 50f,
+            0f,   0f,   0f,   1f, 0f
+        ))
+    }
+
+    // 签语
     val logicPhrase = remember(reading) {
         generateLogicPhrase(dayGanzhi)
     }
@@ -63,84 +112,123 @@ fun EpiphanyScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(CyberBlack)
             .alpha(dissolveAlpha)
             .clickable {
                 if (!dissolving) dissolving = true
             },
         contentAlignment = Alignment.Center
     ) {
+        // ── 山景背景 — 程序化提亮 ───────────────────────────────────────
+        Image(
+            painter = painterResource(id = R.drawable.splash_mountain),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            colorFilter = ColorFilter.colorMatrix(brightMatrix),
+            modifier = Modifier.fillMaxSize()
+        )
+
+        // 底部渐变遮罩
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        colorStops = arrayOf(
+                            0.0f to Color.Black.copy(alpha = 0.0f),
+                            0.3f to Color.Black.copy(alpha = 0.1f),
+                            0.6f to Color.Black.copy(alpha = 0.35f),
+                            1.0f to Color.Black.copy(alpha = 0.7f)
+                        )
+                    )
+                )
+        )
+
+        // ── 主内容 ───────────────────────────────────────────────────────
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
             modifier = Modifier.fillMaxSize()
         ) {
-            // -- Vertical GanZhi (occupies 60% of screen) --
+            // 干支区域 (60%)
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.weight(0.6f),
+                modifier = Modifier.weight(0.55f),
                 verticalArrangement = Arrangement.Center
             ) {
-                // Year
+                // 年 — 汇文明朝体
                 Text(
                     text = "${reading.yearGanzhi.stem}${reading.yearGanzhi.branch}年",
                     color = CyberWhite,
                     fontSize = 42.sp,
-                    fontWeight = FontWeight.Black,
-                    fontFamily = WenKaiFontFamily,
-                    letterSpacing = 8.sp,
-                    textAlign = TextAlign.Center
+                    fontFamily = HuiwenFontFamily,
+                    fontWeight = FontWeight.Normal,
+                    letterSpacing = 10.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.alpha(yearAlpha)
                 )
-                Spacer(modifier = Modifier.height(16.dp))
-                // Month
+
+                Spacer(modifier = Modifier.height(8.dp))
+                AccentDivider(modifier = Modifier.alpha(yearAlpha))
+                Spacer(modifier = Modifier.height(18.dp))
+
+                // 月
                 Text(
                     text = "${reading.monthGanzhi.stem}${reading.monthGanzhi.branch}月",
-                    color = TextMuted,
-                    fontSize = 36.sp,
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = WenKaiFontFamily,
-                    letterSpacing = 6.sp,
-                    textAlign = TextAlign.Center
+                    color = CyberWhite,
+                    fontSize = 42.sp,
+                    fontFamily = HuiwenFontFamily,
+                    fontWeight = FontWeight.Normal,
+                    letterSpacing = 10.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.alpha(monthAlpha)
                 )
-                Spacer(modifier = Modifier.height(16.dp))
-                // Day -- the largest, most prominent
+
+                Spacer(modifier = Modifier.height(8.dp))
+                AccentDivider(modifier = Modifier.alpha(monthAlpha))
+                Spacer(modifier = Modifier.height(18.dp))
+
+                // 日 — 最大
                 Text(
                     text = "${dayGanzhi.stem}${dayGanzhi.branch}日",
                     color = CyberWhite,
-                    fontSize = 56.sp,
-                    fontWeight = FontWeight.Black,
-                    fontFamily = WenKaiFontFamily,
-                    letterSpacing = 10.sp,
-                    textAlign = TextAlign.Center
+                    fontSize = 58.sp,
+                    fontFamily = HuiwenFontFamily,
+                    fontWeight = FontWeight.Normal,
+                    letterSpacing = 14.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.alpha(dayAlpha)
                 )
             }
 
-            // Solar Term (if any)
+            // 节气
             solarTerm?.let {
                 Text(
                     text = "[ ${it.name} ]",
-                    color = TextMuted,
+                    color = GrayMuted,
                     fontSize = 13.sp,
                     fontFamily = MonoFontFamily,
-                    letterSpacing = 4.sp
+                    letterSpacing = 4.sp,
+                    modifier = Modifier.alpha(bottomAlpha)
                 )
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(24.dp))
             }
 
-            // Logic Phrase (AI-generated, terminal style)
+            // 签语 — 终端风格
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.padding(horizontal = 32.dp)
+                modifier = Modifier
+                    .padding(horizontal = 32.dp)
+                    .alpha(bottomAlpha)
             ) {
                 Text(
                     text = "> $logicPhrase",
-                    color = TextMuted,
+                    color = GrayCaption,
                     fontSize = 14.sp,
-                    fontFamily = MonoFontFamily,
+                    fontFamily = WenKaiFontFamily,
                     lineHeight = 22.sp,
+                    letterSpacing = 1.sp,
                     textAlign = TextAlign.Center
                 )
-                // Blinking cursor
                 Text(
                     text = if (cursorVisible) "_" else " ",
                     color = CyberWhite,
@@ -149,34 +237,69 @@ fun EpiphanyScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(48.dp))
+            Spacer(modifier = Modifier.weight(0.15f))
 
-            // Tap hint
-            Text(
-                text = "[ TOUCH TO ENTER ]",
-                color = TextMuted,
-                fontSize = 11.sp,
-                fontFamily = MonoFontFamily,
-                letterSpacing = 3.sp
-            )
+            // 底部提示
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.padding(bottom = 56.dp)
+            ) {
+                Canvas(
+                    modifier = Modifier
+                        .width(48.dp)
+                        .height(1.dp)
+                        .alpha(bottomAlpha)
+                ) {
+                    drawLine(
+                        AccentRed,
+                        Offset(0f, size.height / 2f),
+                        Offset(size.width, size.height / 2f),
+                        1.5f,
+                        StrokeCap.Square
+                    )
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "[ TOUCH TO ENTER ]",
+                    color = GrayMuted,
+                    fontSize = 11.sp,
+                    fontFamily = MonoFontFamily,
+                    letterSpacing = 3.sp,
+                    modifier = Modifier.alpha(bottomAlpha)
+                )
+            }
         }
     }
 }
 
+@Composable
+private fun AccentDivider(modifier: Modifier = Modifier) {
+    Canvas(
+        modifier = modifier.width(64.dp).height(1.dp)
+    ) {
+        drawLine(
+            AccentRed,
+            Offset(0f, size.height / 2f),
+            Offset(size.width, size.height / 2f),
+            1.5f,
+            StrokeCap.Square
+        )
+    }
+}
+
 /**
- * Generate a terse, logical phrase based on the day's Ganzhi element.
+ * 根据日干支五行生成繁体签语。
  */
 private fun generateLogicPhrase(
     ganzhi: AlmanacEngine.Ganzhi
 ): String {
     val element = ganzhi.branchElement
-
     return when (element) {
-        "Wood" -> "\u6728\u6C14\u5EF6\u5C55\uFF0C\u7CFB\u7EDF\u71C3\u503C\u5347\u9AD8\u3002\u5B9C\uFF1A\u62D3\u5C55\u5206\u652F\uFF1B\u5FCC\uFF1A\u5F3A\u884C\u5C01\u95ED\u3002"
-        "Fire" -> "\u706B\u6C14\u8FC8\u8FDB\uFF0C\u4FE1\u53F7\u5F3A\u5EA6\u8FC7\u8F7D\u3002\u5B9C\uFF1A\u91CA\u653E\u5197\u4F59\uFF1B\u5FCC\uFF1A\u8FFD\u52A0\u903B\u8F91\u3002"
-        "Earth" -> "\u571F\u6C14\u6C89\u79EF\uFF0C\u7CFB\u7EDF\u8FDB\u5165\u7A33\u6001\u3002\u5B9C\uFF1A\u4FEE\u8865\u5197\u4F59\u903B\u8F91\uFF1B\u5FCC\uFF1A\u5F3A\u884C\u5EFA\u7ACB\u94FE\u63A5\u3002"
-        "Metal" -> "\u91D1\u6C14\u6536\u655B\uFF0C\u7CBE\u5BFF\u5EA6\u63D0\u5347\u3002\u5B9C\uFF1A\u68C0\u67E5\u8FB9\u754C\u6761\u4EF6\uFF1B\u5FCC\uFF1A\u6269\u5F20\u8F93\u5165\u96C6\u3002"
-        "Water" -> "\u6C34\u6C14\u6D41\u52A8\uFF0C\u7F51\u7EDC\u8282\u70B9\u6D3B\u8DC3\u3002\u5B9C\uFF1A\u5145\u5206\u7F13\u5B58\uFF1B\u5FCC\uFF1A\u6E17\u900F\u672A\u7ECF\u9A8C\u8BC1\u94FE\u8DEF\u3002"
-        else -> "\u7CFB\u7EDF\u8FD0\u884C\u4E2D\uFF0C\u7B49\u5F85\u4E0B\u4E00\u6307\u4EE4\u3002"
+        "Wood" -> "木氣延展，系統燃值升高。宜：拓展分支；忌：強行封閉。"
+        "Fire" -> "火氣邁進，信號強度過載。宜：釋放冗餘；忌：追加邏輯。"
+        "Earth" -> "土氣沉積，系統進入穩態。宜：修補冗餘邏輯；忌：強行建立鏈接。"
+        "Metal" -> "金氣收斂，精密度提升。宜：檢查邊界條件；忌：擴張輸入集。"
+        "Water" -> "水氣流動，網絡節點活躍。宜：充分緩存；忌：滲透未經驗證鏈路。"
+        else -> "系統運行中，等待下一個指令。"
     }
 }
