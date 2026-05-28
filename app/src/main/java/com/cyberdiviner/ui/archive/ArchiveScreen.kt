@@ -32,15 +32,19 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import kotlin.math.abs
+import java.time.Instant
+import java.time.ZoneId
+import com.cyberdiviner.engine.AlmanacEngine
 
 // ── Data model ─────────────────────────────────────────────────────────────
 
 private data class ArchiveEntry(
     val id: Long,
-    val lunarDate: String,      // 日期
+    val ganzhiDate: String,     // 天干地支日名 (e.g. 丙戌日)
+    val solarDate: String,      // 公历日期 (2026.05.28)
     val type: String,           // 测算类型
-    val title: String,          // AI 四字批命
-    val interpretation: String, // 白话文解读
+    val title: String,          // 卦名 / 卡名 / 四字批命
+    val interpretation: String, // 一句解读
     val hash: String            // 防伪哈希
 )
 
@@ -173,12 +177,23 @@ private fun SwipeToDeleteCard(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text(
-                            text = entry.lunarDate,
-                            color = GrayCaption,
-                            fontSize = 12.sp,
-                            fontFamily = MonoFontFamily
-                        )
+                        Column {
+                            Text(
+                                text = entry.ganzhiDate,
+                                color = CyberWhite,
+                                fontSize = 14.sp,
+                                fontFamily = HuiwenFontFamily,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 2.sp
+                            )
+                            Text(
+                                text = entry.solarDate,
+                                color = GrayMuted,
+                                fontSize = 10.sp,
+                                fontFamily = MonoFontFamily,
+                                letterSpacing = 1.sp
+                            )
+                        }
                         Text(
                             text = entry.type,
                             color = AccentRed,
@@ -249,8 +264,9 @@ private fun SwipeToDeleteCard(
 // ── Empty state ───────────────────────────────────────────────────────
 
 private fun DivinationReading.toDisplayEntry(): ArchiveEntry {
-    val sdf = SimpleDateFormat("yyyy.MM.dd HH:mm", Locale.getDefault())
-    val dateStr = sdf.format(Date(timestamp))
+    val localDate = Instant.ofEpochMilli(timestamp).atZone(ZoneId.systemDefault()).toLocalDate()
+    val gz = AlmanacEngine.calculateGanzhi(localDate)
+    val solarDateStr = SimpleDateFormat("yyyy.MM.dd HH:mm", Locale.getDefault()).format(Date(timestamp))
 
     val titleText: String
     val interpretationText: String
@@ -305,7 +321,8 @@ private fun DivinationReading.toDisplayEntry(): ArchiveEntry {
 
     return ArchiveEntry(
         id = id,
-        lunarDate = dateStr,
+        ganzhiDate = "${gz.combined}日",
+        solarDate = solarDateStr,
         type = type.displayName,
         title = titleText.ifEmpty { type.displayName },
         interpretation = interpretationText.ifEmpty { notes.ifEmpty { "暂无解读" } },
