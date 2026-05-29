@@ -213,16 +213,16 @@ fun MuyuScreen(
                             viewModel.hit()
                         }
                 ) {
-                    Image(
-                        painter = painterResource(id = com.cyberdiviner.R.drawable.muyu_icon),
-                        contentDescription = "木鱼",
+                    // Canvas-drawn temple wooden fish — clearer than PNG
+                    Canvas(
                         modifier = Modifier
                             .fillMaxSize()
                             .graphicsLayer {
-                                rotationZ = malletAngle * 0.1f  // slight wobble on hit
-                            },
-                        contentScale = androidx.compose.ui.layout.ContentScale.Fit
-                    )
+                                rotationZ = malletAngle * 0.1f
+                            }
+                    ) {
+                        drawTempleWoodenFish(malletAngle)
+                    }
                 }
             }
 
