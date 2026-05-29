@@ -214,6 +214,10 @@ fun VisionScreen(
         simPhaseLabel = "面相分析完成"
         simProgress = 1f
         simComplete = true
+        // Trigger fallback analysis when no real camera data
+        if (!uiState.faceDetected) {
+            viewModel.triggerFallbackAnalysis()
+        }
     }
 
     // ── Derived display values ──
@@ -446,8 +450,7 @@ fun VisionScreen(
                 }
 
                 // ── Interpretation text ──
-                if (cameraActive && uiState.interpretation.isNotBlank()) {
-                    // Real LLM interpretation from VisionViewModel
+                if (uiState.interpretation.isNotBlank()) {
                     Text(
                         uiState.interpretation,
                         color = CyberWhite,
@@ -456,8 +459,7 @@ fun VisionScreen(
                         textAlign = TextAlign.Left,
                         fontFamily = WenKaiFontFamily
                     )
-                } else if (cameraActive && uiState.streamText.isNotBlank()) {
-                    // Streaming LLM text (in case interpretation isn't final yet)
+                } else if (uiState.streamText.isNotBlank()) {
                     Text(
                         uiState.streamText,
                         color = CyberWhite,
@@ -466,26 +468,13 @@ fun VisionScreen(
                         textAlign = TextAlign.Left,
                         fontFamily = WenKaiFontFamily
                     )
-                } else {
-                    // Simulated fallback interpretation
-                    Text(
-                        "此面相气场充沛，五行水旺而木辅，\n"
-                                + "主智慧深远，贵人运旺。\n"
-                                + "近期宜静心修炼，把握机遇。",
-                        color = CyberWhite,
-                        fontSize = 14.sp,
-                        lineHeight = 22.sp,
-                        textAlign = TextAlign.Center,
-                        fontFamily = WenKaiFontFamily
-                    )
                 }
 
                 Spacer(Modifier.height(16.dp))
 
                 // ── Feature badges ──
-                if (cameraActive && uiState.detectedFeatures != FacialFeatures()) {
-                    // Real extracted features from MediaPipe
-                    val features = uiState.detectedFeatures
+                val features = uiState.detectedFeatures
+                if (features != FacialFeatures()) {
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         StatBadge("FACE", features.faceOval.shape.uppercase(), AccentRed)
                         StatBadge("EYES", features.eyes.eyeSize.uppercase(), GrayCaption)
@@ -500,13 +489,6 @@ fun VisionScreen(
                             "${String.format("%.0f", features.faceOval.symmetry * 100)}%",
                             GrayCaption
                         )
-                    }
-                } else {
-                    // Simulated fallback badges
-                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        StatBadge("RATING", "S+", AccentRed)
-                        StatBadge("FIELD", "432Hz", GrayCaption)
-                        StatBadge("ELEMENT", "WATER", AccentRed)
                     }
                 }
 

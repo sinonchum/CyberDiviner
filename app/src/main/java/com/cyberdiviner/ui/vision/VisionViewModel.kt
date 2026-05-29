@@ -327,6 +327,25 @@ class VisionViewModel @Inject constructor(
         _uiState.value = VisionUiState()
     }
 
+    /**
+     * Trigger fallback analysis using simulated facial features
+     * (when camera is not available or face not detected).
+     */
+    fun triggerFallbackAnalysis() {
+        viewModelScope.launch {
+            val features = FacialFeatures()
+            val featuresJson = json.encodeToString(features)
+            val fallback = buildFallbackInterpretation(featuresJson, "")
+            val fortune = FortuneEngine.visionFortune(fallback)
+            _uiState.value = _uiState.value.copy(
+                interpretation = fallback,
+                phase = VisionPhase.RESULT,
+                fourCharFortune = fortune,
+                fourCharMeaning = FortuneEngine.visionMeaning(fortune)
+            )
+        }
+    }
+
     fun resetScan() {
         _uiState.value = _uiState.value.copy(
             phase = VisionPhase.IDLE,
