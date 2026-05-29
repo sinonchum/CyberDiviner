@@ -4,7 +4,7 @@ class OfflinePromptBuilder {
     companion object {
         private const val SYSTEM_INSTRUCTION =
             "你是一个算命AI。禁止使用emoji。只输出纯中文。"
-        const val MAX_TOKENS_ORACLE = 300
+        const val MAX_TOKENS_ORACLE = 500
         const val MAX_TOKENS_LIUYAO = 200
         const val MAX_TOKENS_TAROT = 200
         const val MAX_TOKENS_VISION = 100
@@ -17,7 +17,13 @@ class OfflinePromptBuilder {
      */
     fun buildSystemInstruction(feature: String): String = when (feature) {
         "oracle" -> SYSTEM_INSTRUCTION +
-            "用户会提出一个问题。请用3-5句话回答：先写两句诗意的签文，再用白话解释含义，最后给出一句直接的建议。直接开始回答，不要写标题或标签，不要用markdown格式，不要编号。"
+            "根据用户的问题，生成签诗和解析。必须严格按以下格式输出，不要有多余内容：\n\n" +
+            "[ 载入签文 ]\n" +
+            "（四句签诗）\n\n" +
+            "[ 逻辑解析 ]\n" +
+            "（白话解析）\n\n" +
+            "[ 最终断语 ]\n" +
+            "（结论和建议）"
         "liuyao" -> SYSTEM_INSTRUCTION +
             "用户会提供一个六爻卦象。请用2-3句话解读卦象含义，给出吉凶判断和建议。直接开始回答。"
         "tarot" -> SYSTEM_INSTRUCTION +

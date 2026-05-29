@@ -131,7 +131,7 @@ class OracleViewModel @Inject constructor(
                 val cleanedResponse = sanitizeOracleResponse(rawResponse)
 
                 // Fallback for offline mode when small model produces empty/near-empty output
-                val finalResponse = if (result.isOffline && cleanedResponse.length < 20) {
+                val finalResponse = if (result.isOffline && cleanedResponse.length < 40) {
                     generateOfflineFallback(text)
                 } else cleanedResponse
 
@@ -186,34 +186,29 @@ class OracleViewModel @Inject constructor(
      * Uses template-based generation with randomized poetic content.
      */
     private fun generateOfflineFallback(question: String): String {
-        val fortunes = listOf(
-            "云开月明终有日，守得初心见真章。",
-            "春来草木自青青，莫问前程且自行。",
-            "山重水复疑无路，柳暗花明又一村。",
-            "静水深流藏真意，守正待时自有期。",
-            "风起青萍末，事成细微中。",
-            "天道酬勤终不负，行稳致远自亨通。",
-            "否极泰来运将转，守得云开见月明。",
-            "蓄势待发正当时，厚积薄发展宏图。"
+        val poems = listOf(
+            "云开月明终有日，守得初心见真章。\n春来草木自青青，莫问前程且自行。",
+            "山重水复疑无路，柳暗花明又一村。\n静水深流藏真意，守正待时自有期。",
+            "风起青萍末，事成细微中。\n天道酬勤终不负，行稳致远自亨通。",
+            "否极泰来运将转，守得云开见月明。\n蓄势待发正当时，厚积薄发展宏图。"
         )
         val analyses = listOf(
             "此签主先难后易。眼前虽有困顿，但因果链已开始转动。关键在于保持定力，不被短期波动干扰。",
             "签文显示局势正在酝酿变化。当前的停滞并非坏事，而是系统在重新校准方向。宜静观其变。",
-            "此签暗示贵人将至。你所求之事并非不可为，只是时机未到。保持开放心态，机遇自会显现。",
-            "签意指向内在修为。外在环境暂时难以改变，但心态的调整能带来转机。先稳己心，再图外事。"
+            "此签暗示贵人将至。你所求之事并非不可为，只是时机未到。保持开放心态，机遇自会显现。"
         )
         val advices = listOf(
-            "建议：近期宜守不宜攻，等待时机成熟再行动。",
-            "建议：多关注身边细节，答案往往藏在被忽略之处。",
-            "建议：放下执念，顺其自然，该来的终会来。",
-            "建议：保持耐心，三日内或有消息传来。"
+            "近期宜守不宜攻，等待时机成熟再行动。",
+            "多关注身边细节，答案往往藏在被忽略之处。",
+            "放下执念，顺其自然，该来的终会来。"
         )
 
-        val fortune = fortunes[(question.hashCode().toLong().let { if (it < 0) -it else it } % fortunes.size).toInt()]
-        val analysis = analyses[((question.hashCode() shr 4).toLong().let { if (it < 0) -it else it } % analyses.size).toInt()]
-        val advice = advices[((question.hashCode() shr 8).toLong().let { if (it < 0) -it else it } % advices.size).toInt()]
+        val idx = (question.hashCode().toLong().let { if (it < 0) -it else it }).toInt()
+        val poem = poems[idx % poems.size]
+        val analysis = analyses[(idx shr 4) % analyses.size]
+        val advice = advices[(idx shr 8) % advices.size]
 
-        return "$fortune\n\n$analysis\n\n$advice"
+        return "[ 载入签文 ]\n$poem\n\n[ 逻辑解析 ]\n$analysis\n\n[ 最终断语 ]\n$advice"
     }
 
     private fun generateFourCharSummary(response: String): String {

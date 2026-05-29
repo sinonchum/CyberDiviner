@@ -15,8 +15,8 @@ android {
         applicationId = "com.cyberdiviner"
         minSdk = 26
         targetSdk = 35
-        versionCode = 108
-        versionName = "10.8" 
+        versionCode = 109
+        versionName = "10.9" 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

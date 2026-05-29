@@ -184,9 +184,10 @@ data class Persona(
         // Markdown artifacts the small model likes to produce
         private val REGEX_MARKDOWN_HEADERS = Regex("#{1,6}\\s*")
         private val REGEX_MARKDOWN_BOLD = Regex("\\*\\*")
-        private val REGEX_MARKDOWN_LIST_NUM = Regex("(?m)^\\d+[.．、\\\\]\\s*")
+        private val REGEX_MARKDOWN_LIST_NUM = Regex("(?m)^\\d+[.．、]\\s+")
         private val REGEX_MARKDOWN_LIST_BULLET = Regex("(?m)^[-*]\\s+")
-        private val REGEX_LLM_SECTION_HEADERS = Regex("(?m)^\\s*(?:诗意签文|白话解释|直接建议|签诗|解析|建议|签文解读)：?\\s*$")
+        // LLM self-generated section headers (NOT the bracket format [ 载入签文 ] etc.)
+        private val REGEX_LLM_SECTION_HEADERS = Regex("(?m)^\\s*(?:诗意签文|白话解释|直接建议|签诗解读|签文解读)：?\\s*$")
 
         private fun cleanGarbledEncoding(text: String): String {
             return REGEX_GARBLED_PREFIX.replace(text, "")
