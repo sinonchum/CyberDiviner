@@ -127,18 +127,17 @@ class OracleViewModel @Inject constructor(
                     llmService.complete(config, apiMessages).text
                 }
 
-                addAgentMessage(sanitizeOracleResponse(com.cyberdiviner.engine.Persona.stripActionDescriptions(responseText)))
+                val cleanedResponse = sanitizeOracleResponse(com.cyberdiviner.engine.Persona.stripActionDescriptions(responseText))
+                addAgentMessage(cleanedResponse)
+
+                // Save this exchange to archive in background
+                saveExchangeToArchive(text, cleanedResponse)
             } catch (e: Exception) {
                 Log.e(TAG, "LLM call failed", e)
                 addAgentMessage("[ 系统异常 ] 量子因果链中断。错误码: ${e.message ?: "未知"}。请稍后重试。")
             } finally {
                 _round.value = _round.value + 1
                 _isProcessing.value = false
-
-                // Auto-save to archive when session ends
-                if (_round.value >= maxRounds) {
-                    saveToArchive()
-                }
             }
         }
     }
@@ -147,26 +146,15 @@ class OracleViewModel @Inject constructor(
         _messages.value = _messages.value + OracleMessage(text = text, isAgent = true)
     }
 
-    private fun saveToArchive() {
+    /**
+     * Save a single oracle exchange to the archive as a background task.
+     * Each exchange becomes an independent entry in the 因果命簿.
+     */
+    private fun saveExchangeToArchive(userQuestion: String, aiResponse: String) {
         viewModelScope.launch {
             try {
-                // Save the first user question separately for reference
-                val firstQuestion = _messages.value
-                    .firstOrNull { !it.isAgent }
-                    ?.text ?: ""
-
-                // Get the last AI response to generate a philosophical summary
-                val lastAiMessage = _messages.value
-                    .lastOrNull { it.isAgent }
-                    ?.text ?: ""
-
-                // Generate a 4-character philosophical summary
-                val summary = generateFourCharSummary(lastAiMessage)
-
-                // Create result JSON
-                val resultJson = """
-                {"question": "$firstQuestion", "summary": "$summary", "response": "${'$'}{lastAiMessage.take(200)}"}
-                """.trimIndent()
+                val summary = generateFourCharSummary(aiResponse)
+                val resultJson = """{"question": "$userQuestion", "summary": "$summary", "response": "${aiResponse.take(300)}"}""".trimIndent()
 
                 val reading = DivinationReading(
                     type = DivinationType.ORACLE,
@@ -174,9 +162,9 @@ class OracleViewModel @Inject constructor(
                     resultJson = resultJson
                 )
                 divinationDao.insert(reading)
-                Log.d(TAG, "Saved oracle session to archive")
+                Log.d(TAG, "Saved oracle exchange to archive: $summary")
             } catch (e: Exception) {
-                Log.e(TAG, "Failed to save oracle session", e)
+                Log.e(TAG, "Failed to save oracle exchange", e)
             }
         }
     }
