@@ -84,7 +84,7 @@ fun LearnHomeScreen(
             // ── Header ─────────────────────────────────────────────────────
             SectionHeader(title = "修习之路", subtitle = "LEARNING QUEST")
 
-            Spacer(modifier = Modifier.height(DesignTokens.SectionSpacing))
+            Spacer(modifier = Modifier.height(20.dp))
 
             // ── Stats Bar ──────────────────────────────────────────────────
             StaggeredItem(index = 0) {
@@ -96,7 +96,7 @@ fun LearnHomeScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(DesignTokens.SectionSpacing))
+            Spacer(modifier = Modifier.height(16.dp))
 
             // ── Daily Lesson Card ──────────────────────────────────────────
             StaggeredItem(index = 1) {
@@ -107,14 +107,14 @@ fun LearnHomeScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(DesignTokens.SectionSpacing))
+            Spacer(modifier = Modifier.height(20.dp))
 
             // ── Section: 学习路径 ──────────────────────────────────────────
             StaggeredItem(index = 2) {
                 SectionHeader(title = "学习路径", subtitle = "PATHS")
             }
 
-            Spacer(modifier = Modifier.height(DesignTokens.HeaderBottomMargin))
+            Spacer(modifier = Modifier.height(12.dp))
 
             // ── Path Grid (2×2) ───────────────────────────────────────────
             val chunkedPaths = paths.chunked(2)
