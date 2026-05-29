@@ -31,3 +31,7 @@
 -keep class dagger.hilt.** { *; }
 -keep class javax.inject.** { *; }
 -keep class * extends dagger.hilt.android.lifecycle.HiltViewModel
+
+# Lifecycle Compose — keep LocalLifecycleOwner (used by VisionScreen camera)
+-keep class androidx.lifecycle.compose.** { *; }
+-keep class androidx.compose.ui.platform.LocalLifecycleOwner* { *; }

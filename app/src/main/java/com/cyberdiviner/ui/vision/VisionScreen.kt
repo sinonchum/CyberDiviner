@@ -20,7 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -87,6 +87,7 @@ fun VisionScreen(
     val uiState by viewModel.uiState.collectAsState()
     val lifecycleOwner = LocalLifecycleOwner.current
     val context = LocalContext.current
+    android.util.Log.d("VisionScreen", "VisionScreen composable entered")
 
     // ── Scan trigger state ──
     var scanStarted by remember { mutableStateOf(false) }
@@ -125,7 +126,13 @@ fun VisionScreen(
 
     // ── Initialise MediaPipe FaceLandmarker on screen entry ──
     LaunchedEffect(Unit) {
-        viewModel.initializeFaceLandmarker()
+        try {
+            android.util.Log.d("VisionScreen", "Initializing FaceLandmarker...")
+            viewModel.initializeFaceLandmarker()
+            android.util.Log.d("VisionScreen", "FaceLandmarker initialized OK")
+        } catch (e: Throwable) {
+            android.util.Log.e("VisionScreen", "FaceLandmarker init failed", e)
+        }
     }
 
     // ── Start camera when scan is triggered ──
