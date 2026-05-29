@@ -172,6 +172,42 @@ private fun ConceptPhase(lesson: Lesson, onContinue: () -> Unit) {
                 fontFamily = WenKaiFontFamily,
                 lineHeight = 24.sp
             )
+            // Show trigram grid if explanation mentions trigrams
+            val allTrigrams = listOf(
+                "乾" to "天", "坤" to "地", "震" to "雷", "巽" to "风",
+                "坎" to "水", "离" to "火", "艮" to "山", "兑" to "泽"
+            )
+            val mentionedTrigrams = allTrigrams.filter { (name, _) ->
+                lesson.explanation.contains(name) || lesson.concept.contains(name)
+            }
+            if (mentionedTrigrams.size >= 3) {
+                Spacer(modifier = Modifier.height(16.dp))
+                // Grid: 4 columns x 2 rows
+                for (row in mentionedTrigrams.chunked(4)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        row.forEach { (name, element) ->
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier.width(60.dp)
+                            ) {
+                                TrigramLines(trigramName = name)
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = "$name $element",
+                                    color = GrayBody,
+                                    fontSize = 11.sp,
+                                    fontFamily = WenKaiFontFamily,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+            }
         }
     }
 

@@ -136,6 +136,14 @@ fun SingleChoiceQuiz(
 
                     Spacer(modifier = Modifier.width(12.dp))
 
+                    // Trigram symbol if option is a trigram name
+                    if (isTrigramName(option)) {
+                        TrigramLines(
+                            trigramName = option.trim(),
+                            modifier = Modifier.padding(end = 8.dp)
+                        )
+                    }
+
                     Text(
                         text = option,
                         color = textColor,
@@ -195,15 +203,27 @@ fun BinaryClassifyQuiz(
                     .border(1.dp, GrayBorder, RoundedCornerShape(2.dp))
                     .padding(16.dp)
             ) {
-                // Item text
-                Text(
-                    text = text,
-                    color = CyberWhite,
-                    fontFamily = WenKaiFontFamily,
-                    fontSize = 14.sp,
-                    lineHeight = 22.sp,
+                // Item text + trigram
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(bottom = 12.dp)
-                )
+                ) {
+                    val triName = extractTrigramName(text)
+                    if (triName != null) {
+                        TrigramLines(
+                            trigramName = triName,
+                            modifier = Modifier.padding(end = 8.dp)
+                        )
+                    }
+                    Text(
+                        text = text,
+                        color = CyberWhite,
+                        fontFamily = WenKaiFontFamily,
+                        fontSize = 14.sp,
+                        lineHeight = 22.sp,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
 
                 // True / False buttons — side by side
                 Row(
@@ -382,12 +402,24 @@ private fun HexagramLines(
     }
 }
 
+/** Known trigram names (simplified + traditional) */
+private val KNOWN_TRIGRAMS = setOf("乾","坤","震","巽","坎","离","離","艮","兑","兌")
+
+/** Check if text is exactly a trigram name */
+private fun isTrigramName(text: String): Boolean = text.trim() in KNOWN_TRIGRAMS
+
+/** Check if text contains a trigram name */
+private fun containsTrigramName(text: String): Boolean = KNOWN_TRIGRAMS.any { text.contains(it) }
+
+/** Extract the first trigram name from text, or null */
+private fun extractTrigramName(text: String): String? = KNOWN_TRIGRAMS.firstOrNull { text.contains(it) }
+
 /**
  * Draw 3-line trigram symbol for a single trigram name.
  * Used in matching quizzes to show 卦象 next to the trigram text.
  */
 @Composable
-private fun TrigramLines(
+internal fun TrigramLines(
     trigramName: String,  // e.g. "乾", "坤", "坎"
     modifier: Modifier = Modifier,
     lineColor: Color = AccentRed,
@@ -500,13 +532,11 @@ fun MatchingQuiz(
                     .padding(12.dp)
             ) {
                 // Key text + trigram symbol
-                val knownTrigrams = setOf("乾","坤","震","巽","坎","离","離","艮","兑","兌")
-                val isTrigramKey = item.key in knownTrigrams || item.key.length <= 2 && item.key.any { it in knownTrigrams.flatMap { c -> c.toList() } }
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(bottom = 8.dp)
                 ) {
-                    if (isTrigramKey) {
+                    if (isTrigramName(item.key)) {
                         TrigramLines(
                             trigramName = item.key,
                             modifier = Modifier.padding(end = 8.dp)
@@ -712,6 +742,13 @@ fun OrderingQuiz(
                         fontSize = 13.sp,
                         modifier = Modifier.width(28.dp)
                     )
+                    val triName = extractTrigramName(itemText)
+                    if (triName != null) {
+                        TrigramLines(
+                            trigramName = triName,
+                            modifier = Modifier.padding(end = 6.dp)
+                        )
+                    }
                     Text(
                         text = itemText,
                         color = if (isSelected) CyberWhite else GrayBody,
