@@ -5,11 +5,13 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -71,8 +73,14 @@ fun LessonScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Phase indicator
-                PhaseIndicator(currentPhase = lessonState.phase)
+                // Phase indicator — tarot lessons have 5 phases, others 4
+                val isTarot = lesson.pathId == "tarot_intro"
+                val displayPhases = if (isTarot) {
+                    LessonPhase.entries
+                } else {
+                    LessonPhase.entries.filter { it != LessonPhase.CARD_REVIEW }
+                }
+                PhaseIndicator(currentPhase = lessonState.phase, phases = displayPhases)
 
                 Spacer(modifier = Modifier.height(24.dp))
 
@@ -83,6 +91,10 @@ fun LessonScreen(
                     )
                     LessonPhase.HOW_TO_READ -> HowToReadPhase(
                         howToRead = lesson.howToRead,
+                        onContinue = { viewModel.nextPhase() }
+                    )
+                    LessonPhase.CARD_REVIEW -> CardReviewPhase(
+                        lesson = lesson,
                         onContinue = { viewModel.nextPhase() }
                     )
                     LessonPhase.QUIZ -> QuizPhase(
@@ -110,8 +122,7 @@ fun LessonScreen(
 }
 
 @Composable
-private fun PhaseIndicator(currentPhase: LessonPhase) {
-    val phases = LessonPhase.entries
+private fun PhaseIndicator(currentPhase: LessonPhase, phases: List<LessonPhase> = LessonPhase.entries) {
     val currentIndex = phases.indexOf(currentPhase)
 
     Row(
@@ -407,6 +418,155 @@ private fun ResultPhase(
         lessonState = lessonState,
         onComplete = onComplete
     )
+}
+
+// ── CARD_REVIEW phase (tarot only) ────────────────────────────────────
+
+/** 22 Major Arcana cards with number, name, symbol, and theme */
+private data class MajorArcanaCard(
+    val number: Int,
+    val romanNumeral: String,
+    val name: String,
+    val symbol: String,  // Unicode symbol for visual representation
+    val theme: String
+)
+
+private val majorArcana = listOf(
+    MajorArcanaCard(0, "0", "愚者", "🌀", "新开始与未知"),
+    MajorArcanaCard(1, "I", "魔术师", "✦", "创造力与意志"),
+    MajorArcanaCard(2, "II", "女祭司", "☽", "直觉与内在智慧"),
+    MajorArcanaCard(3, "III", "女皇", "❀", "丰饶与滋养"),
+    MajorArcanaCard(4, "IV", "皇帝", "▲", "权威与结构"),
+    MajorArcanaCard(5, "V", "教皇", "⌘", "传统与信仰"),
+    MajorArcanaCard(6, "VI", "恋人", "♡", "选择与关系"),
+    MajorArcanaCard(7, "VII", "战车", "⚡", "意志力与前进"),
+    MajorArcanaCard(8, "VIII", "力量", "∞", "勇气与耐心"),
+    MajorArcanaCard(9, "IX", "隐者", "◎", "内省与指引"),
+    MajorArcanaCard(10, "X", "命运之轮", "⊕", "周期与转变"),
+    MajorArcanaCard(11, "XI", "正义", "⟡", "平衡与因果"),
+    MajorArcanaCard(12, "XII", "倒吊人", "⚑", "放下与新视角"),
+    MajorArcanaCard(13, "XIII", "死神", "†", "结束与转化"),
+    MajorArcanaCard(14, "XIV", "节制", "⇌", "调和与耐心"),
+    MajorArcanaCard(15, "XV", "恶魔", "⊘", "束缚与觉察"),
+    MajorArcanaCard(16, "XVI", "塔", "⊘", "突变与释放"),
+    MajorArcanaCard(17, "XVII", "星星", "☆", "希望与灵感"),
+    MajorArcanaCard(18, "XVIII", "月亮", "◐", "幻象与潜意识"),
+    MajorArcanaCard(19, "XIX", "太阳", "◉", "成功与活力"),
+    MajorArcanaCard(20, "XX", "审判", "⚑", "觉醒与评估"),
+    MajorArcanaCard(21, "XXI", "世界", "⊕", "完成与整合")
+)
+
+@Composable
+private fun CardReviewPhase(
+    lesson: Lesson,
+    onContinue: () -> Unit
+) {
+    // Determine which cards to show based on the lesson
+    val cardsToShow = when (lesson.id) {
+        "C1" -> majorArcana.take(11)   // First half: 0-10
+        else -> majorArcana             // All 22 for overview lessons
+    }
+
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        // Title
+        Text(
+            text = "认牌",
+            color = CyberWhite,
+            fontFamily = HuiwenFontFamily,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 3.sp
+        )
+        Text(
+            text = "翻阅以下牌面，熟悉每张牌的核心主题",
+            color = GrayBody,
+            fontFamily = WenKaiFontFamily,
+            fontSize = 13.sp
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Card grid — 3 columns
+        val rows = cardsToShow.chunked(3)
+        rows.forEach { rowCards ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                rowCards.forEach { card ->
+                    TarotCardCell(
+                        card = card,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+                // Fill empty slots
+                repeat(3 - rowCards.size) {
+                    Spacer(Modifier.weight(1f))
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Continue button
+        ContinueButton(text = "继续测验", onClick = onContinue)
+    }
+}
+
+@Composable
+private fun TarotCardCell(
+    card: MajorArcanaCard,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .aspectRatio(0.7f)
+            .clip(RoundedCornerShape(4.dp))
+            .background(GraySurface)
+            .border(1.dp, GrayBorder, RoundedCornerShape(4.dp))
+            .padding(8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.SpaceBetween
+    ) {
+        // Roman numeral
+        Text(
+            text = card.romanNumeral,
+            color = AccentRed,
+            fontFamily = MonoFontFamily,
+            fontSize = 10.sp,
+            letterSpacing = 1.sp
+        )
+
+        // Symbol
+        Text(
+            text = card.symbol,
+            color = CyberWhite,
+            fontSize = 28.sp
+        )
+
+        // Card name
+        Text(
+            text = card.name,
+            color = CyberWhite,
+            fontFamily = HuiwenFontFamily,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center
+        )
+
+        // Theme
+        Text(
+            text = card.theme,
+            color = GrayCaption,
+            fontFamily = WenKaiFontFamily,
+            fontSize = 8.sp,
+            textAlign = TextAlign.Center,
+            maxLines = 2
+        )
+    }
 }
 
 // ── Shared components ──────────────────────────────────────────────

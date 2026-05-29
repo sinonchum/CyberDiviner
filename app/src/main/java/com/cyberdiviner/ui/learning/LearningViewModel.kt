@@ -49,7 +49,7 @@ sealed class QuizData {
     data class CaseJudge(override val question: String, val scenario: String, val options: List<String>, val correctIndex: Int, val explanation: String) : QuizData()
 }
 
-enum class LessonPhase { CONCEPT, HOW_TO_READ, QUIZ, RESULT }
+enum class LessonPhase { CONCEPT, HOW_TO_READ, CARD_REVIEW, QUIZ, RESULT }
 
 data class AnswerFeedback(
     val correct: Boolean,
@@ -259,9 +259,11 @@ class LearningViewModel @Inject constructor(
     /** Advance to the next phase in the lesson flow */
     fun nextPhase() {
         val current = _lessonState.value
+        val isTarot = current.lesson?.pathId == "tarot_intro"
         val next = when (current.phase) {
             LessonPhase.CONCEPT -> LessonPhase.HOW_TO_READ
-            LessonPhase.HOW_TO_READ -> LessonPhase.QUIZ
+            LessonPhase.HOW_TO_READ -> if (isTarot) LessonPhase.CARD_REVIEW else LessonPhase.QUIZ
+            LessonPhase.CARD_REVIEW -> LessonPhase.QUIZ
             LessonPhase.QUIZ -> LessonPhase.RESULT
             LessonPhase.RESULT -> LessonPhase.RESULT
         }
