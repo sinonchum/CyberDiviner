@@ -585,86 +585,96 @@ fun MatchingQuiz(
                     )
                 }
 
-                // Shuffled value options as tappable chips
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    shuffledValues.forEach { value ->
-                        val isSelected = selected == value
-                        val isUsedElsewhere = selections.any { it == value && selections.indexOf(it) != index }
-                        val chipBg = animateColorAsState(
-                            targetValue = when {
-                                isSelected -> AccentRed.copy(alpha = 0.2f)
-                                isUsedElsewhere -> GraySurface.copy(alpha = 0.5f)
-                                else -> Color.Transparent
-                            },
-                            animationSpec = tween(200), label = "chipBg"
-                        )
-                        val chipBorder = animateColorAsState(
-                            targetValue = when {
-                                isSelected -> AccentRed
-                                isUsedElsewhere -> GrayBorder.copy(alpha = 0.3f)
-                                else -> GrayBorder
-                            },
-                            animationSpec = tween(200), label = "chipBorder"
-                        )
-                        val chipText = animateColorAsState(
-                            targetValue = when {
-                                isSelected -> CyberWhite
-                                isUsedElsewhere -> GrayMuted.copy(alpha = 0.4f)
-                                else -> GrayMuted
-                            },
-                            animationSpec = tween(200), label = "chipText"
-                        )
+                // Shuffled value options — wrap into rows of max 3 for consistent sizing
+                val rows = shuffledValues.chunked(3)
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    rows.forEach { rowItems ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            rowItems.forEach { value ->
+                                val isSelected = selected == value
+                                val isUsedElsewhere = selections.any { it == value && selections.indexOf(it) != index }
+                                val chipBg = animateColorAsState(
+                                    targetValue = when {
+                                        isSelected -> AccentRed.copy(alpha = 0.2f)
+                                        isUsedElsewhere -> GraySurface.copy(alpha = 0.5f)
+                                        else -> Color.Transparent
+                                    },
+                                    animationSpec = tween(200), label = "chipBg"
+                                )
+                                val chipBorder = animateColorAsState(
+                                    targetValue = when {
+                                        isSelected -> AccentRed
+                                        isUsedElsewhere -> GrayBorder.copy(alpha = 0.3f)
+                                        else -> GrayBorder
+                                    },
+                                    animationSpec = tween(200), label = "chipBorder"
+                                )
+                                val chipText = animateColorAsState(
+                                    targetValue = when {
+                                        isSelected -> CyberWhite
+                                        isUsedElsewhere -> GrayMuted.copy(alpha = 0.4f)
+                                        else -> GrayMuted
+                                    },
+                                    animationSpec = tween(200), label = "chipText"
+                                )
 
-                        // Detect if value is "X上Y下" or a trigram name
-                        val isCombo = value.contains("上") && value.contains("下")
-                        val isTri = isTrigramName(value)
+                                // Detect if value is "X上Y下" or a trigram name
+                                val isCombo = value.contains("上") && value.contains("下")
+                                val isTri = isTrigramName(value)
 
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .clip(RoundedCornerShape(2.dp))
-                                .background(chipBg.value)
-                                .border(1.dp, chipBorder.value, RoundedCornerShape(2.dp))
-                                .clickable(enabled = !confirmed && !isUsedElsewhere) {
-                                    selections = selections.toMutableList().apply {
-                                        set(index, if (isSelected) null else value)
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .defaultMinSize(minHeight = 52.dp)
+                                        .clip(RoundedCornerShape(2.dp))
+                                        .background(chipBg.value)
+                                        .border(1.dp, chipBorder.value, RoundedCornerShape(2.dp))
+                                        .clickable(enabled = !confirmed && !isUsedElsewhere) {
+                                            selections = selections.toMutableList().apply {
+                                                set(index, if (isSelected) null else value)
+                                            }
+                                        }
+                                        .padding(vertical = 6.dp, horizontal = 4.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Column(
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        // Draw hexagram (6 lines) or trigram (3 lines) symbol
+                                        if (isCombo) {
+                                            HexagramLines(
+                                                trigramCombo = value,
+                                                lineWidth = 22f,
+                                                lineHeight = 2.5f,
+                                                gap = 1.5f
+                                            )
+                                            Spacer(Modifier.height(3.dp))
+                                        } else if (isTri) {
+                                            TrigramLines(
+                                                trigramName = value.trim(),
+                                                lineWidth = 16f,
+                                                lineHeight = 2.5f,
+                                                gap = 1.5f
+                                            )
+                                            Spacer(Modifier.height(3.dp))
+                                        }
+                                        Text(
+                                            text = value,
+                                            color = chipText.value,
+                                            fontFamily = WenKaiFontFamily,
+                                            fontSize = 11.sp,
+                                            textAlign = TextAlign.Center,
+                                            maxLines = 2
+                                        )
                                     }
                                 }
-                                .padding(vertical = 6.dp, horizontal = 4.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                // Draw hexagram (6 lines) or trigram (3 lines) symbol
-                                if (isCombo) {
-                                    HexagramLines(
-                                        trigramCombo = value,
-                                        lineWidth = 22f,
-                                        lineHeight = 2.5f,
-                                        gap = 1.5f
-                                    )
-                                    Spacer(Modifier.height(3.dp))
-                                } else if (isTri) {
-                                    TrigramLines(
-                                        trigramName = value.trim(),
-                                        lineWidth = 16f,
-                                        lineHeight = 2.5f,
-                                        gap = 1.5f
-                                    )
-                                    Spacer(Modifier.height(3.dp))
-                                }
-                                Text(
-                                    text = value,
-                                    color = chipText.value,
-                                    fontFamily = WenKaiFontFamily,
-                                    fontSize = 11.sp,
-                                    textAlign = TextAlign.Center,
-                                    maxLines = 2
-                                )
+                            }
+                            // Fill remaining slots if last row has fewer items
+                            repeat(3 - rowItems.size) {
+                                Spacer(Modifier.weight(1f))
                             }
                         }
                     }
