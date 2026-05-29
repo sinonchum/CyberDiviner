@@ -328,21 +328,14 @@ class VisionViewModel @Inject constructor(
     }
 
     /**
-     * Trigger fallback analysis using simulated facial features
-     * (when camera is not available or face not detected).
+     * Trigger face analysis — tries LLM first, falls back to local engine.
      */
     fun triggerFallbackAnalysis() {
         viewModelScope.launch {
             val features = FacialFeatures()
             val featuresJson = json.encodeToString(features)
-            val fallback = buildFallbackInterpretation(featuresJson, "")
-            val fortune = FortuneEngine.visionFortune(fallback)
-            _uiState.value = _uiState.value.copy(
-                interpretation = fallback,
-                phase = VisionPhase.RESULT,
-                fourCharFortune = fortune,
-                fourCharMeaning = FortuneEngine.visionMeaning(fortune)
-            )
+            // Try LLM interpretation first
+            streamInterpretation(featuresJson, "")
         }
     }
 
