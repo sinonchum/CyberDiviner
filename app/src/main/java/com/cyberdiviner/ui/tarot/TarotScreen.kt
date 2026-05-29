@@ -139,11 +139,15 @@ fun TarotScreen(
 
                 TarotPhase.INTERPRETING -> InterpretingPhase(uiState)
 
-                TarotPhase.RESULT -> ResultPhase(
-                    uiState = uiState,
-                    onNewReading = viewModel::newReading,
-                    onBack = { navController.popBackStack() }
-                )
+                TarotPhase.RESULT -> {
+                    val annotations by viewModel.learningAnnotations.collectAsState()
+                    ResultPhase(
+                        uiState = uiState,
+                        annotations = annotations,
+                        onNewReading = viewModel::newReading,
+                        onBack = { navController.popBackStack() }
+                    )
+                }
 
                 TarotPhase.ERROR -> ErrorPhase(
                     message = uiState.errorMessage ?: "未知错误",
@@ -473,11 +477,12 @@ private fun InterpretingPhase(uiState: TarotUiState) {
 @Composable
 private fun ResultPhase(
     uiState: TarotUiState,
+    annotations: List<Pair<String, String>>,
     onNewReading: () -> Unit,
     onBack: () -> Unit
 ) {
     val cnNums = listOf("壹", "贰", "叁", "肆", "伍", "陆", "柒", "捌", "玖", "拾")
-    val totalPages = 3 // Page 0: fortune, Page 1: cards, Page 2: interpretation
+    val totalPages = if (annotations.isNotEmpty()) 4 else 3 // +1 for learning annotations
     var currentPage by remember { mutableStateOf(0) }
 
     // Swipe detection
@@ -684,7 +689,7 @@ private fun ResultPhase(
                                 )
                             }
                         }
-                    } else {
+                    } else if (currentPage == 2) {
                         // ── Page 2: Interpretation ──
                         Text(
                             text = "解读",
@@ -731,6 +736,49 @@ private fun ResultPhase(
                                 fontFamily = WenKaiFontFamily,
                                 lineHeight = 26.sp
                             )
+                        }
+                    } else {
+                        // ── Page 3: Learning Annotations ──
+                        Text(
+                            text = "学习",
+                            color = CyberWhite,
+                            fontSize = 22.sp,
+                            fontFamily = HuiwenFontFamily,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 6.sp
+                        )
+                        Text(
+                            text = "LEARNING",
+                            color = GrayMuted,
+                            fontSize = 11.sp,
+                            fontFamily = MonoFontFamily,
+                            letterSpacing = 3.sp
+                        )
+                        Spacer(Modifier.height(16.dp))
+                        annotations.forEach { (title, text) ->
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 8.dp)
+                            ) {
+                                Column {
+                                    Text(
+                                        text = title,
+                                        color = AccentRed,
+                                        fontSize = 14.sp,
+                                        fontFamily = HuiwenFontFamily,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Spacer(Modifier.height(4.dp))
+                                    Text(
+                                        text = text,
+                                        color = GrayBody,
+                                        fontSize = 13.sp,
+                                        fontFamily = WenKaiFontFamily,
+                                        lineHeight = 22.sp
+                                    )
+                                }
+                            }
                         }
                     }
 

@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.cyberdiviner.data.dao.DivinationDao
+import com.cyberdiviner.data.dao.LearningDao
 import com.cyberdiviner.data.dao.TarotDao
 import com.cyberdiviner.data.model.DivinationReading
 import com.cyberdiviner.data.model.DivinationType
@@ -145,12 +146,30 @@ class TarotViewModel @Inject constructor(
     private val llmService: LlmService,
     private val promptManager: PromptManager,
     private val tarotDao: TarotDao,
+    private val learningDao: LearningDao,
     private val divinationDao: DivinationDao,
     private val configManager: LlmConfigManager
 ) : AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(TarotUiState())
     val uiState: StateFlow<TarotUiState> = _uiState.asStateFlow()
+
+    // Learning annotations from completed lessons
+    private val _learningAnnotations = MutableStateFlow<List<Pair<String, String>>>(emptyList())
+    val learningAnnotations: StateFlow<List<Pair<String, String>>> = _learningAnnotations
+
+    init {
+        loadLearningAnnotations()
+    }
+
+    private fun loadLearningAnnotations() {
+        viewModelScope.launch {
+            learningDao.getProgressForPath("tarot_intro").collect { progress ->
+                val completed = progress.filter { it.completed }.map { it.lessonId }.toSet()
+                _learningAnnotations.value = com.cyberdiviner.ui.learning.LearningAnnotations.getForCompletedLessons(completed)
+            }
+        }
+    }
 
     private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
 

@@ -88,6 +88,7 @@ fun ArchiveScreen(
     viewModel: ArchiveViewModel = hiltViewModel()
 ) {
     val readings by viewModel.readings.collectAsState()
+    val learningStats by viewModel.learningStats.collectAsState()
     var expandedIndex by remember { mutableStateOf<Int?>(null) }
 
     Box(
@@ -99,7 +100,65 @@ fun ArchiveScreen(
         Column(modifier = Modifier.fillMaxSize()) {
             // ── Header ──
             SectionHeader(title = "因果命簿", subtitle = "CAUSAL LEDGER")
-            Spacer(modifier = Modifier.height(48.dp))
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // ── Learning review card ──
+            val stats = learningStats
+            if (stats != null && stats.totalXp > 0) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .border(1.dp, AccentRed)
+                        .clickable { /* Navigate to learn tab */ }
+                        .padding(16.dp)
+                ) {
+                    Column {
+                        Text(
+                            text = "学习复盘",
+                            color = AccentRed,
+                            fontSize = 11.sp,
+                            fontFamily = HuiwenFontFamily,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 2.sp
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Column {
+                                Text(
+                                    text = "${stats.totalXp} XP",
+                                    color = CyberWhite,
+                                    fontSize = 18.sp,
+                                    fontFamily = MonoFontFamily
+                                )
+                                Text(
+                                    text = stats.title,
+                                    color = GrayBody,
+                                    fontSize = 13.sp,
+                                    fontFamily = HuiwenFontFamily
+                                )
+                            }
+                            Column(horizontalAlignment = Alignment.End) {
+                                Text(
+                                    text = "连续 ${stats.currentStreak} 日",
+                                    color = CyberWhite,
+                                    fontSize = 14.sp,
+                                    fontFamily = MonoFontFamily
+                                )
+                                Text(
+                                    text = "最佳 ${stats.bestStreak} 日",
+                                    color = GrayCaption,
+                                    fontSize = 12.sp,
+                                    fontFamily = MonoFontFamily
+                                )
+                            }
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(24.dp))
+            }
 
             // ── Card stream ─────────────────────────
             if (readings.isEmpty()) {

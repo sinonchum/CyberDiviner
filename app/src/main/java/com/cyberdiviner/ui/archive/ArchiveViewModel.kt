@@ -3,6 +3,7 @@ package com.cyberdiviner.ui.archive
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.cyberdiviner.data.dao.DivinationDao
+import com.cyberdiviner.data.dao.LearningDao
 import com.cyberdiviner.data.dao.LiuyaoDao
 import com.cyberdiviner.data.dao.TarotDao
 import com.cyberdiviner.data.dao.VisionDao
@@ -18,6 +19,7 @@ import com.cyberdiviner.engine.FortuneEngine
 @HiltViewModel
 class ArchiveViewModel @Inject constructor(
     private val divinationDao: DivinationDao,
+    private val learningDao: LearningDao,
     private val liuyaoDao: LiuyaoDao,
     private val tarotDao: TarotDao,
     private val visionDao: VisionDao
@@ -29,6 +31,10 @@ class ArchiveViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
         )
+
+    // Learning stats for review section
+    val learningStats = learningDao.getStats()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     /** Get hexagram name from liuyao_readings table */
     suspend fun getHexagramName(readingId: Long): String? {

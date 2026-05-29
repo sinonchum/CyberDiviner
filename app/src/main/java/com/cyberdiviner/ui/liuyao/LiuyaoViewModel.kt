@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.cyberdiviner.data.dao.DivinationDao
+import com.cyberdiviner.data.dao.LearningDao
 import com.cyberdiviner.data.dao.LiuyaoDao
 import com.cyberdiviner.data.model.DivinationReading
 import com.cyberdiviner.data.model.DivinationType
@@ -70,12 +71,32 @@ class LiuyaoViewModel @Inject constructor(
     private val llmService: LlmService,
     private val promptManager: PromptManager,
     private val divinationDao: DivinationDao,
+    private val learningDao: LearningDao,
     private val liuyaoDao: LiuyaoDao,
     private val configManager: LlmConfigManager
 ) : AndroidViewModel(application) {
 
     private val engine = LiuyaoEngine()
     private val _uiState = MutableStateFlow(LiuyaoUiState())
+
+    // Learning annotations from completed lessons
+    private val _learningAnnotations = MutableStateFlow<List<Pair<String, String>>>(emptyList())
+    val learningAnnotations: StateFlow<List<Pair<String, String>>> = _learningAnnotations
+
+    init {
+        loadLearningAnnotations()
+    }
+
+    private fun loadLearningAnnotations() {
+        viewModelScope.launch {
+            learningDao.getProgressForPath("yijing_intro").collect { yj ->
+                learningDao.getProgressForPath("liuyao_intro").collect { ly ->
+                    val completed = (yj + ly).filter { it.completed }.map { it.lessonId }.toSet()
+                    _learningAnnotations.value = com.cyberdiviner.ui.learning.LearningAnnotations.getForCompletedLessons(completed)
+                }
+            }
+        }
+    }
     val uiState: StateFlow<LiuyaoUiState> = _uiState.asStateFlow()
 
     // Shake detector — created on demand, started/stopped with phase

@@ -57,7 +57,8 @@ fun LiuyaoResultScreen(
         return
     }
 
-    val cards = buildCardList(result, uiState.llmInterpretation.ifBlank { uiState.llmStreamChunks }, uiState.fourCharFortune, uiState.fourCharMeaning)
+    val annotations by viewModel.learningAnnotations.collectAsState()
+    val cards = buildCardList(result, uiState.llmInterpretation.ifBlank { uiState.llmStreamChunks }, uiState.fourCharFortune, uiState.fourCharMeaning, annotations)
     var currentPage by remember { mutableIntStateOf(0) }
     val totalPages = cards.size
 
@@ -311,7 +312,8 @@ private fun buildCardList(
     result: LiuyaoEngine.DivinationResult,
     llmText: String,
     fourCharFortune: String,
-    fourCharMeaning: String
+    fourCharMeaning: String,
+    annotations: List<Pair<String, String>> = emptyList()
 ): List<CardInfo> = listOf(
     CardInfo("批命", "FORTUNE") { FortuneCard(fourCharFortune, fourCharMeaning) },
     CardInfo("卦象", "HEXAGRAM") { HexagramCard(result) },
@@ -319,7 +321,9 @@ private fun buildCardList(
     CardInfo("六神", "SPIRITS") { SpiritsCard(result) },
     CardInfo("断卦", "ANALYSIS") { AnalysisCard(result) },
     CardInfo("解读", "INTERPRETATION") { InterpretationCard(result, llmText) }
-)
+) + if (annotations.isNotEmpty()) listOf(
+    CardInfo("学习", "LEARNING") { LearningAnnotationsCard(annotations) }
+) else emptyList()
 
 // ── Card 0: Fortune (4-char summary) ─────────────────────────────────────
 
@@ -703,6 +707,43 @@ private fun PlainLanguageSummary(result: LiuyaoEngine.DivinationResult) {
                     fontFamily = WenKaiFontFamily,
                     lineHeight = 24.sp
                 )
+            }
+        }
+    }
+}
+
+// ── Card: Learning Annotations ──────────────────────────────────────────
+
+@Composable
+private fun LearningAnnotationsCard(annotations: List<Pair<String, String>>) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+    ) {
+        annotations.forEach { (title, text) ->
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
+            ) {
+                Column {
+                    Text(
+                        text = title,
+                        color = AccentRed,
+                        fontSize = 14.sp,
+                        fontFamily = HuiwenFontFamily,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = text,
+                        color = GrayBody,
+                        fontSize = 13.sp,
+                        fontFamily = WenKaiFontFamily,
+                        lineHeight = 22.sp
+                    )
+                }
             }
         }
     }
