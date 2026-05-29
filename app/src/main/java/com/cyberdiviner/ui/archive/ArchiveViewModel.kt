@@ -105,7 +105,7 @@ class ArchiveViewModel @Inject constructor(
     /** Get interpretation from the sub-reading table for any type */
     suspend fun getInterpretation(readingId: Long, type: com.cyberdiviner.data.model.DivinationType): String {
         return try {
-            when (type) {
+            val raw = when (type) {
                 com.cyberdiviner.data.model.DivinationType.LIUYAO ->
                     liuyaoDao.getByReadingId(readingId)?.interpretation ?: ""
                 com.cyberdiviner.data.model.DivinationType.TAROT ->
@@ -117,7 +117,7 @@ class ArchiveViewModel @Inject constructor(
                     val reading = divinationDao.getById(readingId) ?: return ""
                     val raw = reading.resultJson.trim()
                     if (raw.startsWith("{")) {
-                        val m = Regex("\"response\"\\s*:\\s*\"((?:[^\"\\\\]|\\\\.)*)\"").find(raw)
+                        val m = Regex("\"response\"\\s*:\\s*\"((?:[^\"\\\\\\\\]|\\\\\\\\.)*)\"").find(raw)
                         m?.groupValues?.get(1)?.replace("\\\"", "\"")?.replace("\\n", "\n") ?: raw
                     } else {
                         raw
@@ -125,7 +125,16 @@ class ArchiveViewModel @Inject constructor(
                 }
                 else -> ""
             }
+            // Clean garbled encoding from offline model
+            cleanGarbledEncoding(raw)
         } catch (e: Exception) { "" }
+    }
+
+    companion object {
+        /** Clean garbled encoding artifacts from offline LLM byte-fallback tokenizer */
+        fun cleanGarbledEncoding(text: String): String {
+            return text.replace(Regex("[\\u0080-\\u00ff\\u0100-\\u024f\\u0250-\\u02af\\u2000-\\u206f\\u2070-\\u209f\\u20a0-\\u20cf\\u2100-\\u214f]{1,8}(?=[\\u4e00-\\u9fff\\u3400-\\u4dbf])"), "")
+        }
     }
 
     fun deleteReading(reading: DivinationReading) {

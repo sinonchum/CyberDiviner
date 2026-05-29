@@ -48,12 +48,18 @@ private data class ArchiveEntry(
     val hash: String            // Anti-tamper hash
 )
 
+/** Clean garbled encoding artifacts from offline LLM output (byte-fallback tokenizer issue) */
+private fun cleanGarbledEncoding(text: String): String {
+    return text.replace(Regex("[\\u0080-\\u00ff\\u0100-\\u024f\\u0250-\\u02af\\u2000-\\u206f\\u2070-\\u209f\\u20a0-\\u20cf\\u2100-\\u214f]{1,8}(?=[\\u4e00-\\u9fff\\u3400-\\u4dbf])"), "")
+}
+
 /** Extract the first sentence from a multi-sentence text, capped at 50 chars */
 private fun firstSentence(text: String): String {
-    if (text.isBlank()) return ""
+    val cleaned = cleanGarbledEncoding(text)
+    if (cleaned.isBlank()) return ""
     // Find first sentence-ending punctuation
-    val end = text.indexOfFirst { it == '。' || it == '！' || it == '？' || it == '.' || it == '!' || it == '?' }
-    val sentence = if (end > 0) text.substring(0, end + 1) else text
+    val end = cleaned.indexOfFirst { it == '。' || it == '！' || it == '？' || it == '.' || it == '!' || it == '?' }
+    val sentence = if (end > 0) cleaned.substring(0, end + 1) else cleaned
     // Cap at 50 chars
     return if (sentence.length > 50) sentence.take(47) + "..." else sentence
 }

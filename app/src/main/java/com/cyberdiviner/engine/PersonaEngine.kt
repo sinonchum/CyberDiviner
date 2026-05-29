@@ -159,6 +159,7 @@ data class Persona(
         /**
          * Strip character action/expression descriptions from LLM output.
          * Removes patterns like "笑着打量你", "*点点头*", "(沉思片刻)", etc.
+         * Also cleans garbled encoding artifacts from offline model byte-fallback tokenizer.
          */
         fun stripActionDescriptions(text: String): String {
             var result = REGEX_EMOJI.replace(text, "")
@@ -168,7 +169,19 @@ data class Persona(
             result = REGEX_SPEAKER_LINE.replace(result, "")
             result = REGEX_STANDALONE_ACTION.replace(result, "")
             result = REGEX_MULTI_BLANK_LINES.replace(result, "\n\n")
+            result = cleanGarbledEncoding(result)
             return result.trim()
+        }
+
+        // ── Garbled encoding cleanup ────────────────────────────────────────
+        // Qwen2.5 byte-fallback tokenizer sometimes produces non-CJK non-ASCII
+        // chars before Chinese characters. Strips them when followed by CJK.
+        private val REGEX_GARBLED_PREFIX = Regex(
+            "[\\u0080-\\u00ff\\u0100-\\u024f\\u0250-\\u02af\\u2000-\\u206f\\u2070-\\u209f\\u20a0-\\u20cf\\u2100-\\u214f]{1,8}(?=[\\u4e00-\\u9fff\\u3400-\\u4dbf])"
+        )
+
+        private fun cleanGarbledEncoding(text: String): String {
+            return REGEX_GARBLED_PREFIX.replace(text, "")
         }
     }
 }
