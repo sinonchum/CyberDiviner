@@ -774,31 +774,62 @@ class VisionViewModel @Inject constructor(
 
             val finalText = com.cyberdiviner.engine.Persona.stripActionDescriptions(fullText).ifBlank { buildFallbackInterpretation(featuresJson, question) }
             val fortune = FortuneEngine.visionFortune(finalText)
+            val meaning = FortuneEngine.visionMeaning(fortune)
             _uiState.value = _uiState.value.copy(
                 interpretation = finalText,
                 phase = VisionPhase.RESULT,
                 fourCharFortune = fortune,
-                fourCharMeaning = FortuneEngine.visionMeaning(fortune)
+                fourCharMeaning = meaning
             )
-            // Persist interpretation to database
+            // Persist complete result to database
             try {
                 val rid = _uiState.value.readingId
                 if (rid != null) {
+                    // Update DivinationReading with fortune + interpretation
+                    val existingReading = divinationDao.getById(rid)
+                    if (existingReading != null) {
+                        val resultData = """{"fortune":"$fortune","meaning":"$meaning","interpretation":${Json.encodeToString(finalText.take(500))},"features":$featuresJson}"""
+                        divinationDao.update(existingReading.copy(
+                            question = fortune,
+                            resultJson = resultData
+                        ))
+                    }
+                    // Update VisionReading with interpretation
                     val existing = visionDao.getByReadingId(rid)
                     if (existing != null) {
                         visionDao.update(existing.copy(interpretation = finalText))
                     }
                 }
-            } catch (_: Exception) {}
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to persist vision result", e)
+            }
         } catch (e: Exception) {
             Log.e(TAG, "Interpretation failed", e)
             val fallback = buildFallbackInterpretation(featuresJson, question)
+            val fortune = FortuneEngine.visionFortune(fallback)
+            val meaning = FortuneEngine.visionMeaning(fortune)
             _uiState.value = _uiState.value.copy(
                 interpretation = fallback,
                 phase = VisionPhase.RESULT,
-                fourCharFortune = FortuneEngine.visionFortune(fallback),
-                fourCharMeaning = FortuneEngine.visionMeaning(FortuneEngine.visionFortune(fallback))
+                fourCharFortune = fortune,
+                fourCharMeaning = meaning
             )
+            // Persist fallback result to database
+            try {
+                val rid = _uiState.value.readingId
+                if (rid != null) {
+                    val existingReading = divinationDao.getById(rid)
+                    if (existingReading != null) {
+                        val resultData = """{"fortune":"$fortune","meaning":"$meaning","interpretation":${Json.encodeToString(fallback.take(500))},"features":$featuresJson}"""
+                        divinationDao.update(existingReading.copy(
+                            question = fortune,
+                            resultJson = resultData
+                        ))
+                    }
+                }
+            } catch (ex: Exception) {
+                Log.e(TAG, "Failed to persist fallback result", ex)
+            }
         }
     }
 

@@ -465,9 +465,12 @@ private fun DivinationReading.toDisplayEntry(): ArchiveEntry {
             } catch (e: Exception) { "" }
         }
         DivinationType.VISION -> {
-            titleText = question.ifBlank { "面相分析" }
+            titleText = try {
+                val m = Regex("\"fortune\"\\s*:\\s*\"([^\"]+)\"").find(resultJson)
+                m?.groupValues?.get(1) ?: question.ifBlank { "面相分析" }
+            } catch (e: Exception) { question.ifBlank { "面相分析" } }
             interpretationText = try {
-                val m = Regex("\"conclusion\"\\s*:\\s*\"([^\"]+)\"").find(resultJson)
+                val m = Regex("\"meaning\"\\s*:\\s*\"([^\"]+)\"").find(resultJson)
                 m?.groupValues?.get(1)?.take(60) ?: ""
             } catch (e: Exception) { "" }
         }
