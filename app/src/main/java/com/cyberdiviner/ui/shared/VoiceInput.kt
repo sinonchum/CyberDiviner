@@ -8,11 +8,12 @@ import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import android.view.HapticFeedbackConstants
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -34,7 +35,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -49,25 +49,16 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.cyberdiviner.ui.theme.CyberBlack
-import com.cyberdiviner.ui.theme.CyberWhite
-import com.cyberdiviner.ui.theme.GrayBorder
-import com.cyberdiviner.ui.theme.GrayCaption
-import com.cyberdiviner.ui.theme.GrayTitle
 
 /**
  * Shared voice input field: text input + hold-to-mic button + send button.
  *
- * Bugs fixed from the original OracleScreen implementation:
- *  - Mic button is never disabled (was using IconButton enabled=false which blocked pointerInput)
- *  - isRecording state is local to the composable (no stale closure capture from parent scope)
- *  - SpeechRecognizer created via remember{} (guaranteed main thread during composition)
- *  - Listener set BEFORE startListening (was a race condition)
- *  - RECORD_AUDIO permission checked at runtime
+ * Uses Android's built-in SpeechRecognizer (zero extra APK size).
+ * Requests RECORD_AUDIO permission on first mic tap.
+ * Falls back to online recognition if offline model unavailable.
  *
  * Usage:
  *   var text by remember { mutableStateOf("") }
@@ -88,32 +79,39 @@ fun VoiceInputField(
     val context = LocalContext.current
     val view = LocalView.current
     var isRecording by remember { mutableStateOf(false) }
-    var hasPermission by remember { mutableStateOf(false) }
+    var hasPermission by remember {
+        mutableStateOf(
+            context.checkSelfPermission(Manifest.permission.RECORD_AUDIO) ==
+                    PackageManager.PERMISSION_GRANTED
+        )
+    }
 
-    // Runtime permission check
-    LaunchedEffect(Unit) {
-        hasPermission = context.checkSelfPermission(Manifest.permission.RECORD_AUDIO) ==
-                PackageManager.PERMISSION_GRANTED
+    // Permission request launcher
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        hasPermission = granted
     }
 
     // SpeechRecognizer created during composition (main thread) via remember
     val speechRecognizer = remember {
-        SpeechRecognizer.createSpeechRecognizer(context.applicationContext)
+        if (SpeechRecognizer.isRecognitionAvailable(context)) {
+            SpeechRecognizer.createSpeechRecognizer(context.applicationContext)
+        } else null
     }
 
     DisposableEffect(Unit) {
-        onDispose { speechRecognizer.destroy() }
+        onDispose { speechRecognizer?.destroy() }
     }
 
     // Buffer for recognition results
     var recognizedText by remember { mutableStateOf("") }
+    var errorMsg by remember { mutableStateOf<String?>(null) }
 
     // When recording stops, push recognized text into the input field
-    LaunchedEffect(isRecording) {
-        if (!isRecording && recognizedText.isNotBlank()) {
-            onTextChange(recognizedText)
-            recognizedText = ""
-        }
+    if (!isRecording && recognizedText.isNotBlank()) {
+        onTextChange(recognizedText)
+        recognizedText = ""
     }
 
     Column(modifier = modifier) {
@@ -124,7 +122,7 @@ fun VoiceInputField(
             // ── Text input ──────────────────────────────────────────
             BasicTextField(
                 value = text,
-                onValueChange = onTextChange,
+                onValueChange = { onTextChange(it); errorMsg = null },
                 modifier = Modifier
                     .weight(1f)
                     .background(CyberBlack)
@@ -154,10 +152,7 @@ fun VoiceInputField(
 
             Spacer(modifier = Modifier.width(12.dp))
 
-            // ── Mic button: plain Box, never disabled ───────────────
-            //  Using IconButton(enabled=false) was the root bug — it
-            //  blocks pointerInput so tryAwaitRelease() never fires.
-            //  A plain Box with pointerInput always receives touches.
+            // ── Mic button ──────────────────────────────────────────
             Box(
                 modifier = Modifier
                     .size(36.dp)
@@ -166,12 +161,20 @@ fun VoiceInputField(
                     .pointerInput(Unit) {
                         detectTapGestures(
                             onPress = {
-                                if (!hasPermission) return@detectTapGestures
+                                // Request permission if not granted
+                                if (!hasPermission) {
+                                    permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                                    return@detectTapGestures
+                                }
+                                if (speechRecognizer == null) {
+                                    errorMsg = "设备不支持语音识别"
+                                    return@detectTapGestures
+                                }
 
                                 view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
                                 isRecording = true
+                                errorMsg = null
 
-                                // Set listener BEFORE starting (fixes race condition)
                                 speechRecognizer.setRecognitionListener(
                                     object : RecognitionListener {
                                         override fun onReadyForSpeech(params: Bundle?) {}
@@ -192,6 +195,13 @@ fun VoiceInputField(
                                         }
                                         override fun onError(error: Int) {
                                             isRecording = false
+                                            errorMsg = when (error) {
+                                                SpeechRecognizer.ERROR_NO_MATCH -> "未识别到语音"
+                                                SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "语音超时"
+                                                SpeechRecognizer.ERROR_NETWORK,
+                                                SpeechRecognizer.ERROR_NETWORK_TIMEOUT -> "网络不可用"
+                                                else -> null
+                                            }
                                         }
                                     }
                                 )
@@ -203,15 +213,14 @@ fun VoiceInputField(
                                             RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
                                         )
                                         putExtra(RecognizerIntent.EXTRA_LANGUAGE, "zh-CN")
-                                        putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
+                                        putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, false)
                                         putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
                                     }
                                 )
 
-                                // Suspend until finger lifts — this is a suspending call
+                                // Suspend until finger lifts
                                 tryAwaitRelease()
 
-                                // Stop listening if still recording (user released early)
                                 if (isRecording) {
                                     speechRecognizer.stopListening()
                                     isRecording = false
@@ -257,11 +266,18 @@ fun VoiceInputField(
             }
         }
 
-        // ── Bottom line / wave ──────────────────────────────────────
+        // ── Bottom line / wave / error ──────────────────────────────
         Spacer(modifier = Modifier.height(8.dp))
         if (isRecording) {
             RecordingWaveLine(
                 modifier = Modifier.fillMaxWidth().height(2.dp)
+            )
+        } else if (errorMsg != null) {
+            Text(
+                text = errorMsg!!,
+                color = AccentRed,
+                fontFamily = WenKaiFontFamily,
+                fontSize = 10.sp
             )
         } else {
             Box(
@@ -275,7 +291,7 @@ fun VoiceInputField(
 
 @Composable
 fun RecordingWaveLine(modifier: Modifier = Modifier) {
-    val infiniteTransition = rememberInfiniteTransition(label = "wave")
+    val infiniteTransition = androidx.compose.animation.core.rememberInfiniteTransition(label = "wave")
     val phase by infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 1f,
