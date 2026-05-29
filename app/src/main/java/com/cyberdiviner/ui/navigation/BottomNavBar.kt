@@ -30,6 +30,11 @@ sealed class BottomNavItem(
         label = "术数推演",
         icon = { selected -> TrigramIcon(selected) }
     )
+    data object Learn : BottomNavItem(
+        route = Routes.LEARN,
+        label = "修习之路",
+        icon = { selected -> LearnIcon(selected) }
+    )
     data object Archive : BottomNavItem(
         route = Routes.ARCHIVE,
         label = "因果命簿",
@@ -110,9 +115,34 @@ private fun ScrollIcon(selected: Boolean) {
     }
 }
 
+@Composable
+private fun LearnIcon(selected: Boolean) {
+    val color = if (selected) CyberWhite else GrayCaption
+    Canvas(modifier = Modifier.size(24.dp)) {
+        val sw = 1.5.dp.toPx()
+        val cx = size.width / 2f
+        val cy = size.height / 2f
+        // Open book icon — two page shapes
+        val pageW = size.width * 0.35f
+        val pageH = size.height * 0.35f
+        val top = cy - pageH
+        val bottom = cy + pageH * 0.4f
+        // Left page
+        drawLine(color, Offset(cx, top), Offset(cx, bottom), sw, cap = StrokeCap.Square)
+        drawLine(color, Offset(cx, top), Offset(cx - pageW, top + pageH * 0.2f), sw, cap = StrokeCap.Square)
+        drawLine(color, Offset(cx - pageW, top + pageH * 0.2f), Offset(cx - pageW, bottom), sw, cap = StrokeCap.Square)
+        // Right page
+        drawLine(color, Offset(cx, top), Offset(cx + pageW, top + pageH * 0.2f), sw, cap = StrokeCap.Square)
+        drawLine(color, Offset(cx + pageW, top + pageH * 0.2f), Offset(cx + pageW, bottom), sw, cap = StrokeCap.Square)
+        // Bottom spine
+        drawLine(color, Offset(cx - pageW, bottom), Offset(cx + pageW, bottom), sw * 0.7f, cap = StrokeCap.Square)
+    }
+}
+
 val bottomNavItems = listOf(
     BottomNavItem.Oracle,
     BottomNavItem.Rituals,
+    BottomNavItem.Learn,
     BottomNavItem.Archive
 )
 

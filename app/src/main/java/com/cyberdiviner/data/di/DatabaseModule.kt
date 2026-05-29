@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.cyberdiviner.data.CyberDivinerDatabase
 import com.cyberdiviner.data.dao.DivinationDao
+import com.cyberdiviner.data.dao.LearningDao
 import com.cyberdiviner.data.dao.LiuyaoDao
 import com.cyberdiviner.data.dao.MuyuDao
 import com.cyberdiviner.data.dao.TarotDao
@@ -26,7 +27,8 @@ object DatabaseModule {
             context,
             CyberDivinerDatabase::class.java,
             CyberDivinerDatabase.DATABASE_NAME
-        ).fallbackToDestructiveMigration()
+        ).addMigrations(CyberDivinerDatabase.MIGRATION_1_2)
+         .fallbackToDestructiveMigration()
          .build()
     }
 
@@ -44,4 +46,7 @@ object DatabaseModule {
 
     @Provides
     fun provideMuyuDao(db: CyberDivinerDatabase): MuyuDao = db.muyuDao()
+
+    @Provides
+    fun provideLearningDao(db: CyberDivinerDatabase): LearningDao = db.learningDao()
 }

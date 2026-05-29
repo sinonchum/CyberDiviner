@@ -35,6 +35,7 @@ import com.cyberdiviner.ui.rituals.RitualsMenuScreen
 import com.cyberdiviner.ui.splash.SplashScreen
 import com.cyberdiviner.ui.tarot.TarotScreen
 import com.cyberdiviner.ui.shared.GearSettingsIcon
+import com.cyberdiviner.ui.learning.LearnHomeScreen
 import com.cyberdiviner.ui.theme.CyberBlack
 import com.cyberdiviner.ui.theme.GrayCaption
 import com.cyberdiviner.ui.vision.VisionScreen
@@ -56,10 +57,13 @@ object Routes {
     const val RITUAL_MUYU = "ritual/muyu"
     const val RITUAL_ALMANAC = "ritual/almanac"
     const val ARCHIVE = "archive"
+    const val LEARN = "learn"
+    const val LEARN_PATH = "learn/path/{pathId}"
+    const val LEARN_LESSON = "learn/lesson/{lessonId}"
     const val CONFIG = "config"
 }
 
-private val bottomNavRoutes = setOf(Routes.ORACLE, Routes.RITUALS, Routes.ARCHIVE)
+private val bottomNavRoutes = setOf(Routes.ORACLE, Routes.RITUALS, Routes.LEARN, Routes.ARCHIVE)
 
 @Composable
 fun CyberDivinerNavGraph(navController: NavHostController) {
@@ -203,6 +207,57 @@ fun CyberDivinerNavGraph(navController: NavHostController) {
                     popExitTransition = { ScreenTransitions.slideOutToRight }
                 ) {
                     AlmanacScreen(onBack = { navController.popBackStack() })
+                }
+
+                composable(
+                    Routes.LEARN,
+                    enterTransition = { ScreenTransitions.crossfadeIn },
+                    exitTransition = { ScreenTransitions.crossfadeOut },
+                    popEnterTransition = { ScreenTransitions.crossfadeIn },
+                    popExitTransition = { ScreenTransitions.crossfadeOut }
+                ) {
+                    LearnHomeScreen(
+                        onNavigateToPath = { pathId ->
+                            navController.navigate("learn/path/$pathId")
+                        },
+                        onNavigateToLesson = { lessonId ->
+                            navController.navigate("learn/lesson/$lessonId")
+                        },
+                        navController = navController
+                    )
+                }
+
+                composable(
+                    Routes.LEARN_PATH,
+                    enterTransition = { ScreenTransitions.slideInFromRight },
+                    exitTransition = { ScreenTransitions.slideOutToLeft },
+                    popEnterTransition = { ScreenTransitions.slideInFromLeft },
+                    popExitTransition = { ScreenTransitions.slideOutToRight }
+                ) { backStackEntry ->
+                    val pathId = backStackEntry.arguments?.getString("pathId") ?: return@composable
+                    com.cyberdiviner.ui.learning.LearnPathScreen(
+                        pathId = pathId,
+                        onNavigateToLesson = { lessonId ->
+                            navController.navigate("learn/lesson/$lessonId")
+                        },
+                        onBack = { navController.popBackStack() },
+                        navController = navController
+                    )
+                }
+
+                composable(
+                    Routes.LEARN_LESSON,
+                    enterTransition = { ScreenTransitions.slideInFromRight },
+                    exitTransition = { ScreenTransitions.slideOutToLeft },
+                    popEnterTransition = { ScreenTransitions.slideInFromLeft },
+                    popExitTransition = { ScreenTransitions.slideOutToRight }
+                ) { backStackEntry ->
+                    val lessonId = backStackEntry.arguments?.getString("lessonId") ?: return@composable
+                    com.cyberdiviner.ui.learning.LessonScreen(
+                        lessonId = lessonId,
+                        onBack = { navController.popBackStack() },
+                        onLessonComplete = { navController.popBackStack() }
+                    )
                 }
 
                 composable(
