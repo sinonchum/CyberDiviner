@@ -585,8 +585,11 @@ fun MatchingQuiz(
                     )
                 }
 
-                // Shuffled value options — wrap into rows of max 3 for consistent sizing
-                val rows = shuffledValues.chunked(3)
+                // Shuffled value options — smart grid layout for balanced aesthetics
+                val perRow = when (shuffledValues.size) {
+                    2 -> 2; 3 -> 3; 4 -> 2; 5 -> 3; 6 -> 3; else -> 3
+                }
+                val rows = shuffledValues.chunked(perRow)
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     rows.forEach { rowItems ->
                         Row(
@@ -624,6 +627,11 @@ fun MatchingQuiz(
                                 // Detect if value is "X上Y下" or a trigram name
                                 val isCombo = value.contains("上") && value.contains("下")
                                 val isTri = isTrigramName(value)
+                                // Split "老阳（○，动爻）" → name + annotation
+                                val parenIdx = value.indexOf("（")
+                                val hasAnnotation = parenIdx > 0 && value.endsWith("）")
+                                val chipName = if (hasAnnotation) value.substring(0, parenIdx) else value
+                                val chipAnnotation = if (hasAnnotation) value.substring(parenIdx) else null
 
                                 Box(
                                     modifier = Modifier
@@ -661,19 +669,31 @@ fun MatchingQuiz(
                                             )
                                             Spacer(Modifier.height(3.dp))
                                         }
+                                        // Name line (e.g. "老阳")
                                         Text(
-                                            text = value,
+                                            text = chipName,
                                             color = chipText.value,
                                             fontFamily = WenKaiFontFamily,
-                                            fontSize = 11.sp,
-                                            textAlign = TextAlign.Center,
-                                            maxLines = 2
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            textAlign = TextAlign.Center
                                         )
+                                        // Annotation line (e.g. "（○，动爻）")
+                                        if (chipAnnotation != null) {
+                                            Text(
+                                                text = chipAnnotation,
+                                                color = chipText.value.copy(alpha = 0.7f),
+                                                fontFamily = WenKaiFontFamily,
+                                                fontSize = 9.sp,
+                                                textAlign = TextAlign.Center,
+                                                maxLines = 1
+                                            )
+                                        }
                                     }
                                 }
                             }
                             // Fill remaining slots if last row has fewer items
-                            repeat(3 - rowItems.size) {
+                            repeat(perRow - rowItems.size) {
                                 Spacer(Modifier.weight(1f))
                             }
                         }
