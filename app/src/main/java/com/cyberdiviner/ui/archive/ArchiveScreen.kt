@@ -499,7 +499,7 @@ private fun DivinationReading.toDisplayEntry(): ArchiveEntry {
                 }
                 // Extract first meaningful sentence, skip template markers like [ 载入签文 ]
                 val cleaned = fullText
-                    .replace(Regex("\\[\\s*[^\\]]*\\]"), "") // Remove [ ... ] markers
+                    .replace(Regex("\\[[^\\]]*\\]"), "") // Remove [ ... ] markers (single line only)
                     .trim()
                 firstSentence(cleaned)
             } catch (e: Exception) { "" }
