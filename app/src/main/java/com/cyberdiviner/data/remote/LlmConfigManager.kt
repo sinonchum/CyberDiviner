@@ -27,6 +27,7 @@ class LlmConfigManager(private val context: Context) {
         private val KEY_BASE_URL = stringPreferencesKey("base_url")
         private val KEY_PERSONA_ID = stringPreferencesKey("persona_id")
         private val KEY_TEMPERATURE = stringPreferencesKey("temperature")
+        private val KEY_INFERENCE_MODE = stringPreferencesKey("inference_mode")
     }
 
     // ── Reactive streams (for UI) ───────────────────────────────────────────
@@ -39,6 +40,7 @@ class LlmConfigManager(private val context: Context) {
     val temperature: Flow<Double> = context.dataStore.data.map {
         it[KEY_TEMPERATURE]?.toDoubleOrNull() ?: 0.7
     }
+    val inferenceMode: Flow<String> = context.dataStore.data.map { it[KEY_INFERENCE_MODE] ?: "AUTO" }
 
     // ── Setters ─────────────────────────────────────────────────────────────
 
@@ -64,6 +66,10 @@ class LlmConfigManager(private val context: Context) {
 
     suspend fun setTemperature(temp: Double) {
         context.dataStore.edit { it[KEY_TEMPERATURE] = temp.toString() }
+    }
+
+    suspend fun setInferenceMode(mode: String) {
+        context.dataStore.edit { it[KEY_INFERENCE_MODE] = mode }
     }
 
     // ── Config builder ──────────────────────────────────────────────────────

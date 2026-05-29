@@ -4,10 +4,10 @@ import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.cyberdiviner.data.remote.LlmConfigManager
 import com.cyberdiviner.data.remote.LlmMessage
-import com.cyberdiviner.data.remote.LlmService
 import com.cyberdiviner.data.dao.DivinationDao
+import com.cyberdiviner.engine.offline.InferenceRouter
+import com.cyberdiviner.engine.offline.OfflinePromptBuilder
 import com.cyberdiviner.data.model.DivinationReading
 import com.cyberdiviner.data.model.DivinationType
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -32,8 +32,8 @@ data class OracleMessage(
 @HiltViewModel
 class OracleViewModel @Inject constructor(
     application: Application,
-    private val llmService: LlmService,
-    private val configManager: LlmConfigManager,
+    private val inferenceRouter: InferenceRouter,
+    private val offlinePromptBuilder: OfflinePromptBuilder,
     private val divinationDao: DivinationDao
 ) : AndroidViewModel(application) {
 
@@ -109,12 +109,6 @@ class OracleViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
-                val config = configManager.buildConfig(systemPrompt = com.cyberdiviner.data.remote.PromptManager().resolveSystem("oracle", com.cyberdiviner.engine.Persona.DEFAULT))
-                if (config == null) {
-                    addAgentMessage("[ 系统离线 ] 量子因果链未连接。请在设置中配置算命服务密钥。")
-                    return@launch
-                }
-
                 // Build conversation history for API
                 val apiMessages = _messages.value.map { msg ->
                     LlmMessage(
@@ -123,17 +117,33 @@ class OracleViewModel @Inject constructor(
                     )
                 }
 
-                val responseText = withContext(Dispatchers.IO) {
-                    llmService.complete(config, apiMessages).text
+                val offlinePrompt = offlinePromptBuilder.buildOraclePrompt(text)
+
+                val result = withContext(Dispatchers.IO) {
+                    inferenceRouter.complete(
+                        feature = "oracle",
+                        messages = apiMessages,
+                        offlineUserPrompt = offlinePrompt
+                    )
                 }
 
-                val cleanedResponse = sanitizeOracleResponse(com.cyberdiviner.engine.Persona.stripActionDescriptions(responseText))
-                addAgentMessage(cleanedResponse)
+                val rawResponse = com.cyberdiviner.engine.Persona.stripActionDescriptions(result.text)
+                val cleanedResponse = sanitizeOracleResponse(rawResponse)
 
-                // Save this exchange to archive in background
+                // Fallback for offline mode when small model produces empty/near-empty output
+                val finalResponse = if (result.isOffline && cleanedResponse.length < 20) {
+                    generateOfflineFallback(text)
+                } else cleanedResponse
+
+                // Prefix with mode indicator when offline
+                val displayResponse = if (result.isOffline) {
+                    "[ 本地签筒 ]\n$finalResponse"
+                } else finalResponse
+
+                addAgentMessage(displayResponse)
                 saveExchangeToArchive(text, cleanedResponse)
             } catch (e: Exception) {
-                Log.e(TAG, "LLM call failed", e)
+                Log.e(TAG, "Inference failed", e)
                 addAgentMessage("[ 系统异常 ] 量子因果链中断。错误码: ${e.message ?: "未知"}。请稍后重试。")
             } finally {
                 _round.value = _round.value + 1
@@ -172,9 +182,40 @@ class OracleViewModel @Inject constructor(
     }
 
     /**
-     * Generate a 4-character philosophical summary from the AI response.
-     * Extracts key themes and maps them to concise classical Chinese phrases.
+     * Generate a fallback response when the offline model produces empty/near-empty output.
+     * Uses template-based generation with randomized poetic content.
      */
+    private fun generateOfflineFallback(question: String): String {
+        val fortunes = listOf(
+            "云开月明终有日，守得初心见真章。",
+            "春来草木自青青，莫问前程且自行。",
+            "山重水复疑无路，柳暗花明又一村。",
+            "静水深流藏真意，守正待时自有期。",
+            "风起青萍末，事成细微中。",
+            "天道酬勤终不负，行稳致远自亨通。",
+            "否极泰来运将转，守得云开见月明。",
+            "蓄势待发正当时，厚积薄发展宏图。"
+        )
+        val analyses = listOf(
+            "此签主先难后易。眼前虽有困顿，但因果链已开始转动。关键在于保持定力，不被短期波动干扰。",
+            "签文显示局势正在酝酿变化。当前的停滞并非坏事，而是系统在重新校准方向。宜静观其变。",
+            "此签暗示贵人将至。你所求之事并非不可为，只是时机未到。保持开放心态，机遇自会显现。",
+            "签意指向内在修为。外在环境暂时难以改变，但心态的调整能带来转机。先稳己心，再图外事。"
+        )
+        val advices = listOf(
+            "建议：近期宜守不宜攻，等待时机成熟再行动。",
+            "建议：多关注身边细节，答案往往藏在被忽略之处。",
+            "建议：放下执念，顺其自然，该来的终会来。",
+            "建议：保持耐心，三日内或有消息传来。"
+        )
+
+        val fortune = fortunes[(question.hashCode().toLong().let { if (it < 0) -it else it } % fortunes.size).toInt()]
+        val analysis = analyses[((question.hashCode() shr 4).toLong().let { if (it < 0) -it else it } % analyses.size).toInt()]
+        val advice = advices[((question.hashCode() shr 8).toLong().let { if (it < 0) -it else it } % advices.size).toInt()]
+
+        return "$fortune\n\n$analysis\n\n$advice"
+    }
+
     private fun generateFourCharSummary(response: String): String {
         if (response.isBlank()) return "玄机未显"
 

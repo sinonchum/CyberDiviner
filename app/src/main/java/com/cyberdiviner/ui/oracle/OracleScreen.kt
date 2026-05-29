@@ -3,6 +3,7 @@ package com.cyberdiviner.ui.oracle
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -83,6 +84,13 @@ fun OracleScreen(
                     UserBubble(text = msg.text)
                 }
             }
+
+            // Loading indicator when processing
+            if (isProcessing) {
+                item {
+                    LoadingIndicator()
+                }
+            }
         }
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -120,6 +128,44 @@ private fun AiBubble(text: String) {
             )
         )
     }
+}
+
+// ── Loading indicator: animated dots ─────────────────────────────────────
+
+@Composable
+private fun LoadingIndicator() {
+    val infiniteTransition = rememberInfiniteTransition(label = "loading")
+    val dotCount by infiniteTransition.animateValue(
+        initialValue = 0,
+        targetValue = 4,
+        typeConverter = Int.VectorConverter,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1600, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "dots"
+    )
+
+    val dots = ".".repeat(dotCount)
+    val symbols = listOf("|", "/", "—", "\\")
+    val spinIndex by infiniteTransition.animateValue(
+        initialValue = 0,
+        targetValue = 4,
+        typeConverter = Int.VectorConverter,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 600, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "spin"
+    )
+
+    Text(
+        text = "正在演算 ${symbols[spinIndex]}$dots",
+        color = GrayMuted,
+        fontSize = 14.sp,
+        fontFamily = MonoFontFamily,
+        modifier = Modifier.padding(vertical = 4.dp)
+    )
 }
 
 // ── User Bubble: right-aligned with border box ─────────────────────────────

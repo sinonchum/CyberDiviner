@@ -35,3 +35,7 @@
 # Lifecycle Compose — keep LocalLifecycleOwner (used by VisionScreen camera)
 -keep class androidx.lifecycle.compose.** { *; }
 -keep class androidx.compose.ui.platform.LocalLifecycleOwner* { *; }
+
+# MediaPipe GenAI (on-device LLM)
+-keep class com.google.mediapipe.tasks.genai.** { *; }
+-dontwarn com.google.mediapipe.tasks.genai.**

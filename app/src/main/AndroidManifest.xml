@@ -13,6 +13,7 @@
     <application
         android:name=".CyberDivinerApp"
         android:allowBackup="false"
+        android:largeHeap="true"
         android:icon="@mipmap/ic_launcher"
         android:label="赛博算命"
         android:supportsRtl="true"

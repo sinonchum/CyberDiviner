@@ -9,10 +9,10 @@ import com.cyberdiviner.data.dao.LiuyaoDao
 import com.cyberdiviner.data.model.DivinationReading
 import com.cyberdiviner.data.model.DivinationType
 import com.cyberdiviner.data.model.LiuyaoReading
-import com.cyberdiviner.data.remote.LlmConfigManager
 import com.cyberdiviner.data.remote.LlmMessage
-import com.cyberdiviner.data.remote.LlmService
 import com.cyberdiviner.data.remote.PromptManager
+import com.cyberdiviner.engine.offline.InferenceRouter
+import com.cyberdiviner.engine.offline.OfflinePromptBuilder
 import com.cyberdiviner.engine.HexagramData.LineState
 import com.cyberdiviner.engine.LiuyaoEngine
 import com.cyberdiviner.engine.ShakeDetector
@@ -68,12 +68,12 @@ data class LiuyaoUiState(
 @HiltViewModel
 class LiuyaoViewModel @Inject constructor(
     application: Application,
-    private val llmService: LlmService,
-    private val promptManager: PromptManager,
+    private val inferenceRouter: InferenceRouter,
+    private val offlinePromptBuilder: OfflinePromptBuilder,
     private val divinationDao: DivinationDao,
-    private val learningDao: LearningDao,
     private val liuyaoDao: LiuyaoDao,
-    private val configManager: LlmConfigManager
+    private val learningDao: LearningDao,
+    private val promptManager: PromptManager
 ) : AndroidViewModel(application) {
 
     private val engine = LiuyaoEngine()
@@ -355,23 +355,23 @@ class LiuyaoViewModel @Inject constructor(
             )
 
             val messages = listOf(LlmMessage(role = "user", content = userPrompt))
-            val config = configManager.buildConfig(systemPrompt = systemPrompt)
+            val offlinePrompt = offlinePromptBuilder.buildLiuyaoPrompt(
+                hexagramName = "${result.primaryHexagram.chineseName} ${result.primaryHexagram.englishName}",
+                upperTrigram = result.primaryHexagram.upperTrigram.chineseName,
+                lowerTrigram = result.primaryHexagram.lowerTrigram.chineseName,
+                changingLines = changingLines,
+                question = question
+            )
 
-            if (config == null) {
+            val fullText = inferenceRouter.completeStream(
+                feature = "liuyao",
+                messages = messages,
+                offlineUserPrompt = offlinePrompt
+            ) { delta ->
                 _uiState.value = _uiState.value.copy(
-                    llmInterpretation = result.summary(),
-                    phase = LiuyaoPhase.RESULT
+                    llmStreamChunks = _uiState.value.llmStreamChunks + delta
                 )
-                return
-            }
-
-            val fullText = llmService.completeStream(config, messages) { chunk ->
-                if (chunk.delta.isNotEmpty()) {
-                    _uiState.value = _uiState.value.copy(
-                        llmStreamChunks = _uiState.value.llmStreamChunks + chunk.delta
-                    )
-                }
-            }
+            }.text
 
             val finalText = com.cyberdiviner.engine.Persona.stripActionDescriptions(fullText).ifBlank { result.summary() }
             _uiState.value = _uiState.value.copy(

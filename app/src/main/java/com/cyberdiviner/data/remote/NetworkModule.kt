@@ -7,6 +7,10 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import com.cyberdiviner.engine.offline.GemmaEngine
+import com.cyberdiviner.engine.offline.InferenceRouter
+import com.cyberdiviner.engine.offline.ModelManager
+import com.cyberdiviner.engine.offline.OfflinePromptBuilder
 import okhttp3.OkHttpClient
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
@@ -42,4 +46,30 @@ object NetworkModule {
     fun providePersonaEngine(
         llmService: LlmService
     ): PersonaEngine = PersonaEngine(llmService)
+
+    @Provides
+    @Singleton
+    fun provideGemmaEngine(
+        @ApplicationContext context: Context
+    ): GemmaEngine = GemmaEngine(context)
+
+    @Provides
+    @Singleton
+    fun provideModelManager(
+        @ApplicationContext context: Context
+    ): ModelManager = ModelManager(context)
+
+    @Provides
+    @Singleton
+    fun provideOfflinePromptBuilder(): OfflinePromptBuilder = OfflinePromptBuilder()
+
+    @Provides
+    @Singleton
+    fun provideInferenceRouter(
+        @ApplicationContext context: Context,
+        llmService: LlmService,
+        gemmaEngine: GemmaEngine,
+        configManager: LlmConfigManager,
+        offlinePromptBuilder: OfflinePromptBuilder
+    ): InferenceRouter = InferenceRouter(context, llmService, gemmaEngine, configManager, offlinePromptBuilder)
 }

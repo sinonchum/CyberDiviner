@@ -15,8 +15,8 @@ android {
         applicationId = "com.cyberdiviner"
         minSdk = 26
         targetSdk = 35
-        versionCode = 95
-        versionName = "9.5"
+        versionCode = 106
+        versionName = "10.6" 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -107,6 +107,9 @@ dependencies {
 
     // MediaPipe Face Mesh
     implementation("com.google.mediapipe:tasks-vision:0.10.20")
+
+    // MediaPipe LLM Inference (on-device LLM)
+    implementation("com.google.mediapipe:tasks-genai:0.10.27")
 
     // Coroutines play services
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.1")

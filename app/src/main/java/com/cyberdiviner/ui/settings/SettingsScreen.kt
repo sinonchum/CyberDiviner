@@ -22,6 +22,8 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.cyberdiviner.ui.theme.*
 import com.cyberdiviner.engine.Persona
+import com.cyberdiviner.data.model.InferenceMode
+import com.cyberdiviner.engine.offline.ModelManager
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,6 +37,8 @@ fun SettingsScreen(
     val modelId by viewModel.modelId.collectAsState()
     val personaId by viewModel.personaId.collectAsState()
     val saved by viewModel.saved.collectAsState()
+    val inferenceMode by viewModel.inferenceMode.collectAsState()
+    val modelState by viewModel.modelState.collectAsState()
 
     var showApiKey by remember { mutableStateOf(false) }
     var providerExpanded by remember { mutableStateOf(false) }
@@ -270,6 +274,182 @@ fun SettingsScreen(
                 )
             )
 
+            // ── Section: Inference Mode ────────────────────────────────
+            SectionHeader("推理模式")
+
+            var modeExpanded by remember { mutableStateOf(false) }
+            ExposedDropdownMenuBox(
+                expanded = modeExpanded,
+                onExpandedChange = { modeExpanded = it }
+            ) {
+                OutlinedTextField(
+                    value = inferenceMode.displayName,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Inference Mode", fontSize = 13.sp) },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = modeExpanded) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .menuAnchor(),
+                    colors = settingsFieldColors(),
+                    shape = MaterialTheme.shapes.medium,
+                    textStyle = LocalTextStyle.current.copy(
+                        fontFamily = MonoFontFamily,
+                        fontSize = 14.sp,
+                        color = CyberWhite
+                    )
+                )
+
+                ExposedDropdownMenu(
+                    expanded = modeExpanded,
+                    onDismissRequest = { modeExpanded = false }
+                ) {
+                    InferenceMode.entries.forEach { mode ->
+                        DropdownMenuItem(
+                            text = {
+                                Text(
+                                    mode.displayName,
+                                    fontFamily = MonoFontFamily,
+                                    fontSize = 14.sp
+                                )
+                            },
+                            onClick = {
+                                viewModel.setInferenceMode(mode)
+                                modeExpanded = false
+                            }
+                        )
+                    }
+                }
+            }
+
+            // ── Section: Offline Model ─────────────────────────────────
+            SectionHeader("离线模型")
+
+            Card(
+                colors = CardDefaults.cardColors(
+                    containerColor = GraySurface
+                ),
+                shape = MaterialTheme.shapes.medium
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    // Model info
+                    Text(
+                        "Gemma 2 2B (int8) · ~2.7 GB",
+                        color = CyberWhite,
+                        fontSize = 14.sp,
+                        fontFamily = MonoFontFamily,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    Text(
+                        "无网络时提供基础离线推理能力。下载后可离线生成签文、解卦、牌义。",
+                        color = GrayMuted,
+                        fontSize = 12.sp,
+                        lineHeight = 18.sp,
+                        fontFamily = MonoFontFamily
+                    )
+
+                    // Status and action
+                    when (val state = modelState) {
+                        is ModelManager.ModelState.NotDownloaded -> {
+                            Button(
+                                onClick = { viewModel.downloadModel() },
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = CyberWhite,
+                                    contentColor = CyberBlack
+                                ),
+                                shape = MaterialTheme.shapes.medium
+                            ) {
+                                Text(
+                                    "下载离线模型",
+                                    fontFamily = MonoFontFamily,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 14.sp
+                                )
+                            }
+                        }
+
+                        is ModelManager.ModelState.Downloading -> {
+                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                LinearProgressIndicator(
+                                    progress = { state.percent / 100f },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    color = CyberWhite,
+                                    trackColor = GrayMuted.copy(alpha = 0.3f)
+                                )
+                                Text(
+                                    "下载中 ${state.percent}% · ${formatBytes(state.bytesDownloaded)} / ${formatBytes(state.totalBytes)}",
+                                    color = GrayMuted,
+                                    fontSize = 12.sp,
+                                    fontFamily = MonoFontFamily
+                                )
+                            }
+                        }
+
+                        is ModelManager.ModelState.Ready -> {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    "已就绪",
+                                    color = CyberWhite,
+                                    fontSize = 14.sp,
+                                    fontFamily = MonoFontFamily,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                OutlinedButton(
+                                    onClick = { viewModel.deleteModel() },
+                                    colors = ButtonDefaults.outlinedButtonColors(
+                                        contentColor = AccentRed
+                                    ),
+                                    border = androidx.compose.foundation.BorderStroke(
+                                        1.dp, AccentRed.copy(alpha = 0.5f)
+                                    ),
+                                    shape = MaterialTheme.shapes.medium
+                                ) {
+                                    Text(
+                                        "删除模型",
+                                        fontFamily = MonoFontFamily,
+                                        fontSize = 13.sp
+                                    )
+                                }
+                            }
+                        }
+
+                        is ModelManager.ModelState.Error -> {
+                            Text(
+                                "下载失败: ${state.message}",
+                                color = AccentRed,
+                                fontSize = 12.sp,
+                                fontFamily = MonoFontFamily
+                            )
+                            Button(
+                                onClick = { viewModel.downloadModel() },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = CyberWhite,
+                                    contentColor = CyberBlack
+                                ),
+                                shape = MaterialTheme.shapes.medium
+                            ) {
+                                Text(
+                                    "重试",
+                                    fontFamily = MonoFontFamily,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 14.sp
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
             // ── Save button ───────────────────────────────────────────
             Button(
                 onClick = { viewModel.save() },
@@ -315,6 +495,15 @@ private fun SectionHeader(title: String) {
         fontFamily = MonoFontFamily,
         letterSpacing = 1.sp
     )
+}
+
+private fun formatBytes(bytes: Long): String {
+    val gb = bytes / (1024.0 * 1024.0 * 1024.0)
+    return if (gb >= 1.0) "%.1f GB".format(gb)
+    else {
+        val mb = bytes / (1024.0 * 1024.0)
+        "%.0f MB".format(mb)
+    }
 }
 
 @Composable

@@ -9,10 +9,10 @@ import com.cyberdiviner.data.dao.TarotDao
 import com.cyberdiviner.data.model.DivinationReading
 import com.cyberdiviner.data.model.DivinationType
 import com.cyberdiviner.data.model.TarotReading
-import com.cyberdiviner.data.remote.LlmConfigManager
 import com.cyberdiviner.data.remote.LlmMessage
-import com.cyberdiviner.data.remote.LlmService
 import com.cyberdiviner.data.remote.PromptManager
+import com.cyberdiviner.engine.offline.InferenceRouter
+import com.cyberdiviner.engine.offline.OfflinePromptBuilder
 import com.cyberdiviner.engine.Persona
 import com.cyberdiviner.engine.FortuneEngine
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -143,12 +143,12 @@ data class TarotUiState(
 @HiltViewModel
 class TarotViewModel @Inject constructor(
     application: Application,
-    private val llmService: LlmService,
-    private val promptManager: PromptManager,
+    private val inferenceRouter: InferenceRouter,
+    private val offlinePromptBuilder: OfflinePromptBuilder,
+    private val divinationDao: DivinationDao,
     private val tarotDao: TarotDao,
     private val learningDao: LearningDao,
-    private val divinationDao: DivinationDao,
-    private val configManager: LlmConfigManager
+    private val promptManager: PromptManager
 ) : AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(TarotUiState())
@@ -335,27 +335,20 @@ class TarotViewModel @Inject constructor(
             )
 
             val messages = listOf(LlmMessage(role = "user", content = userPrompt))
-            val config = configManager.buildConfig(systemPrompt = systemPrompt)
+            val offlinePrompt = offlinePromptBuilder.buildTarotPrompt(
+                cards = spreadText,
+                question = question
+            )
 
-            if (config == null) {
-                // No API key — fallback interpretation
-                val fallback = buildFallbackInterpretation(cards, spread, question)
+            val fullText = inferenceRouter.completeStream(
+                feature = "tarot",
+                messages = messages,
+                offlineUserPrompt = offlinePrompt
+            ) { delta ->
                 _uiState.value = _uiState.value.copy(
-                    interpretation = fallback,
-                    phase = TarotPhase.RESULT,
-                    fourCharFortune = FortuneEngine.tarotFortune(cards[0].nameZh, cards[0].isReversed),
-                    fourCharMeaning = FortuneEngine.tarotMeaning(cards[0].nameZh, cards[0].isReversed)
+                    streamText = _uiState.value.streamText + delta
                 )
-                return
-            }
-
-            val fullText = llmService.completeStream(config, messages) { chunk ->
-                if (chunk.delta.isNotEmpty()) {
-                    _uiState.value = _uiState.value.copy(
-                        streamText = _uiState.value.streamText + chunk.delta
-                    )
-                }
-            }
+            }.text
 
             val finalText = com.cyberdiviner.engine.Persona.stripActionDescriptions(fullText).ifBlank { buildFallbackInterpretation(cards, spread, question) }
             _uiState.value = _uiState.value.copy(

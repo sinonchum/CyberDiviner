@@ -21,10 +21,10 @@ import com.cyberdiviner.data.dao.VisionDao
 import com.cyberdiviner.data.model.DivinationReading
 import com.cyberdiviner.data.model.DivinationType
 import com.cyberdiviner.data.model.VisionReading
-import com.cyberdiviner.data.remote.LlmConfigManager
 import com.cyberdiviner.data.remote.LlmMessage
-import com.cyberdiviner.data.remote.LlmService
 import com.cyberdiviner.data.remote.PromptManager
+import com.cyberdiviner.engine.offline.InferenceRouter
+import com.cyberdiviner.engine.offline.OfflinePromptBuilder
 import com.cyberdiviner.engine.Persona
 import com.cyberdiviner.engine.FortuneEngine
 import com.google.mediapipe.framework.image.BitmapImageBuilder
@@ -165,11 +165,11 @@ data class VisionUiState(
 @HiltViewModel
 class VisionViewModel @Inject constructor(
     application: Application,
-    private val llmService: LlmService,
-    private val promptManager: PromptManager,
-    private val visionDao: VisionDao,
+    private val inferenceRouter: InferenceRouter,
+    private val offlinePromptBuilder: OfflinePromptBuilder,
     private val divinationDao: DivinationDao,
-    private val configManager: LlmConfigManager
+    private val visionDao: VisionDao,
+    private val promptManager: PromptManager
 ) : AndroidViewModel(application) {
 
     companion object {
@@ -754,30 +754,19 @@ class VisionViewModel @Inject constructor(
             )
 
             val messages = listOf(LlmMessage(role = "user", content = userPrompt))
-            val config = configManager.buildConfig(systemPrompt = systemPrompt)
+            val offlinePrompt = offlinePromptBuilder.buildVisionPrompt(
+                faceDescription = featuresText
+            )
 
-            if (config == null) {
-                val fallback = buildFallbackInterpretation(featuresJson, question)
-                val fortune = FortuneEngine.visionFortune(fallback)
-                val meaning = FortuneEngine.visionMeaning(fortune)
+            val fullText = inferenceRouter.completeStream(
+                feature = "vision",
+                messages = messages,
+                offlineUserPrompt = offlinePrompt
+            ) { delta ->
                 _uiState.value = _uiState.value.copy(
-                    interpretation = fallback,
-                    phase = VisionPhase.RESULT,
-                    fourCharFortune = fortune,
-                    fourCharMeaning = meaning
+                    streamText = _uiState.value.streamText + delta
                 )
-                // Persist even when using fallback
-                persistResult(fortune, meaning, fallback, featuresJson)
-                return
-            }
-
-            val fullText = llmService.completeStream(config, messages) { chunk ->
-                if (chunk.delta.isNotEmpty()) {
-                    _uiState.value = _uiState.value.copy(
-                        streamText = _uiState.value.streamText + chunk.delta
-                    )
-                }
-            }
+            }.text
 
             val finalText = com.cyberdiviner.engine.Persona.stripActionDescriptions(fullText).ifBlank { buildFallbackInterpretation(featuresJson, question) }
             val fortune = FortuneEngine.visionFortune(finalText)
