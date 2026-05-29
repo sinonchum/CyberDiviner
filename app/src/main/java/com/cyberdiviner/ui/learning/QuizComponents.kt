@@ -405,6 +405,12 @@ private fun HexagramLines(
 /** Known trigram names (simplified + traditional) */
 private val KNOWN_TRIGRAMS = setOf("乾","坤","震","巽","坎","离","離","艮","兑","兌")
 
+/** Natural imagery to trigram name mapping */
+private val ELEMENT_TO_TRIGRAM = mapOf(
+    "天" to "乾", "地" to "坤", "雷" to "震", "风" to "巽",
+    "水" to "坎", "火" to "离", "山" to "艮", "泽" to "兑"
+)
+
 /** Check if text is exactly a trigram name */
 private fun isTrigramName(text: String): Boolean = text.trim() in KNOWN_TRIGRAMS
 
@@ -413,6 +419,23 @@ private fun containsTrigramName(text: String): Boolean = KNOWN_TRIGRAMS.any { te
 
 /** Extract the first trigram name from text, or null */
 private fun extractTrigramName(text: String): String? = KNOWN_TRIGRAMS.firstOrNull { text.contains(it) }
+
+/**
+ * Try to parse a hexagram name like "天地否" into "乾上坤下".
+ * The first char = upper trigram imagery, second char = lower trigram imagery.
+ * Returns "X上Y下" format or null if not parseable.
+ */
+private fun parseHexagramNameToCombo(name: String): String? {
+    if (name.length < 2) return null
+    val upperElement = name[0].toString()
+    val lowerElement = name[1].toString()
+    val upperTrigram = ELEMENT_TO_TRIGRAM[upperElement] ?: return null
+    val lowerTrigram = ELEMENT_TO_TRIGRAM[lowerElement] ?: return null
+    return "${upperTrigram}上${lowerTrigram}下"
+}
+
+/** Check if text looks like a hexagram name (2+ chars, first two map to trigrams) */
+private fun isHexagramName(text: String): Boolean = parseHexagramNameToCombo(text.trim()) != null
 
 /**
  * Draw 3-line trigram symbol for a single trigram name.
@@ -531,16 +554,26 @@ fun MatchingQuiz(
                     .border(1.dp, GrayBorder, RoundedCornerShape(2.dp))
                     .padding(12.dp)
             ) {
-                // Key text + trigram symbol
+                // Key text + symbol (trigram or hexagram)
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(bottom = 8.dp)
                 ) {
-                    if (isTrigramName(item.key)) {
-                        TrigramLines(
+                    // Draw trigram (3 lines) or hexagram (6 lines)
+                    when {
+                        isTrigramName(item.key) -> TrigramLines(
                             trigramName = item.key,
                             modifier = Modifier.padding(end = 8.dp)
                         )
+                        isHexagramName(item.key) -> {
+                            val combo = parseHexagramNameToCombo(item.key)
+                            if (combo != null) {
+                                HexagramLines(
+                                    trigramCombo = combo,
+                                    modifier = Modifier.padding(end = 8.dp)
+                                )
+                            }
+                        }
                     }
                     Text(
                         text = item.key,
@@ -550,12 +583,6 @@ fun MatchingQuiz(
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.weight(1f)
                     )
-                    if (hasHexagram && selected == item.value) {
-                        HexagramLines(
-                            trigramCombo = item.value,
-                            modifier = Modifier.padding(start = 8.dp)
-                        )
-                    }
                 }
 
                 // Shuffled value options as tappable chips
@@ -591,6 +618,10 @@ fun MatchingQuiz(
                             animationSpec = tween(200), label = "chipText"
                         )
 
+                        // Detect if value is "X上Y下" or a trigram name
+                        val isCombo = value.contains("上") && value.contains("下")
+                        val isTri = isTrigramName(value)
+
                         Box(
                             modifier = Modifier
                                 .weight(1f)
@@ -602,17 +633,39 @@ fun MatchingQuiz(
                                         set(index, if (isSelected) null else value)
                                     }
                                 }
-                                .padding(vertical = 8.dp, horizontal = 4.dp),
+                                .padding(vertical = 6.dp, horizontal = 4.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(
-                                text = value,
-                                color = chipText.value,
-                                fontFamily = WenKaiFontFamily,
-                                fontSize = 12.sp,
-                                textAlign = TextAlign.Center,
-                                maxLines = 2
-                            )
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                // Draw hexagram (6 lines) or trigram (3 lines) symbol
+                                if (isCombo) {
+                                    HexagramLines(
+                                        trigramCombo = value,
+                                        lineWidth = 22f,
+                                        lineHeight = 2.5f,
+                                        gap = 1.5f
+                                    )
+                                    Spacer(Modifier.height(3.dp))
+                                } else if (isTri) {
+                                    TrigramLines(
+                                        trigramName = value.trim(),
+                                        lineWidth = 16f,
+                                        lineHeight = 2.5f,
+                                        gap = 1.5f
+                                    )
+                                    Spacer(Modifier.height(3.dp))
+                                }
+                                Text(
+                                    text = value,
+                                    color = chipText.value,
+                                    fontFamily = WenKaiFontFamily,
+                                    fontSize = 11.sp,
+                                    textAlign = TextAlign.Center,
+                                    maxLines = 2
+                                )
+                            }
                         }
                     }
                 }
