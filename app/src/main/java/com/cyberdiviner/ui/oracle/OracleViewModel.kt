@@ -154,7 +154,10 @@ class OracleViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val summary = generateFourCharSummary(aiResponse)
-                val resultJson = """{"question": "$userQuestion", "summary": "$summary", "response": "${aiResponse.take(300)}"}""".trimIndent()
+                // Escape special chars for JSON storage
+                val escapedQuestion = userQuestion.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", " ").replace("\r", "")
+                val escapedResponse = aiResponse.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", " ").replace("\r", "").take(300)
+                val resultJson = """{"question": "$escapedQuestion", "summary": "$summary", "response": "$escapedResponse"}""".trimIndent()
 
                 val reading = DivinationReading(
                     type = DivinationType.ORACLE,
