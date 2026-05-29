@@ -422,40 +422,6 @@ private fun ResultPhase(
 
 // ── CARD_REVIEW phase (tarot only) ────────────────────────────────────
 
-/** 22 Major Arcana cards with number, name, symbol, and theme */
-private data class MajorArcanaCard(
-    val number: Int,
-    val romanNumeral: String,
-    val name: String,
-    val symbol: String,  // Unicode symbol for visual representation
-    val theme: String
-)
-
-private val majorArcana = listOf(
-    MajorArcanaCard(0, "0", "愚者", "🌀", "新开始与未知"),
-    MajorArcanaCard(1, "I", "魔术师", "✦", "创造力与意志"),
-    MajorArcanaCard(2, "II", "女祭司", "☽", "直觉与内在智慧"),
-    MajorArcanaCard(3, "III", "女皇", "❀", "丰饶与滋养"),
-    MajorArcanaCard(4, "IV", "皇帝", "▲", "权威与结构"),
-    MajorArcanaCard(5, "V", "教皇", "⌘", "传统与信仰"),
-    MajorArcanaCard(6, "VI", "恋人", "♡", "选择与关系"),
-    MajorArcanaCard(7, "VII", "战车", "⚡", "意志力与前进"),
-    MajorArcanaCard(8, "VIII", "力量", "∞", "勇气与耐心"),
-    MajorArcanaCard(9, "IX", "隐者", "◎", "内省与指引"),
-    MajorArcanaCard(10, "X", "命运之轮", "⊕", "周期与转变"),
-    MajorArcanaCard(11, "XI", "正义", "⟡", "平衡与因果"),
-    MajorArcanaCard(12, "XII", "倒吊人", "⚑", "放下与新视角"),
-    MajorArcanaCard(13, "XIII", "死神", "†", "结束与转化"),
-    MajorArcanaCard(14, "XIV", "节制", "⇌", "调和与耐心"),
-    MajorArcanaCard(15, "XV", "恶魔", "⊘", "束缚与觉察"),
-    MajorArcanaCard(16, "XVI", "塔", "⊘", "突变与释放"),
-    MajorArcanaCard(17, "XVII", "星星", "☆", "希望与灵感"),
-    MajorArcanaCard(18, "XVIII", "月亮", "◐", "幻象与潜意识"),
-    MajorArcanaCard(19, "XIX", "太阳", "◉", "成功与活力"),
-    MajorArcanaCard(20, "XX", "审判", "⚑", "觉醒与评估"),
-    MajorArcanaCard(21, "XXI", "世界", "⊕", "完成与整合")
-)
-
 @Composable
 private fun CardReviewPhase(
     lesson: Lesson,
@@ -463,8 +429,8 @@ private fun CardReviewPhase(
 ) {
     // Determine which cards to show based on the lesson
     val cardsToShow = when (lesson.id) {
-        "C1" -> majorArcana.take(11)   // First half: 0-10
-        else -> majorArcana             // All 22 for overview lessons
+        "C1" -> majorArcanaCards.take(11)   // First half: 0-10
+        else -> majorArcanaCards             // All 22 for overview lessons
     }
 
     Column(
@@ -540,11 +506,10 @@ private fun TarotCardCell(
             letterSpacing = 1.sp
         )
 
-        // Symbol
-        Text(
-            text = card.symbol,
-            color = CyberWhite,
-            fontSize = 28.sp
+        // Canvas-drawn symbol
+        TarotCardIcon(
+            cardName = card.name,
+            iconSize = 50f
         )
 
         // Card name

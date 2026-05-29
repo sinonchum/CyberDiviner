@@ -559,7 +559,7 @@ fun MatchingQuiz(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(bottom = 8.dp)
                 ) {
-                    // Draw trigram (3 lines) or hexagram (6 lines)
+                    // Draw trigram (3 lines), hexagram (6 lines), or tarot card icon
                     when {
                         isTrigramName(item.key) -> TrigramLines(
                             trigramName = item.key,
@@ -574,6 +574,11 @@ fun MatchingQuiz(
                                 )
                             }
                         }
+                        isMajorArcanaName(item.key) -> TarotCardIcon(
+                            cardName = item.key,
+                            iconSize = 36f,
+                            modifier = Modifier.padding(end = 8.dp)
+                        )
                     }
                     Text(
                         text = item.key,
