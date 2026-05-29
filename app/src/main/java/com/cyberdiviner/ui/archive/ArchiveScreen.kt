@@ -476,9 +476,22 @@ private fun DivinationReading.toDisplayEntry(): ArchiveEntry {
         }
         else -> {
             // ORACLE / MUYU: question field is already 4-char fortune summary
-            // resultJson is plain text response (no JSON wrapping)
+            // resultJson may be plain text (new) or JSON (old format)
             titleText = if (question.length <= 8) question else question.take(4)
-            interpretationText = resultJson.trim().take(80)
+            interpretationText = try {
+                val raw = resultJson.trim()
+                if (raw.startsWith("{")) {
+                    // Old JSON format: extract "response" field
+                    val m = Regex("\"response\"\\s*:\\s*\"((?:[^\"\\\\]|\\\\.)*)\"").find(raw)
+                    m?.groupValues?.get(1)
+                        ?.replace("\\\"", "\"")
+                        ?.replace("\\n", "\n")
+                        ?.take(80) ?: ""
+                } else {
+                    // New plain text format
+                    raw.take(80)
+                }
+            } catch (e: Exception) { "" }
         }
     }
 
