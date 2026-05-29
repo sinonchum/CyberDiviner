@@ -4,6 +4,7 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -148,18 +149,17 @@ fun SingleChoiceQuiz(
 }
 
 /**
- * Binary classify quiz — categorize each item into one of two categories.
+ * Binary classify quiz — yes/no for each item.
+ * Two distinct buttons: 正确 (green accent) and 错误 (red accent).
  *
  * @param prompt Instruction text
  * @param items List of (text, _) pairs — the Boolean is the correct answer
- * @param categoryLabels Pair of (trueLabel, falseLabel) for the two categories
- * @param onAnswerSelected Callback returning list of Boolean choices (true=first category, false=second)
+ * @param onAnswerSelected Callback returning list of Boolean choices
  */
 @Composable
 fun BinaryClassifyQuiz(
     prompt: String,
     items: List<Pair<String, Boolean>>,
-    categoryLabels: Pair<String, String> = "✓" to "✗",
     onAnswerSelected: (List<Boolean>) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -189,6 +189,7 @@ fun BinaryClassifyQuiz(
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(2.dp))
                     .background(GraySurface)
+                    .border(1.dp, GrayBorder, RoundedCornerShape(2.dp))
                     .padding(16.dp)
             ) {
                 // Item text
@@ -201,33 +202,105 @@ fun BinaryClassifyQuiz(
                     modifier = Modifier.padding(bottom = 12.dp)
                 )
 
-                // Category buttons
+                // True / False buttons — side by side
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    BinaryButton(
-                        label = categoryLabels.first,
-                        isSelected = currentSelection == true,
-                        accentColor = CyberWhite,
-                        modifier = Modifier.weight(1f)
+                    // 正确 button — white accent
+                    val trueBg = animateColorAsState(
+                        targetValue = when (currentSelection) {
+                            true -> CyberWhite.copy(alpha = 0.15f)
+                            else -> Color.Transparent
+                        },
+                        animationSpec = tween(200), label = "trueBg"
+                    )
+                    val trueBorder = animateColorAsState(
+                        targetValue = when (currentSelection) {
+                            true -> CyberWhite
+                            false -> GrayBorder  // dimmed when other is selected
+                            null -> GrayBorder
+                        },
+                        animationSpec = tween(200), label = "trueBorder"
+                    )
+                    val trueText = animateColorAsState(
+                        targetValue = when (currentSelection) {
+                            true -> CyberWhite
+                            else -> GrayMuted
+                        },
+                        animationSpec = tween(200), label = "trueText"
+                    )
+
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(2.dp))
+                            .background(trueBg.value)
+                            .border(1.5.dp, trueBorder.value, RoundedCornerShape(2.dp))
+                            .clickable {
+                                selections = selections.toMutableList().apply { set(index, true) }
+                                if (selections.all { it != null }) {
+                                    onAnswerSelected(selections.map { it!! })
+                                }
+                            }
+                            .padding(vertical = 12.dp),
+                        contentAlignment = Alignment.Center
                     ) {
-                        selections = selections.toMutableList().apply { set(index, true) }
-                        if (selections.all { it != null }) {
-                            onAnswerSelected(selections.map { it!! })
-                        }
+                        Text(
+                            text = "✓ 正确",
+                            color = trueText.value,
+                            fontFamily = WenKaiFontFamily,
+                            fontSize = 14.sp,
+                            letterSpacing = 1.sp
+                        )
                     }
 
-                    BinaryButton(
-                        label = categoryLabels.second,
-                        isSelected = currentSelection == false,
-                        accentColor = AccentRed,
-                        modifier = Modifier.weight(1f)
+                    // 错误 button — red accent
+                    val falseBg = animateColorAsState(
+                        targetValue = when (currentSelection) {
+                            false -> AccentRed.copy(alpha = 0.15f)
+                            else -> Color.Transparent
+                        },
+                        animationSpec = tween(200), label = "falseBg"
+                    )
+                    val falseBorder = animateColorAsState(
+                        targetValue = when (currentSelection) {
+                            false -> AccentRed
+                            true -> GrayBorder  // dimmed when other is selected
+                            null -> GrayBorder
+                        },
+                        animationSpec = tween(200), label = "falseBorder"
+                    )
+                    val falseText = animateColorAsState(
+                        targetValue = when (currentSelection) {
+                            false -> AccentRed
+                            else -> GrayMuted
+                        },
+                        animationSpec = tween(200), label = "falseText"
+                    )
+
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(2.dp))
+                            .background(falseBg.value)
+                            .border(1.5.dp, falseBorder.value, RoundedCornerShape(2.dp))
+                            .clickable {
+                                selections = selections.toMutableList().apply { set(index, false) }
+                                if (selections.all { it != null }) {
+                                    onAnswerSelected(selections.map { it!! })
+                                }
+                            }
+                            .padding(vertical = 12.dp),
+                        contentAlignment = Alignment.Center
                     ) {
-                        selections = selections.toMutableList().apply { set(index, false) }
-                        if (selections.all { it != null }) {
-                            onAnswerSelected(selections.map { it!! })
-                        }
+                        Text(
+                            text = "✗ 错误",
+                            color = falseText.value,
+                            fontFamily = WenKaiFontFamily,
+                            fontSize = 14.sp,
+                            letterSpacing = 1.sp
+                        )
                     }
                 }
             }

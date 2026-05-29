@@ -244,11 +244,9 @@ private fun QuizPhase(
             // Determine the two categories from items; first distinct value = "true" category
             val categories = question.items.map { it.value }.distinct()
             val trueCategory = categories.firstOrNull() ?: ""
-            val falseCategory = categories.getOrNull(1) ?: ""
             BinaryClassifyQuiz(
                 prompt = question.prompt,
                 items = question.items.map { it.key to (it.value == trueCategory) },
-                categoryLabels = trueCategory to falseCategory,
                 onAnswerSelected = { selections ->
                     val allCorrect = question.items.zip(selections).all { (item, selected) ->
                         val expectedTrue = item.value == trueCategory
