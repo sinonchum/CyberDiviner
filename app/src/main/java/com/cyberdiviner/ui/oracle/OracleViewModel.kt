@@ -149,7 +149,7 @@ class OracleViewModel @Inject constructor(
                 } else finalResponse
 
                 addAgentMessage(displayResponse)
-                saveExchangeToArchive(text, cleanedResponse)
+                saveExchangeToArchive(text, finalResponse)
             } catch (e: Exception) {
                 Log.e(TAG, "Inference failed", e)
                 addAgentMessage("[ 系统异常 ] 量子因果链中断。错误码: ${e.message ?: "未知"}。请稍后重试。")
