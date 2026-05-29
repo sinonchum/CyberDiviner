@@ -497,15 +497,12 @@ private fun DivinationReading.toDisplayEntry(): ArchiveEntry {
                     // New plain text format
                     raw
                 }
-                // Extract first meaningful sentence, skip template markers like [ 载入签文 ]
-                // Use substringAfter to skip past the first bracket header
-                val contentStart = raw.indexOf("] ")
-                val contentText = if (contentStart >= 0) raw.substring(contentStart + 2).trim() else raw
-                // Remove remaining bracket headers
-                val cleaned = contentText
-                    .replace(Regex("\\[[^\\]]*\\]"), "")
+                // Strip all bracket headers and take first sentence from remaining content
+                val cleaned = fullText
+                    .replace(Regex("\\[[^\\]]*\\]"), "") // Remove any [ ... ] markers
+                    .replace(Regex("\\n+"), " ")         // Flatten to single line
                     .trim()
-                firstSentence(cleaned)
+                if (cleaned.isNotBlank()) firstSentence(cleaned) else ""
             } catch (e: Exception) { "" }
         }
     }

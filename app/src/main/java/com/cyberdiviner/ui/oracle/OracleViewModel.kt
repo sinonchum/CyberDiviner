@@ -127,8 +127,16 @@ class OracleViewModel @Inject constructor(
                     )
                 }
 
-                val rawResponse = com.cyberdiviner.engine.Persona.stripActionDescriptions(result.text)
-                val cleanedResponse = sanitizeOracleResponse(rawResponse)
+                val rawResponse = result.text
+                // For offline: skip Persona.stripActionDescriptions (it strips bracket headers like [ 载入签文 ])
+                // Only apply minimal cleaning
+                val cleanedResponse = if (result.isOffline) {
+                    val noEmoji = rawResponse.replace(Regex("[\\x{10000}-\\x{10FFFF}]"), "")
+                    sanitizeOracleResponse(noEmoji)
+                } else {
+                    val stripped = com.cyberdiviner.engine.Persona.stripActionDescriptions(rawResponse)
+                    sanitizeOracleResponse(stripped)
+                }
 
                 // Fallback for offline mode when small model produces empty/near-empty output
                 val finalResponse = if (result.isOffline && cleanedResponse.length < 40) {
