@@ -167,9 +167,9 @@ fun VisionScreen(
     var simStatusLines by remember { mutableStateOf<List<String>>(emptyList()) }
     var simComplete by remember { mutableStateOf(false) }
 
-    // Simulated scan progression (runs when camera is NOT active)
-    LaunchedEffect(scanStarted, cameraFailed) {
-        if (!scanStarted || cameraActive) return@LaunchedEffect
+    // Simulated scan progression (always runs when scan started, provides visual effects)
+    LaunchedEffect(scanStarted) {
+        if (!scanStarted) return@LaunchedEffect
 
         // Phase 0 – init
         simPhaseLabel = "初始化传感器阵列"
@@ -224,11 +224,22 @@ fun VisionScreen(
     val isScanning: Boolean
     val showResult: Boolean
 
-    if (cameraActive) {
-        // Real camera pipeline
+    // Camera is running but hasn't detected a face yet — show simulated animation
+    val cameraWaitingForFace = cameraActive && !uiState.faceDetected && uiState.phase != VisionPhase.RESULT
+
+    if (cameraActive && uiState.phase == VisionPhase.RESULT) {
+        // Only use real pipeline for the result state
+        displayProgress = 1f
+        displayPhaseLabel = "面相分析完成"
+        displayLandmarks = sampleFaceLandmarks
+        displayStatusLines = emptyList()
+        isScanning = false
+        showResult = true
+    } else if (cameraActive && uiState.faceDetected) {
+        // Real camera pipeline — face detected, show real progress
         displayProgress = uiState.scanProgress
         displayPhaseLabel = when (uiState.phase) {
-            VisionPhase.IDLE -> "初始化传感器阵列"
+            VisionPhase.IDLE -> "面部识别中"
             VisionPhase.SCANNING -> "面部识别中"
             VisionPhase.DETECTED -> "面部已捕捉"
             VisionPhase.CAPTURING -> "采集面部数据"
@@ -236,28 +247,29 @@ fun VisionScreen(
             VisionPhase.RESULT -> "面相分析完成"
             VisionPhase.ERROR -> "系统错误"
         }
-        // Use simulated landmarks for visual overlay (MediaPipe 478-point
-        // data is processed internally by the ViewModel into FacialFeatures)
-        displayLandmarks = if (uiState.faceDetected) sampleFaceLandmarks else emptyList()
-        displayStatusLines = when {
-            uiState.faceDetected -> listOf(
-                "FACE  ██████████ DETECTED",
-                "CONF  ████████░░ ${String.format("%.0f", uiState.scanProgress * 100)}%"
-            )
-            uiState.progressMessage.isNotBlank() -> listOf(uiState.progressMessage)
-            else -> emptyList()
-        }
-        isScanning = uiState.phase == VisionPhase.SCANNING
-                || uiState.phase == VisionPhase.CAPTURING
-        showResult = uiState.phase == VisionPhase.RESULT
-    } else {
-        // Simulated fallback
+        displayLandmarks = sampleFaceLandmarks
+        displayStatusLines = listOf(
+            "FACE  ██████████ DETECTED",
+            "CONF  ████████░░ ${String.format("%.0f", uiState.scanProgress * 100)}%"
+        )
+        isScanning = uiState.phase == VisionPhase.SCANNING || uiState.phase == VisionPhase.CAPTURING
+        showResult = false
+    } else if (scanStarted) {
+        // Camera opened but no face yet, OR camera failed — show simulated animation
         displayProgress = simProgress
         displayPhaseLabel = simPhaseLabel
         displayLandmarks = simLandmarks
         displayStatusLines = simStatusLines
         isScanning = scanStarted && !simComplete
         showResult = scanStarted && simComplete
+    } else {
+        // Not started
+        displayProgress = 0f
+        displayPhaseLabel = "初始化传感器阵列"
+        displayLandmarks = emptyList()
+        displayStatusLines = emptyList()
+        isScanning = false
+        showResult = false
     }
 
     Box(
