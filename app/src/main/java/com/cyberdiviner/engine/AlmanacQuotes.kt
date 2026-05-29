@@ -17,7 +17,11 @@ object AlmanacQuotes {
         val text: String,
         val luckyAction: String,
         val unluckyAction: String,
-    )
+    ) {
+        /** 签语哲理句（去掉"今日宜/忌"部分） */
+        val quoteText: String
+            get() = text.substringBefore("今日").trimEnd('，', '。', '；')
+    }
 
     /**
      * Get the quote for a specific day of year (1-365).

@@ -216,7 +216,7 @@ fun SplashScreen(onTimeout: () -> Unit) {
                     .alpha(bottomAlpha)
             ) {
                 Text(
-                    text = dailyQuote.text,
+                    text = dailyQuote.quoteText,
                     color = CyberWhite,
                     fontSize = 13.sp,
                     fontFamily = WenKaiFontFamily,
