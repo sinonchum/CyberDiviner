@@ -797,14 +797,85 @@ class VisionViewModel @Inject constructor(
         return try {
             val features = json.decodeFromString<FacialFeatures>(featuresJson)
             buildString {
-                appendLine("面部整体：${features.faceOval.shape}脸型，对称性 ${String.format("%.0f", features.faceOval.symmetry * 100)}%")
-                appendLine("额头：${features.forehead.shape}，高度中等")
-                appendLine("眼睛：${features.eyes.eyeSize}，${features.eyes.eyeTilt}眼型，间距比 ${String.format("%.2f", features.eyes.eyeSpacing)}")
-                appendLine("鼻子：${features.nose.shape}，${features.nose.bridgeDescription}鼻梁")
-                appendLine("嘴巴：${features.mouth.shape}，${if (features.mouth.cornerUpturn > 0) "嘴角上扬" else "嘴角平直"}")
-                appendLine("眉毛：${features.eyebrows.arch}型，间距 ${String.format("%.2f", features.eyebrows.spacing)}")
-                appendLine("下巴：${features.chin.shape}，突出度 ${String.format("%.2f", features.chin.prominence)}")
-                appendLine("耳朵：${features.ears.shape}")
+                // ── 面形总论 ──
+                appendLine("【面形数据】")
+                val shapeDesc = when (features.faceOval.shape) {
+                    "round" -> "圆面（水形面）"
+                    "long" -> "长面（木形面）"
+                    "square" -> "方面（金形面）"
+                    else -> "椭圆面（标准面形）"
+                }
+                appendLine("脸型：$shapeDesc")
+                appendLine("面部宽度：${String.format("%.1f", features.faceOval.width)}px，高度：${String.format("%.1f", features.faceOval.height)}px")
+                appendLine("宽高比：${String.format("%.2f", features.faceOval.width / features.faceOval.height.coerceAtLeast(1f))}")
+                appendLine("左右对称性：${String.format("%.0f", features.faceOval.symmetry * 100)}%")
+                appendLine()
+
+                // ── 三停分析 ──
+                appendLine("【三停比例】")
+                appendLine("上停（发际至眉）：${features.forehead.shape}额，额头高度 ${String.format("%.1f", features.forehead.height)}px")
+                appendLine("中停（眉至鼻尖）：鼻子长度占比 ${String.format("%.0f", features.nose.noseLength * 100)}%")
+                appendLine("下停（鼻尖至下巴）：下巴突出度 ${String.format("%.2f", features.chin.prominence)}")
+                appendLine()
+
+                // ── 天庭 ──
+                appendLine("【天庭（额头）】")
+                appendLine("形态：${features.forehead.shape}额")
+                appendLine("宽度比例：${String.format("%.2f", features.forehead.width)}")
+                appendLine("饱满度：${features.forehead.fullness}")
+                appendLine("纹路：${features.forehead.lineCount}条")
+                appendLine()
+
+                // ── 眉 ──
+                appendLine("【眉（保寿官）】")
+                appendLine("眉形：${features.eyebrows.arch}眉")
+                appendLine("左眉厚度：${String.format("%.3f", features.eyebrows.leftThickness)}")
+                appendLine("右眉厚度：${String.format("%.3f", features.eyebrows.rightThickness)}")
+                appendLine("眉间距比：${String.format("%.2f", features.eyebrows.spacing)}")
+                appendLine("整体形态：${features.eyebrows.shape}")
+                appendLine()
+
+                // ── 眼 ──
+                appendLine("【眼（监察官）】")
+                appendLine("眼型大小：${features.eyes.eyeSize}")
+                appendLine("眼尾走向：${features.eyes.eyeTilt}")
+                appendLine("左眼开合度：${String.format("%.3f", features.eyes.leftEyeOpenness)}")
+                appendLine("右眼开合度：${String.format("%.3f", features.eyes.rightEyeOpenness)}")
+                appendLine("两眼间距比：${String.format("%.2f", features.eyes.eyeSpacing)}")
+                appendLine("目光方向：${features.eyes.gazeDirection}")
+                appendLine()
+
+                // ── 鼻 ──
+                appendLine("【鼻（审辨官）】")
+                appendLine("鼻形：${features.nose.shape}")
+                appendLine("鼻梁描述：${features.nose.bridgeDescription}")
+                appendLine("鼻梁高度：${String.format("%.1f", features.nose.bridgeHeight)}px")
+                appendLine("鼻头宽度比：${String.format("%.2f", features.nose.tipWidth)}")
+                appendLine("鼻子长度比：${String.format("%.2f", features.nose.noseLength)}")
+                appendLine()
+
+                // ── 口 ──
+                appendLine("【口（出纳官）】")
+                appendLine("唇形：${features.mouth.shape}")
+                appendLine("嘴宽比：${String.format("%.2f", features.mouth.width)}")
+                appendLine("唇厚比：${String.format("%.3f", features.mouth.lipThickness)}")
+                val cornerDesc = if (features.mouth.cornerUpturn > 0) "嘴角上扬（笑相）" else "嘴角平直"
+                appendLine("嘴角走势：$cornerDesc")
+                appendLine()
+
+                // ── 地阁 ──
+                appendLine("【地阁（下巴）】")
+                appendLine("下巴形态：${features.chin.shape}")
+                appendLine("下巴宽度比：${String.format("%.2f", features.chin.width)}")
+                appendLine("下巴突出度：${String.format("%.2f", features.chin.prominence)}")
+                appendLine()
+
+                // ── 耳 ──
+                appendLine("【耳（采听官）】")
+                appendLine("耳朵大小：${features.ears.shape}")
+                appendLine("左耳比例：${String.format("%.2f", features.ears.leftEarSize)}")
+                appendLine("右耳比例：${String.format("%.2f", features.ears.rightEarSize)}")
+                appendLine("耳型：${features.ears.attachment}")
             }
         } catch (e: Exception) {
             featuresJson
@@ -821,18 +892,103 @@ class VisionViewModel @Inject constructor(
             FacialFeatures()
         }
 
+        val shapeFiveElement = when (features.faceOval.shape) {
+            "round" -> "水形面"
+            "long" -> "木形面"
+            "square" -> "金形面"
+            else -> "土形面"
+        }
+
+        val noseWealth = when (features.nose.shape) {
+            "broad" -> "鼻头丰隆，主财运亨通，中年后财源广进"
+            "pointed" -> "鼻梁挺直，主事业心强，凭技艺生财"
+            else -> "鼻形端正，主财运平稳，理财有道"
+        }
+
+        val eyeInsight = when (features.eyes.eyeSize) {
+            "large" -> "眼大有神，主心胸开阔，洞察力强，感情丰富"
+            "small" -> "眼小聚光，主心思缜密，观察入微，行事谨慎"
+            else -> "眼中平正，主性情平和，处事稳重"
+        }
+
+        val browTemper = when (features.eyebrows.arch) {
+            "arched" -> "眉形如弓，主性情温和，人缘佳，善交际"
+            "straight" -> "眉直如剑，主性格刚直，行事果断，有领导力"
+            else -> "眉形自然，主性情随和，进退有度"
+        }
+
+        val chinFortune = when (features.chin.shape) {
+            "pointed" -> "下巴尖削，主晚年须早做打算，宜广结善缘"
+            "square" -> "下巴方正，主晚年安稳，有田产之福"
+            else -> "下巴圆润，主晚年安乐，子女有靠"
+        }
+
+        val mouthFortune = when (features.mouth.shape) {
+            "full" -> "唇厚饱满，主食禄丰厚，口福不浅，言语有信"
+            "thin" -> "唇薄紧抿，主言辞犀利，善于表达，宜从事口才相关之业"
+            else -> "口形端正，主言而有信，食禄平顺"
+        }
+
+        val earWisdom = when (features.ears.shape) {
+            "large" -> "耳大厚实，主肾气充足，先天禀赋佳，少年运好"
+            "small" -> "耳小精致，主心思灵敏，悟性高，宜后天修养"
+            else -> "耳形端正，主聪慧稳重，少年平顺"
+        }
+
+        val foreheadCareer = when (features.forehead.shape) {
+            "broad" -> "天庭开阔饱满，主智慧过人，事业根基深厚，少年得志"
+            "narrow" -> "天庭略窄，主早年辛苦，但中年后运势渐开"
+            else -> "天庭平满，主少年运势平顺，学业有成"
+        }
+
+        val symmetryBonus = if (features.faceOval.symmetry > 0.9f) {
+            "面部左右对称度极高，主心性端正，处事公允，贵人运旺"
+        } else if (features.faceOval.symmetry > 0.8f) {
+            "面部对称度良好，主性情稳定，运势平顺"
+        } else {
+            "面部略有不对称，主性格中有矛盾面，需注意内外平衡"
+        }
+
         return buildString {
-            appendLine("面相分析")
+            appendLine("面相详析")
             appendLine("━━━━━━━━━━━━━━━━━━━━")
             appendLine()
-            appendLine("【脸型】${features.faceOval.shape}")
-            appendLine("对称性：${String.format("%.0f", features.faceOval.symmetry * 100)}%")
+            appendLine("一、面形总论")
+            appendLine("此面属$shapeFiveElement，${when (features.faceOval.shape) {
+                "round" -> "面圆肉丰，主性格圆融，善于变通，人缘极佳"
+                "long" -> "面长有骨，主性格坚韧，有远见，适合长线发展"
+                "square" -> "面方有棱，主性格刚正，做事有原则，事业心强"
+                else -> "面形端正，主性格均衡，适应力强"
+            }}。$symmetryBonus。")
             appendLine()
-            appendLine("【额头】${features.forehead.shape}额")
-            appendLine("【眼睛】${features.eyes.eyeSize}，${features.eyes.eyeTilt}")
-            appendLine("【鼻子】${features.nose.shape}，鼻梁${features.nose.bridgeDescription}")
-            appendLine("【嘴巴】${features.mouth.shape}")
-            appendLine("【下巴】${features.chin.shape}")
+            appendLine("二、逐部位详析")
+            appendLine()
+            appendLine("天庭：$foreheadCareer")
+            appendLine()
+            appendLine("眉：$browTemper。眉间距${if (features.eyebrows.spacing > 0.3f) "较宽，主心胸豁达，不拘小节" else "适中，主思虑周全"}。")
+            appendLine()
+            appendLine("眼：$eyeInsight。眼尾${when (features.eyes.eyeTilt) {
+                "upturned" -> "上扬，主桃花运旺，异性缘佳"
+                "downturned" -> "下垂，主性情温柔，重感情"
+                else -> "平正，主性情端正，理性与感性兼顾"
+            }}。")
+            appendLine()
+            appendLine("鼻：$noseWealth。鼻梁${features.nose.bridgeDescription}，山根${if (features.nose.bridgeHeight > 20) "高挺，主中年运势强劲" else "平顺，主中年稳步发展"}。")
+            appendLine()
+            appendLine("口：$mouthFortune。${if (features.mouth.cornerUpturn > 0) "嘴角自然上扬，天生笑相，主乐观积极，逢凶化吉" else "嘴角平直，主性格沉稳，不轻易表露情绪"}。")
+            appendLine()
+            appendLine("耳：$earWisdom")
+            appendLine()
+            appendLine("地阁：$chinFortune")
+            appendLine()
+            appendLine("━━━━━━━━━━━━━━━━━━━━")
+            appendLine()
+            appendLine("三、运势总判")
+            appendLine()
+            appendLine("事业运：${if (features.forehead.shape == "broad" && features.nose.shape != "broad") "天庭开阔配挺鼻，主事业有成，适合管理或创业" else "面相主稳，事业宜循序渐进，厚积薄发"}。")
+            appendLine("财运：$noseWealth。")
+            appendLine("感情运：${if (features.eyes.eyeSize == "large") "眼大有神，感情丰富，桃花运旺，但需防多情" else "眼神内敛，感情专一，重质不重量"}。")
+            appendLine("健康运：${if (features.ears.shape == "large") "耳大肾气足，先天体质好" else "体质中平，宜注意作息养生"}。")
             appendLine()
             appendLine("━━━━━━━━━━━━━━━━━━━━")
             appendLine()
@@ -840,8 +996,7 @@ class VisionViewModel @Inject constructor(
                 appendLine("你的问题：$question")
                 appendLine()
             }
-            appendLine("信号提示：面相已扫描，但赛博先知暂时离线。")
-            appendLine("请在设置中配置 API 密钥以获取完整的解读。")
+            appendLine("注：以上为本地面相引擎分析。配置API密钥后可获得更深入的十二宫位详析与个性化运势指引。")
         }
     }
 }
