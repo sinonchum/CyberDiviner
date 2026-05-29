@@ -268,6 +268,12 @@ class LearningViewModel @Inject constructor(
         _lessonState.value = current.copy(phase = next)
     }
 
+    /** Jump directly to RESULT phase (for standalone result screen) */
+    fun skipToResult() {
+        val current = _lessonState.value
+        _lessonState.value = current.copy(phase = LessonPhase.RESULT)
+    }
+
     /** Submit a quiz answer and update state */
     fun submitQuizAnswer(selectedIndex: Int) {
         val state = _lessonState.value

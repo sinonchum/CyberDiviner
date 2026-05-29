@@ -364,98 +364,17 @@ private fun ResultPhase(
     lessonState: LessonUiState,
     onComplete: () -> Unit
 ) {
-    val correctCount = lessonState.correctCount
-    val total = lesson.questions.size
-    val percentage = if (total > 0) (correctCount * 100 / total) else 0
-
-    SectionHeader(title = "完成", subtitle = "COMPLETE")
-
-    Spacer(modifier = Modifier.height(24.dp))
-
-    // Score
-    Text(
-        text = "正确率: $correctCount/$total ($percentage%)",
-        color = CyberWhite,
-        fontSize = 18.sp,
-        fontFamily = MonoFontFamily
+    ResultContent(
+        lesson = lesson,
+        lessonState = lessonState,
+        onComplete = onComplete
     )
-
-    Spacer(modifier = Modifier.height(12.dp))
-
-    Text(
-        text = "XP +${if (percentage >= 70) 25 else 5}",
-        color = AccentRed,
-        fontSize = 24.sp,
-        fontFamily = MonoFontFamily,
-        fontWeight = FontWeight.Bold
-    )
-
-    Spacer(modifier = Modifier.height(24.dp))
-
-    // Knowledge card
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .border(1.dp, GrayBorder)
-            .padding(20.dp)
-    ) {
-        Column {
-            Text(
-                text = "今日学会",
-                color = AccentRed,
-                fontSize = 11.sp,
-                fontFamily = HuiwenFontFamily,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 2.sp
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = lesson.explanation,
-                color = GrayBody,
-                fontSize = 14.sp,
-                fontFamily = WenKaiFontFamily,
-                lineHeight = 24.sp
-            )
-        }
-    }
-
-    Spacer(modifier = Modifier.height(16.dp))
-
-    // Share button
-    val context = LocalContext.current
-    var copied by remember { mutableStateOf(false) }
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .border(1.dp, if (copied) AccentRed else GrayBorder)
-            .clickable {
-                val shareText = "【${lesson.title}】${lesson.subtitle}\n\n${lesson.explanation}\n\n— CyberDiviner 赛博算命"
-                val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                clipboard.setPrimaryClip(android.content.ClipData.newPlainText("knowledge_card", shareText))
-                copied = true
-            }
-            .padding(vertical = 14.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = if (copied) "已复制到剪贴板" else "分享知识卡",
-            color = if (copied) AccentRed else CyberWhite,
-            fontSize = 14.sp,
-            fontFamily = HuiwenFontFamily,
-            fontWeight = FontWeight.Bold,
-            letterSpacing = 3.sp
-        )
-    }
-
-    Spacer(modifier = Modifier.height(32.dp))
-
-    ContinueButton(text = "返回学习", onClick = onComplete)
 }
 
 // ── Shared components ──────────────────────────────────────────────
 
 @Composable
-private fun ContinueButton(text: String, onClick: () -> Unit) {
+internal fun ContinueButton(text: String, onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()

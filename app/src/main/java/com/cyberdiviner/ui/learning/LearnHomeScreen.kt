@@ -91,7 +91,8 @@ fun LearnHomeScreen(
                 StatsBar(
                     xp = stats?.totalXp ?: 0,
                     streak = stats?.currentStreak ?: 0,
-                    title = stats?.title ?: "初入卦门"
+                    title = stats?.title ?: "初入卦门",
+                    onTitleClick = { navController.navigate("learn/title") }
                 )
             }
 
@@ -148,7 +149,7 @@ fun LearnHomeScreen(
 // ── Stats bar ───────────────────────────────────────────────────────────────
 
 @Composable
-private fun StatsBar(xp: Int, streak: Int, title: String) {
+private fun StatsBar(xp: Int, streak: Int, title: String, onTitleClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -160,7 +161,9 @@ private fun StatsBar(xp: Int, streak: Int, title: String) {
     ) {
         StatItem(label = "XP", value = xp.toString())
         StatItem(label = "连续", value = "${streak}日")
-        StatItem(label = "称号", value = title)
+        Box(modifier = Modifier.clickable { onTitleClick() }) {
+            StatItem(label = "称号", value = title)
+        }
     }
 }
 

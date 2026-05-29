@@ -60,7 +60,7 @@ object LessonCatalogPractice {
                     explanation = "好问题聚焦具体情境和行动方向；待改善的问题过于封闭或绝对化，难以从卦象中获得有用的行动指引。"
                 )
             ),
-            unlockReward = null
+            unlockReward = UnlockReward(UnlockType.TERM_ANNOTATION, "practice_questions", "解锁提问技巧标注")
         ),
 
         // ── D2: 先看结构 ──────────────────────────────────────────────
@@ -105,7 +105,7 @@ object LessonCatalogPractice {
                     explanation = "从全局到细节：先看卦名定基调，世应定主客，动爻看变化，再深入六亲六神，最后综合结论。"
                 )
             ),
-            unlockReward = null
+            unlockReward = UnlockReward(UnlockType.TERM_ANNOTATION, "practice_structure", "解锁结构化阅读标注")
         ),
 
         // ── D3: 情感问题 ──────────────────────────────────────────────
@@ -150,7 +150,7 @@ object LessonCatalogPractice {
                     explanation = "传统六爻中，女生问感情以官鬼爻为用神，代表男友或丈夫。男生问感情则以妻财爻为用神。用神的选择取决于性别和所问对象。"
                 )
             ),
-            unlockReward = null
+            unlockReward = UnlockReward(UnlockType.TERM_ANNOTATION, "practice_emotion", "解锁情感问题标注")
         ),
 
         // ── D4: 事业问题 ──────────────────────────────────────────────
@@ -194,7 +194,7 @@ object LessonCatalogPractice {
                     explanation = "职位变动、升迁、工作机会看官鬼爻；收入、利润、投资回报看妻财爻。分清问题类型才能准确取用神。"
                 )
             ),
-            unlockReward = null
+            unlockReward = UnlockReward(UnlockType.TERM_ANNOTATION, "practice_career", "解锁事业问题标注")
         ),
 
         // ── D5: 决策问题 ──────────────────────────────────────────────
@@ -239,7 +239,7 @@ object LessonCatalogPractice {
                     explanation = "六爻提供的是分析框架和决策参考，帮你看到各选项的潜在优势和风险。它不替代你的判断力，而是增强你的判断力。"
                 )
             ),
-            unlockReward = null
+            unlockReward = UnlockReward(UnlockType.TERM_ANNOTATION, "practice_decision", "解锁决策问题标注")
         ),
 
         // ── D6: 复盘 ─────────────────────────────────────────────────

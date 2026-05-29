@@ -60,6 +60,8 @@ object Routes {
     const val LEARN = "learn"
     const val LEARN_PATH = "learn/path/{pathId}"
     const val LEARN_LESSON = "learn/lesson/{lessonId}"
+    const val LEARN_RESULT = "learn/lesson/{lessonId}/result"
+    const val LEARN_TITLE = "learn/title"
     const val CONFIG = "config"
 }
 
@@ -257,6 +259,37 @@ fun CyberDivinerNavGraph(navController: NavHostController) {
                         lessonId = lessonId,
                         onBack = { navController.popBackStack() },
                         onLessonComplete = { navController.popBackStack() }
+                    )
+                }
+
+                composable(
+                    Routes.LEARN_RESULT,
+                    enterTransition = { ScreenTransitions.slideInFromRight },
+                    exitTransition = { ScreenTransitions.slideOutToLeft },
+                    popEnterTransition = { ScreenTransitions.slideInFromLeft },
+                    popExitTransition = { ScreenTransitions.slideOutToRight }
+                ) { backStackEntry ->
+                    val lessonId = backStackEntry.arguments?.getString("lessonId") ?: return@composable
+                    com.cyberdiviner.ui.learning.LessonResultScreen(
+                        lessonId = lessonId,
+                        onBack = { navController.popBackStack() },
+                        onReturnToLearn = {
+                            navController.navigate(Routes.LEARN) {
+                                popUpTo(Routes.LEARN) { inclusive = true }
+                            }
+                        }
+                    )
+                }
+
+                composable(
+                    Routes.LEARN_TITLE,
+                    enterTransition = { ScreenTransitions.slideInFromRight },
+                    exitTransition = { ScreenTransitions.slideOutToLeft },
+                    popEnterTransition = { ScreenTransitions.slideInFromLeft },
+                    popExitTransition = { ScreenTransitions.slideOutToRight }
+                ) {
+                    com.cyberdiviner.ui.learning.TitleScreen(
+                        onBack = { navController.popBackStack() }
                     )
                 }
 

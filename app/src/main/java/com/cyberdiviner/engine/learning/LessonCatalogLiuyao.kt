@@ -60,7 +60,7 @@ object LessonCatalogLiuyao {
                     explanation = "7分=少阳，是稳定的阳爻，不会变化。只有6分（老阴）和9分（老阳）才是动爻，会发生阴阳转换。"
                 )
             ),
-            unlockReward = null
+            unlockReward = UnlockReward(UnlockType.TERM_ANNOTATION, "liuyao_coin", "解锁三钱法标注")
         ),
 
         // ── B2: 本卦与变卦 ────────────────────────────────────────────
@@ -105,7 +105,7 @@ object LessonCatalogLiuyao {
                     explanation = "没有动爻意味着没有变化，只有本卦没有变卦。这通常表示事情处于相对稳定的状态，短期内不会有大的转变。"
                 )
             ),
-            unlockReward = null
+            unlockReward = UnlockReward(UnlockType.TERM_ANNOTATION, "liuyao_bian", "解锁本卦变卦标注")
         ),
 
         // ── B3: 世应 ─────────────────────────────────────────────────
@@ -272,7 +272,7 @@ object LessonCatalogLiuyao {
                     explanation = "青龙主吉庆喜事；朱雀主口舌是非和文书信息；白虎主凶险灾伤；玄武主暗昧欺诈。勾陈主田土纠缠，螣蛇主惊恐虚幻。"
                 )
             ),
-            unlockReward = null
+            unlockReward = UnlockReward(UnlockType.HINT_DISPLAY, "liuyao_shiying", "解锁世应提示")
         ),
 
         // ── B6: 断卦流程 ──────────────────────────────────────────────
@@ -330,7 +330,7 @@ object LessonCatalogLiuyao {
                     explanation = "断卦是系统工程，需要按步骤综合分析。单一要素不能决定全局，用神、世应、动爻、六神各有角色，缺一不可。"
                 )
             ),
-            unlockReward = null
+            unlockReward = UnlockReward(UnlockType.TERM_ANNOTATION, "liuyao_liuqin", "解锁六亲关系标注")
         )
     )
 }

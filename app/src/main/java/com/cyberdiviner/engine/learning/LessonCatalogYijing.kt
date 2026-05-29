@@ -59,7 +59,7 @@ object LessonCatalogYijing {
                     explanation = "阳爻是一条完整的横线，阴爻是中间断开的横线。六十四卦中的每一爻都是这两种符号之一。"
                 )
             ),
-            unlockReward = null
+            unlockReward = UnlockReward(UnlockType.TERM_ANNOTATION, "yijing_yinyang", "解锁阴阳概念标注")
         ),
 
         // ── A2: 八卦 ──────────────────────────────────────────────────
@@ -116,7 +116,7 @@ object LessonCatalogYijing {
                     explanation = "八卦（经卦）由三爻组成，两个八卦上下相叠才构成六爻卦（别卦）。三爻是八卦的基本结构。"
                 )
             ),
-            unlockReward = null
+            unlockReward = UnlockReward(UnlockType.TERM_ANNOTATION, "yijing_bagua", "解锁八卦意象标注")
         ),
 
         // ── A3: 六十四卦 ──────────────────────────────────────────────
@@ -174,7 +174,7 @@ object LessonCatalogYijing {
                     explanation = "六十四卦由八个经卦两两上下相叠而成：上卦取一个八卦，下卦取一个八卦，8×8正好64种组合。这是周易符号体系的完整结构。"
                 )
             ),
-            unlockReward = null
+            unlockReward = UnlockReward(UnlockType.TERM_ANNOTATION, "yijing_64gua", "解锁六十四卦结构标注")
         ),
 
         // ── A4: 卦辞与象辞 ────────────────────────────────────────────
@@ -219,7 +219,7 @@ object LessonCatalogYijing {
                     explanation = "卦辞是对一卦整体的简短判断，象辞则从上下卦的自然意象出发，引申出人生启示和行动指导。两者视角不同，互相补充。"
                 )
             ),
-            unlockReward = null
+            unlockReward = UnlockReward(UnlockType.TERM_ANNOTATION, "yijing_guaci", "解锁卦辞象辞标注")
         ),
 
         // ── A5: 爻位 ─────────────────────────────────────────────────
@@ -265,7 +265,7 @@ object LessonCatalogYijing {
                     explanation = "当位是爻位分析的基本规则：阳爻在奇数位（初、三、五）、阴爻在偶数位（二、四、上）为当位，代表处事得宜。"
                 )
             ),
-            unlockReward = null
+            unlockReward = UnlockReward(UnlockType.TERM_ANNOTATION, "yijing_yaowei", "解锁爻位阶段标注")
         ),
 
         // ── A6: 动爻 ─────────────────────────────────────────────────
