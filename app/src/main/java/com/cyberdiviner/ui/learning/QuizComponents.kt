@@ -149,17 +149,19 @@ fun SingleChoiceQuiz(
 }
 
 /**
- * Binary classify quiz — yes/no for each item.
- * Two distinct buttons: 正确 (green accent) and 错误 (red accent).
+ * Binary classify quiz — categorize each item into one of two categories.
+ * Buttons show category labels (e.g. 阳/阴) with distinct styling.
  *
  * @param prompt Instruction text
  * @param items List of (text, _) pairs — the Boolean is the correct answer
+ * @param categoryLabels Pair of (trueLabel, falseLabel) for the two categories
  * @param onAnswerSelected Callback returning list of Boolean choices
  */
 @Composable
 fun BinaryClassifyQuiz(
     prompt: String,
     items: List<Pair<String, Boolean>>,
+    categoryLabels: Pair<String, String>,
     onAnswerSelected: (List<Boolean>) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -247,7 +249,7 @@ fun BinaryClassifyQuiz(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "✓ 正确",
+                            text = categoryLabels.first,
                             color = trueText.value,
                             fontFamily = WenKaiFontFamily,
                             fontSize = 14.sp,
@@ -295,7 +297,7 @@ fun BinaryClassifyQuiz(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "✗ 错误",
+                            text = categoryLabels.second,
                             color = falseText.value,
                             fontFamily = WenKaiFontFamily,
                             fontSize = 14.sp,
@@ -309,8 +311,80 @@ fun BinaryClassifyQuiz(
 }
 
 /**
+ * Draw 6 hexagram lines for a given trigram combination (e.g. "乾上坤下").
+ * Upper trigram on top (lines 4-6), lower trigram on bottom (lines 1-3).
+ * Yang = solid line ━━━━━, Yin = broken line ━━  ━━
+ */
+@Composable
+private fun HexagramLines(
+    trigramCombo: String,  // e.g. "乾上坤下"
+    modifier: Modifier = Modifier,
+    lineColor: Color = AccentRed,
+    lineWidth: Float = 28f,
+    lineHeight: Float = 4f,
+    gap: Float = 3f
+) {
+    // Parse "X上Y下" → upper trigram X, lower trigram Y
+    val trigramLines = mapOf(
+        "乾" to listOf(true, true, true),
+        "坤" to listOf(false, false, false),
+        "震" to listOf(false, false, true),
+        "巽" to listOf(true, true, false),
+        "坎" to listOf(false, true, false),
+        "离" to listOf(true, false, true),
+        "艮" to listOf(true, false, false),
+        "兑" to listOf(false, true, true)
+    )
+    val upper = trigramCombo.substringBefore("上").trim()
+    val lower = trigramCombo.substringAfter("上").substringBefore("下").trim()
+    val upperLines = trigramLines[upper] ?: return
+    val lowerLines = trigramLines[lower] ?: return
+    // Draw bottom→top: lower(1-3), then upper(4-6), displayed top→bottom visually
+    val allLines = upperLines.reversed() + lowerLines.reversed()  // top line first for display
+
+    val totalHeight = allLines.size * lineHeight + (allLines.size - 1) * gap
+    Canvas(
+        modifier = modifier.size(
+            width = (lineWidth + 8).dp,
+            height = (totalHeight + 4).dp
+        )
+    ) {
+        val lp = lineHeight.dp.toPx()
+        val gp = gap.dp.toPx()
+        val wp = lineWidth.dp.toPx()
+        val startX = 4.dp.toPx()
+        var y = 2.dp.toPx()
+        for (isYang in allLines) {
+            if (isYang) {
+                // Solid line
+                drawRect(
+                    color = lineColor,
+                    topLeft = Offset(startX, y),
+                    size = Size(wp, lp)
+                )
+            } else {
+                // Broken line — two halves with gap
+                val halfW = (wp - 4.dp.toPx()) / 2
+                drawRect(
+                    color = lineColor,
+                    topLeft = Offset(startX, y),
+                    size = Size(halfW, lp)
+                )
+                drawRect(
+                    color = lineColor,
+                    topLeft = Offset(startX + halfW + 4.dp.toPx(), y),
+                    size = Size(halfW, lp)
+                )
+            }
+            y += lp + gp
+        }
+    }
+}
+
+/**
  * Matching quiz — show key-value pairs, user confirms the mapping.
  * Displays items as a list of key → value pairs with a confirm button.
+ * If value matches "X上Y下" pattern, also draws hexagram lines.
  *
  * @param prompt Instruction text
  * @param items List of MatchItem (key-value pairs)
@@ -344,34 +418,45 @@ fun MatchingQuiz(
         )
 
         items.forEach { item ->
+            val hasHexagram = item.value.contains("上") && item.value.contains("下")
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(2.dp))
                     .background(GraySurface)
+                    .border(1.dp, GrayBorder, RoundedCornerShape(2.dp))
                     .padding(16.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                // Left: key text
                 Text(
                     text = item.key,
                     color = CyberWhite,
                     fontFamily = WenKaiFontFamily,
-                    fontSize = 14.sp
-                )
-                Text(
-                    text = "→",
-                    color = AccentRed,
-                    fontFamily = MonoFontFamily,
-                    fontSize = 14.sp
-                )
-                Text(
-                    text = item.value,
-                    color = AccentRed,
-                    fontFamily = WenKaiFontFamily,
                     fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold
+                    modifier = Modifier.weight(1f)
                 )
+                // Center: hexagram lines (if applicable)
+                if (hasHexagram) {
+                    HexagramLines(
+                        trigramCombo = item.value,
+                        modifier = Modifier.padding(horizontal = 8.dp)
+                    )
+                }
+                // Right: arrow + value
+                Column(
+                    horizontalAlignment = Alignment.End,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = "→ ${item.value}",
+                        color = AccentRed,
+                        fontFamily = WenKaiFontFamily,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
         }
 
