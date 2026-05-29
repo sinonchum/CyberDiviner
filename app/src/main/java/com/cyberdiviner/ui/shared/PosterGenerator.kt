@@ -1,5 +1,6 @@
 package com.cyberdiviner.ui.shared
 
+import com.cyberdiviner.BuildConfig
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
@@ -339,7 +340,7 @@ object PosterGenerator {
             textAlign = Paint.Align.CENTER
             typeface = Typeface.MONOSPACE
         }
-        canvas.drawText("CYBERDIVINER v1.0", WIDTH / 2f, HEIGHT - 100f, paint)
+        canvas.drawText("CYBERDIVINER v${BuildConfig.VERSION_NAME}", WIDTH / 2f, HEIGHT - 100f, paint)
         paint.apply {
             textSize = 20f
             color = Color.argb(80, 136, 136, 170)

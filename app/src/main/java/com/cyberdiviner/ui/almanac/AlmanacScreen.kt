@@ -1,5 +1,6 @@
 package com.cyberdiviner.ui.almanac
 
+import com.cyberdiviner.BuildConfig
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -293,7 +294,7 @@ fun AlmanacScreen(
         AccentDivider()
         Spacer(modifier = Modifier.height(12.dp))
         Text(
-            text = "CYBERDIVINER v6.0",
+            text = "CYBERDIVINER v${BuildConfig.VERSION_NAME}",
             color = GrayMuted,
             fontFamily = MonoFontFamily,
             fontSize = 10.sp,
