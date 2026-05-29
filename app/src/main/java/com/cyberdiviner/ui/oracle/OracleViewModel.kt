@@ -149,20 +149,19 @@ class OracleViewModel @Inject constructor(
     /**
      * Save a single oracle exchange to the archive as a background task.
      * Each exchange becomes an independent entry in the 因果命簿.
+     * Stores response directly in resultJson (no JSON wrapping) for reliable extraction.
      */
     private fun saveExchangeToArchive(userQuestion: String, aiResponse: String) {
         viewModelScope.launch {
             try {
                 val summary = generateFourCharSummary(aiResponse)
-                // Escape special chars for JSON storage
-                val escapedQuestion = userQuestion.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", " ").replace("\r", "")
-                val escapedResponse = aiResponse.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", " ").replace("\r", "").take(300)
-                val resultJson = """{"question": "$escapedQuestion", "summary": "$summary", "response": "$escapedResponse"}""".trimIndent()
+                // Store response as plain text — avoids JSON escaping issues
+                val responseExcerpt = aiResponse.replace("\n", " ").replace("\r", "").take(300)
 
                 val reading = DivinationReading(
                     type = DivinationType.ORACLE,
                     question = summary,
-                    resultJson = resultJson
+                    resultJson = responseExcerpt
                 )
                 divinationDao.insert(reading)
                 Log.d(TAG, "Saved oracle exchange to archive: $summary")

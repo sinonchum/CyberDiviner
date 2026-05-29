@@ -113,11 +113,9 @@ class ArchiveViewModel @Inject constructor(
                 com.cyberdiviner.data.model.DivinationType.VISION ->
                     visionDao.getByReadingId(readingId)?.interpretation ?: ""
                 com.cyberdiviner.data.model.DivinationType.ORACLE -> {
-                    // Extract response from resultJson
+                    // resultJson is plain text response (no JSON wrapping)
                     val reading = divinationDao.getById(readingId) ?: return ""
-                    val json = reading.resultJson
-                    val m = Regex("\"response\"\\s*:\\s*\"([^\"]+)\"").find(json)
-                    m?.groupValues?.get(1)?.replace("\\\"", "\"")?.replace("\\n", "\n") ?: ""
+                    reading.resultJson.trim()
                 }
                 else -> ""
             }

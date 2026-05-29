@@ -476,11 +476,9 @@ private fun DivinationReading.toDisplayEntry(): ArchiveEntry {
         }
         else -> {
             // ORACLE / MUYU: question field is already 4-char fortune summary
+            // resultJson is plain text response (no JSON wrapping)
             titleText = if (question.length <= 8) question else question.take(4)
-            interpretationText = try {
-                val m = Regex("\"response\"\\s*:\\s*\"([^\"]{1,80})\"").find(resultJson)
-                m?.groupValues?.get(1)?.trim() ?: ""
-            } catch (e: Exception) { "" }
+            interpretationText = resultJson.trim().take(80)
         }
     }
 
