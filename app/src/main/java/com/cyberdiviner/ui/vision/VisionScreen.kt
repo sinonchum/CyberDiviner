@@ -20,7 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -131,7 +131,11 @@ fun VisionScreen(
     // ── Start camera when scan is triggered ──
     LaunchedEffect(scanStarted) {
         if (scanStarted && !cameraFailed) {
-            viewModel.startCamera(lifecycleOwner, previewView)
+            try {
+                viewModel.startCamera(lifecycleOwner, previewView)
+            } catch (e: Exception) {
+                cameraFailed = true
+            }
         }
     }
 
