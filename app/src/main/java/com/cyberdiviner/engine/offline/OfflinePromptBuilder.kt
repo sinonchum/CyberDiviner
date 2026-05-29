@@ -17,7 +17,7 @@ class OfflinePromptBuilder {
      */
     fun buildSystemInstruction(feature: String): String = when (feature) {
         "oracle" -> SYSTEM_INSTRUCTION +
-            "用户会提出一个问题。请用3-5句话回答：先写两句诗意的签文，再用白话解释含义，最后给出一句直接的建议。直接开始回答，不要写标题或标签。"
+            "用户会提出一个问题。请用3-5句话回答：先写两句诗意的签文，再用白话解释含义，最后给出一句直接的建议。直接开始回答，不要写标题或标签，不要用markdown格式，不要编号。"
         "liuyao" -> SYSTEM_INSTRUCTION +
             "用户会提供一个六爻卦象。请用2-3句话解读卦象含义，给出吉凶判断和建议。直接开始回答。"
         "tarot" -> SYSTEM_INSTRUCTION +

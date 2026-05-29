@@ -170,6 +170,7 @@ data class Persona(
             result = REGEX_STANDALONE_ACTION.replace(result, "")
             result = REGEX_MULTI_BLANK_LINES.replace(result, "\n\n")
             result = cleanGarbledEncoding(result)
+            result = cleanMarkdownArtifacts(result)
             return result.trim()
         }
 
@@ -180,8 +181,27 @@ data class Persona(
             "[\\u0080-\\u00ff\\u0100-\\u024f\\u0250-\\u02af\\u2000-\\u206f\\u2070-\\u209f\\u20a0-\\u20cf\\u2100-\\u214f]{1,8}(?=[\\u4e00-\\u9fff\\u3400-\\u4dbf])"
         )
 
+        // Markdown artifacts the small model likes to produce
+        private val REGEX_MARKDOWN_HEADERS = Regex("#{1,6}\\s*")
+        private val REGEX_MARKDOWN_BOLD = Regex("\\*\\*")
+        private val REGEX_MARKDOWN_LIST_NUM = Regex("(?m)^\\d+[.．、\\\\]\\s*")
+        private val REGEX_MARKDOWN_LIST_BULLET = Regex("(?m)^[-*]\\s+")
+        private val REGEX_LLM_SECTION_HEADERS = Regex("(?m)^\\s*(?:诗意签文|白话解释|直接建议|签诗|解析|建议|签文解读)：?\\s*$")
+
         private fun cleanGarbledEncoding(text: String): String {
             return REGEX_GARBLED_PREFIX.replace(text, "")
+        }
+
+        /** Clean Markdown formatting and LLM section headers from offline model output */
+        fun cleanMarkdownArtifacts(text: String): String {
+            var result = text
+            result = REGEX_MARKDOWN_HEADERS.replace(result, "")
+            result = REGEX_MARKDOWN_BOLD.replace(result, "")
+            result = REGEX_MARKDOWN_LIST_NUM.replace(result, "")
+            result = REGEX_MARKDOWN_LIST_BULLET.replace(result, "")
+            result = REGEX_LLM_SECTION_HEADERS.replace(result, "")
+            result = REGEX_MULTI_BLANK_LINES.replace(result, "\n\n")
+            return result.trim()
         }
     }
 }
