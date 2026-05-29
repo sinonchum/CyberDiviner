@@ -383,6 +383,70 @@ private fun HexagramLines(
 }
 
 /**
+ * Draw 3-line trigram symbol for a single trigram name.
+ * Used in matching quizzes to show 卦象 next to the trigram text.
+ */
+@Composable
+private fun TrigramLines(
+    trigramName: String,  // e.g. "乾", "坤", "坎"
+    modifier: Modifier = Modifier,
+    lineColor: Color = AccentRed,
+    lineWidth: Float = 20f,
+    lineHeight: Float = 3f,
+    gap: Float = 2f
+) {
+    val trigramMap = mapOf(
+        "乾" to listOf(true, true, true),     // ☰ 阳阳阳
+        "坤" to listOf(false, false, false),   // ☷ 阴阴阴
+        "震" to listOf(false, false, true),    // ☳ 阴阴阳
+        "巽" to listOf(true, true, false),     // ☴ 阳阳阴
+        "坎" to listOf(false, true, false),    // ☵ 阴阳阴
+        "离" to listOf(true, false, true),     // ☲ 阳阴阳
+        "離" to listOf(true, false, true),     // ☲ 阳阴阳 (繁体)
+        "艮" to listOf(true, false, false),    // ☶ 阳阴阴
+        "兑" to listOf(false, true, true),     // ☱ 阴阳阳
+        "兌" to listOf(false, true, true),     // ☱ 阴阳阳 (繁体)
+    )
+    val lines = trigramMap[trigramName] ?: return
+
+    val totalHeight = lines.size * lineHeight + (lines.size - 1) * gap
+    Canvas(
+        modifier = modifier.size(
+            width = (lineWidth + 4).dp,
+            height = (totalHeight + 2).dp
+        )
+    ) {
+        val lp = lineHeight.dp.toPx()
+        val gp = gap.dp.toPx()
+        val wp = lineWidth.dp.toPx()
+        val startX = 2.dp.toPx()
+        var y = 1.dp.toPx()
+        for (isYang in lines) {
+            if (isYang) {
+                drawRect(
+                    color = lineColor,
+                    topLeft = Offset(startX, y),
+                    size = Size(wp, lp)
+                )
+            } else {
+                val halfW = (wp - 3.dp.toPx()) / 2
+                drawRect(
+                    color = lineColor,
+                    topLeft = Offset(startX, y),
+                    size = Size(halfW, lp)
+                )
+                drawRect(
+                    color = lineColor,
+                    topLeft = Offset(startX + halfW + 3.dp.toPx(), y),
+                    size = Size(halfW, lp)
+                )
+            }
+            y += lp + gp
+        }
+    }
+}
+
+/**
  * Matching quiz — show key-value pairs, user confirms the mapping.
  * Displays items as a list of key → value pairs with a confirm button.
  * If value matches "X上Y下" pattern, also draws hexagram lines.
@@ -435,16 +499,25 @@ fun MatchingQuiz(
                     .border(1.dp, GrayBorder, RoundedCornerShape(2.dp))
                     .padding(12.dp)
             ) {
-                // Key text + hexagram
+                // Key text + trigram symbol
+                val knownTrigrams = setOf("乾","坤","震","巽","坎","离","離","艮","兑","兌")
+                val isTrigramKey = item.key in knownTrigrams || item.key.length <= 2 && item.key.any { it in knownTrigrams.flatMap { c -> c.toList() } }
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(bottom = 8.dp)
                 ) {
+                    if (isTrigramKey) {
+                        TrigramLines(
+                            trigramName = item.key,
+                            modifier = Modifier.padding(end = 8.dp)
+                        )
+                    }
                     Text(
                         text = item.key,
                         color = CyberWhite,
                         fontFamily = WenKaiFontFamily,
-                        fontSize = 14.sp,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
                         modifier = Modifier.weight(1f)
                     )
                     if (hasHexagram && selected == item.value) {
