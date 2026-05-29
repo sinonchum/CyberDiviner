@@ -59,7 +59,7 @@ private fun firstSentence(text: String): String {
     if (cleaned.isBlank()) return ""
     // Find first sentence-ending punctuation
     val end = cleaned.indexOfFirst { it == '。' || it == '！' || it == '？' || it == '.' || it == '!' || it == '?' }
-    val sentence = if (end > 0) cleaned.substring(0, end + 1) else cleaned
+    val sentence = if (end > 0) cleaned.substring(0, end + 1) else cleaned.take(50)
     // Cap at 50 chars
     return if (sentence.length > 50) sentence.take(47) + "..." else sentence
 }
@@ -498,8 +498,12 @@ private fun DivinationReading.toDisplayEntry(): ArchiveEntry {
                     raw
                 }
                 // Extract first meaningful sentence, skip template markers like [ 载入签文 ]
-                val cleaned = fullText
-                    .replace(Regex("\\[[^\\]]*\\]"), "") // Remove [ ... ] markers (single line only)
+                // Use substringAfter to skip past the first bracket header
+                val contentStart = raw.indexOf("] ")
+                val contentText = if (contentStart >= 0) raw.substring(contentStart + 2).trim() else raw
+                // Remove remaining bracket headers
+                val cleaned = contentText
+                    .replace(Regex("\\[[^\\]]*\\]"), "")
                     .trim()
                 firstSentence(cleaned)
             } catch (e: Exception) { "" }
