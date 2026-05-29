@@ -15,10 +15,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -263,8 +261,6 @@ private fun PathCard(
     modifier: Modifier = Modifier
 ) {
     val total = path.totalLessons.coerceAtLeast(1)
-    val borderColor = if (completedCount >= total) AccentRed else GrayBorder
-
     Box(
         modifier = modifier
             .aspectRatio(1.2f)
@@ -273,17 +269,6 @@ private fun PathCard(
             .clickable(onClick = onClick)
             .padding(DesignTokens.CardPadding)
     ) {
-        // Border
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            drawRoundRect(
-                color = borderColor,
-                topLeft = Offset.Zero,
-                size = Size(size.width, size.height),
-                cornerRadius = CornerRadius(2f, 2f),
-                style = Stroke(width = 1f)
-            )
-        }
-
         Column(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.SpaceBetween
