@@ -7,7 +7,7 @@ class OfflinePromptBuilder {
         const val MAX_TOKENS_ORACLE = 500
         const val MAX_TOKENS_LIUYAO = 200
         const val MAX_TOKENS_TAROT = 200
-        const val MAX_TOKENS_VISION = 100
+        const val MAX_TOKENS_VISION = 400
     }
 
     /**
@@ -29,7 +29,11 @@ class OfflinePromptBuilder {
         "tarot" -> SYSTEM_INSTRUCTION +
             "用户会提供塔罗牌面。请用2-3句话解读牌面含义，给出建议。直接开始回答。"
         "vision" -> SYSTEM_INSTRUCTION +
-            "用户会提供面相特征。请用两个四字成语总结面相，再用一句话给出总评。直接开始回答。"
+            "你是面相分析师。根据面相数据，给出详细分析。必须按以下格式输出：\n\n" +
+            "先写两个四字成语总结面相（如：天庭饱满、地阁方圆）。\n" +
+            "然后分析面形、额头、眉眼、鼻子、嘴巴、下巴各部位，每个部位1-2句话。\n" +
+            "再给出事业、财运、感情、健康四方面运势判断。\n" +
+            "最后用一句话总结。直接开始回答，不要写标题或编号。"
         else -> SYSTEM_INSTRUCTION
     }
 
@@ -43,7 +47,7 @@ class OfflinePromptBuilder {
         "牌面：" + cards + "\n问题：" + question + "\n\n请简要解读牌面含义。"
 
     fun buildVisionPrompt(faceDescription: String): String =
-        "面相特征：" + faceDescription + "\n\n请给出四字批命和一句总评。"
+        "以下是面相扫描数据：\n\n" + faceDescription + "\n\n请根据以上数据进行面相分析。"
 
     fun getMaxTokens(feature: String): Int = when (feature) {
         "oracle" -> MAX_TOKENS_ORACLE

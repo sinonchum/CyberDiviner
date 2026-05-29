@@ -252,11 +252,18 @@ fun VisionScreen(
             VisionPhase.ERROR -> "系统错误"
         }
         displayLandmarks = sampleFaceLandmarks
-        displayStatusLines = listOf(
-            "FACE  ██████████ DETECTED",
-            "CONF  ████████░░ ${String.format("%.0f", uiState.scanProgress * 100)}%"
-        )
-        isScanning = uiState.phase == VisionPhase.SCANNING || uiState.phase == VisionPhase.CAPTURING
+        displayStatusLines = when (uiState.phase) {
+            VisionPhase.ANALYZING -> listOf(
+                "面相数据已采集",
+                "AI 正在解读面相...",
+                if (uiState.streamText.isNotEmpty()) uiState.streamText.takeLast(40) else "等待模型响应"
+            )
+            else -> listOf(
+                "FACE  ██████████ DETECTED",
+                "CONF  ████████░░ ${String.format("%.0f", uiState.scanProgress * 100)}%"
+            )
+        }
+        isScanning = uiState.phase == VisionPhase.SCANNING || uiState.phase == VisionPhase.CAPTURING || uiState.phase == VisionPhase.ANALYZING
         showResult = false
     } else if (scanStarted) {
         // Camera opened but no face yet, OR camera failed — show simulated animation

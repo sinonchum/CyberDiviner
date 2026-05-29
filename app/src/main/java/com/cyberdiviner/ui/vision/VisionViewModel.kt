@@ -768,7 +768,12 @@ class VisionViewModel @Inject constructor(
                 )
             }.text
 
-            val finalText = com.cyberdiviner.engine.Persona.stripActionDescriptions(fullText).ifBlank { buildFallbackInterpretation(featuresJson, question) }
+            val finalText = if (inferenceRouter.isOfflineAvailable() && !inferenceRouter.isOnlineAvailable()) {
+                // Offline only: skip stripActionDescriptions (strips bracket headers)
+                fullText.ifBlank { buildFallbackInterpretation(featuresJson, question) }
+            } else {
+                com.cyberdiviner.engine.Persona.stripActionDescriptions(fullText).ifBlank { buildFallbackInterpretation(featuresJson, question) }
+            }
             val fortune = FortuneEngine.visionFortune(finalText)
             val meaning = FortuneEngine.visionMeaning(fortune)
             _uiState.value = _uiState.value.copy(
