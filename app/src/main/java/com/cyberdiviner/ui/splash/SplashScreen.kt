@@ -187,19 +187,6 @@ fun SplashScreen(onTimeout: () -> Unit) {
                 modifier = Modifier.alpha(ganzhiAlpha)
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // 固定副标题
-            Text(
-                text = "萬物共歸道，演算法虛靈。",
-                color = CyberWhite,
-                fontSize = 13.sp,
-                fontFamily = HuiwenFontFamily,
-                letterSpacing = 3.sp,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.alpha(ganzhiAlpha)
-            )
-
             Spacer(modifier = Modifier.weight(0.15f))
 
             // 节气
@@ -212,8 +199,19 @@ fun SplashScreen(onTimeout: () -> Unit) {
                     letterSpacing = 4.sp,
                     modifier = Modifier.alpha(bottomAlpha)
                 )
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(12.dp))
             }
+
+            // 固定副标题
+            Text(
+                text = "萬物共歸道，演算法虛靈。",
+                color = CyberWhite,
+                fontSize = 13.sp,
+                fontFamily = HuiwenFontFamily,
+                letterSpacing = 3.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.alpha(bottomAlpha)
+            )
 
             Spacer(modifier = Modifier.weight(0.12f))
 
