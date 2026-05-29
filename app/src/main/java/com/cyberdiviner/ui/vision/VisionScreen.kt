@@ -255,8 +255,8 @@ fun VisionScreen(
         displayStatusLines = when (uiState.phase) {
             VisionPhase.ANALYZING -> listOf(
                 "面相数据已采集",
-                "AI 正在解读面相...",
-                if (uiState.streamText.isNotEmpty()) uiState.streamText.takeLast(40) else "等待模型响应"
+                "正在推演命理...",
+                if (uiState.streamText.isNotEmpty()) uiState.streamText.takeLast(40) else "因果链运算中"
             )
             else -> listOf(
                 "FACE  ██████████ DETECTED",

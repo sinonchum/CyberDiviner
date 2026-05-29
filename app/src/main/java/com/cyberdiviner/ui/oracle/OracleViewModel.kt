@@ -128,11 +128,12 @@ class OracleViewModel @Inject constructor(
                 }
 
                 val rawResponse = result.text
-                // For offline: skip Persona.stripActionDescriptions (it strips bracket headers like [ 载入签文 ])
-                // Only apply minimal cleaning
+                // For offline: skip Persona.stripActionDescriptions (it strips bracket headers)
+                // But still apply garbled encoding cleanup + markdown cleanup
                 val cleanedResponse = if (result.isOffline) {
-                    val noEmoji = rawResponse.replace(Regex("[\\x{10000}-\\x{10FFFF}]"), "")
-                    sanitizeOracleResponse(noEmoji)
+                    var cleaned = rawResponse.replace(Regex("[\\x{10000}-\\x{10FFFF}]"), "") // emoji
+                    cleaned = com.cyberdiviner.engine.Persona.cleanOfflineOutput(cleaned) // garbled + markdown
+                    sanitizeOracleResponse(cleaned)
                 } else {
                     val stripped = com.cyberdiviner.engine.Persona.stripActionDescriptions(rawResponse)
                     sanitizeOracleResponse(stripped)

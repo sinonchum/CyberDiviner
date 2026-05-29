@@ -758,19 +758,27 @@ class VisionViewModel @Inject constructor(
                 faceDescription = featuresText
             )
 
-            val fullText = inferenceRouter.completeStream(
-                feature = "vision",
-                messages = messages,
-                offlineUserPrompt = offlinePrompt
-            ) { delta ->
-                _uiState.value = _uiState.value.copy(
-                    streamText = _uiState.value.streamText + delta
-                )
-            }.text
+            val fullText = try {
+                inferenceRouter.completeStream(
+                    feature = "vision",
+                    messages = messages,
+                    offlineUserPrompt = offlinePrompt
+                ) { delta ->
+                    _uiState.value = _uiState.value.copy(
+                        streamText = _uiState.value.streamText + delta
+                    )
+                }.text
+            } catch (e: OutOfMemoryError) {
+                Log.e(TAG, "OOM during vision inference", e)
+                buildFallbackInterpretation(featuresJson, question)
+            } catch (e: Exception) {
+                Log.e(TAG, "Vision inference failed", e)
+                buildFallbackInterpretation(featuresJson, question)
+            }
 
             val finalText = if (inferenceRouter.isOfflineAvailable() && !inferenceRouter.isOnlineAvailable()) {
-                // Offline only: skip stripActionDescriptions (strips bracket headers)
-                fullText.ifBlank { buildFallbackInterpretation(featuresJson, question) }
+                val cleaned = com.cyberdiviner.engine.Persona.cleanOfflineOutput(fullText)
+                cleaned.ifBlank { buildFallbackInterpretation(featuresJson, question) }
             } else {
                 com.cyberdiviner.engine.Persona.stripActionDescriptions(fullText).ifBlank { buildFallbackInterpretation(featuresJson, question) }
             }

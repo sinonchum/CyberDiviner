@@ -193,6 +193,15 @@ data class Persona(
             return REGEX_GARBLED_PREFIX.replace(text, "")
         }
 
+        /** Clean offline model output: garbled encoding + markdown, but NOT bracket actions */
+        fun cleanOfflineOutput(text: String): String {
+            var result = text
+            result = cleanGarbledEncoding(result)
+            result = cleanMarkdownArtifacts(result)
+            result = REGEX_MULTI_BLANK_LINES.replace(result, "\n\n")
+            return result.trim()
+        }
+
         /** Clean Markdown formatting and LLM section headers from offline model output */
         fun cleanMarkdownArtifacts(text: String): String {
             var result = text
