@@ -19,6 +19,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cyberdiviner.ui.shared.DesignTokens
@@ -399,6 +400,10 @@ fun MatchingQuiz(
     onAnswerSelected: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // Shuffle values once for the options pool
+    val shuffledValues = remember { items.map { it.value }.shuffled() }
+    // User selections: index → selected value (null = not selected)
+    var selections by remember { mutableStateOf(List(items.size) { null as String? }) }
     var confirmed by remember { mutableStateOf(false) }
 
     Column(
@@ -414,69 +419,123 @@ fun MatchingQuiz(
             fontSize = 16.sp,
             lineHeight = 24.sp,
             letterSpacing = 1.sp,
-            modifier = Modifier.padding(bottom = 8.dp)
+            modifier = Modifier.padding(bottom = 4.dp)
         )
 
-        items.forEach { item ->
+        // Each item: show key + selectable value options
+        items.forEachIndexed { index, item ->
+            val selected = selections[index]
             val hasHexagram = item.value.contains("上") && item.value.contains("下")
-            Row(
+
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(2.dp))
                     .background(GraySurface)
                     .border(1.dp, GrayBorder, RoundedCornerShape(2.dp))
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                    .padding(12.dp)
             ) {
-                // Left: key text
-                Text(
-                    text = item.key,
-                    color = CyberWhite,
-                    fontFamily = WenKaiFontFamily,
-                    fontSize = 14.sp,
-                    modifier = Modifier.weight(1f)
-                )
-                // Center: hexagram lines (if applicable)
-                if (hasHexagram) {
-                    HexagramLines(
-                        trigramCombo = item.value,
-                        modifier = Modifier.padding(horizontal = 8.dp)
-                    )
-                }
-                // Right: arrow + value
-                Column(
-                    horizontalAlignment = Alignment.End,
-                    modifier = Modifier.weight(1f)
+                // Key text + hexagram
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(bottom = 8.dp)
                 ) {
                     Text(
-                        text = "→ ${item.value}",
-                        color = AccentRed,
+                        text = item.key,
+                        color = CyberWhite,
                         fontFamily = WenKaiFontFamily,
                         fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold
+                        modifier = Modifier.weight(1f)
                     )
+                    if (hasHexagram && selected == item.value) {
+                        HexagramLines(
+                            trigramCombo = item.value,
+                            modifier = Modifier.padding(start = 8.dp)
+                        )
+                    }
+                }
+
+                // Shuffled value options as tappable chips
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    shuffledValues.forEach { value ->
+                        val isSelected = selected == value
+                        val isUsedElsewhere = selections.any { it == value && selections.indexOf(it) != index }
+                        val chipBg = animateColorAsState(
+                            targetValue = when {
+                                isSelected -> AccentRed.copy(alpha = 0.2f)
+                                isUsedElsewhere -> GraySurface.copy(alpha = 0.5f)
+                                else -> Color.Transparent
+                            },
+                            animationSpec = tween(200), label = "chipBg"
+                        )
+                        val chipBorder = animateColorAsState(
+                            targetValue = when {
+                                isSelected -> AccentRed
+                                isUsedElsewhere -> GrayBorder.copy(alpha = 0.3f)
+                                else -> GrayBorder
+                            },
+                            animationSpec = tween(200), label = "chipBorder"
+                        )
+                        val chipText = animateColorAsState(
+                            targetValue = when {
+                                isSelected -> CyberWhite
+                                isUsedElsewhere -> GrayMuted.copy(alpha = 0.4f)
+                                else -> GrayMuted
+                            },
+                            animationSpec = tween(200), label = "chipText"
+                        )
+
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clip(RoundedCornerShape(2.dp))
+                                .background(chipBg.value)
+                                .border(1.dp, chipBorder.value, RoundedCornerShape(2.dp))
+                                .clickable(enabled = !confirmed && !isUsedElsewhere) {
+                                    selections = selections.toMutableList().apply {
+                                        set(index, if (isSelected) null else value)
+                                    }
+                                }
+                                .padding(vertical = 8.dp, horizontal = 4.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = value,
+                                color = chipText.value,
+                                fontFamily = WenKaiFontFamily,
+                                fontSize = 12.sp,
+                                textAlign = TextAlign.Center,
+                                maxLines = 2
+                            )
+                        }
+                    }
                 }
             }
         }
 
+        // Confirm button
         if (!confirmed) {
-            Spacer(modifier = Modifier.height(8.dp))
+            val allSelected = selections.all { it != null }
+            Spacer(modifier = Modifier.height(4.dp))
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(2.dp))
-                    .clickable {
+                    .background(if (allSelected) GraySurface else GraySurface.copy(alpha = 0.5f))
+                    .clickable(enabled = allSelected) {
                         confirmed = true
-                        onAnswerSelected(true) // matching is always "correct" once confirmed
+                        val allCorrect = items.zip(selections).all { (item, sel) -> sel == item.value }
+                        onAnswerSelected(allCorrect)
                     }
-                    .background(GraySurface)
                     .padding(vertical = 14.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = "确认",
-                    color = CyberWhite,
+                    color = if (allSelected) CyberWhite else GrayMuted,
                     fontFamily = HuiwenFontFamily,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
