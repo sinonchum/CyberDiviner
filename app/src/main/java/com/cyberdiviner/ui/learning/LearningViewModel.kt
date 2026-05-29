@@ -246,10 +246,15 @@ class LearningViewModel @Inject constructor(
     }
 
     /**
-     * Clear answer feedback (e.g. when navigating to next question).
+     * Clear answer feedback and advance to the next question.
      */
     fun clearFeedback() {
-        _answerFeedback.value = null
+        val state = _lessonState.value
+        val nextIndex = state.currentQuestionIndex + 1
+        _lessonState.value = state.copy(
+            answerFeedback = null,
+            currentQuestionIndex = nextIndex
+        )
     }
 
     /** Advance to the next phase in the lesson flow */
@@ -275,6 +280,24 @@ class LearningViewModel @Inject constructor(
             answerFeedback = AnswerFeedback(
                 correct = correct,
                 explanation = if (correct) question.explanationCorrect else question.explanationWrong
+            ),
+            correctCount = state.correctCount + if (correct) 1 else 0,
+            quizCorrect = correct
+        )
+    }
+
+    /** Submit a quiz answer from a boolean result (for binary/matching quizzes) */
+    fun submitQuizAnswerFromBool(correct: Boolean) {
+        val state = _lessonState.value
+        val lesson = state.lesson ?: return
+        val question = lesson.questions.getOrNull(state.currentQuestionIndex) ?: return
+
+        _lessonState.value = state.copy(
+            answerFeedback = AnswerFeedback(
+                correct = correct,
+                explanation = question.explanation.ifEmpty {
+                    if (correct) question.explanationCorrect else question.explanationWrong
+                }
             ),
             correctCount = state.correctCount + if (correct) 1 else 0,
             quizCorrect = correct

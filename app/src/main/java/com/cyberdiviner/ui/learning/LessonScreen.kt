@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.cyberdiviner.data.model.learning.Lesson
+import com.cyberdiviner.data.model.learning.MatchItem
 import com.cyberdiviner.data.model.learning.QuizType
 import com.cyberdiviner.ui.shared.BackButton
 import com.cyberdiviner.ui.shared.DesignTokens
@@ -87,6 +88,7 @@ fun LessonScreen(
                         lesson = lesson,
                         lessonState = lessonState,
                         onSubmitAnswer = { idx -> viewModel.submitQuizAnswer(idx) },
+                        onSubmitBoolAnswer = { correct -> viewModel.submitQuizAnswerFromBool(correct) },
                         onContinue = { viewModel.nextPhase() },
                         onClearFeedback = { viewModel.clearFeedback() }
                     )
@@ -218,6 +220,7 @@ private fun QuizPhase(
     lesson: Lesson,
     lessonState: LessonUiState,
     onSubmitAnswer: (Int) -> Unit,
+    onSubmitBoolAnswer: (Boolean) -> Unit,
     onContinue: () -> Unit,
     onClearFeedback: () -> Unit
 ) {
@@ -233,51 +236,97 @@ private fun QuizPhase(
 
     Spacer(modifier = Modifier.height(24.dp))
 
-    Text(
-        text = question.prompt,
-        color = CyberWhite,
-        fontSize = 16.sp,
-        fontFamily = WenKaiFontFamily,
-        lineHeight = 26.sp
-    )
-
-    Spacer(modifier = Modifier.height(20.dp))
-
-    // Options
-    var selectedIndex by remember { mutableIntStateOf(-1) }
-
-    question.options.forEachIndexed { index, option ->
-        val isSelected = selectedIndex == index
-        val feedback = lessonState.answerFeedback
-        val showResult = feedback != null
-        val isCorrect = feedback?.correct == true
-
-        val borderColor = when {
-            showResult && isSelected && isCorrect -> AccentRed
-            showResult && isSelected && !isCorrect -> GrayBorder
-            isSelected -> CyberWhite
-            else -> GrayBorder
-        }
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 4.dp)
-                .border(1.dp, borderColor)
-                .clickable {
-                    if (!showResult) {
-                        selectedIndex = index
-                        onSubmitAnswer(index)
+    when (question.type) {
+        QuizType.BINARY_CLASSIFY -> {
+            BinaryClassifyQuiz(
+                prompt = question.prompt,
+                items = question.items.map { it.key to (it.value == "阳" || it.value == "正确" || it.value == "阳爻" || it.value == "true") },
+                onAnswerSelected = { selections ->
+                    val allCorrect = question.items.zip(selections).all { (item, selected) ->
+                        val expectedTrue = item.value == "阳" || item.value == "正确" || item.value == "阳爻" || item.value == "true"
+                        selected == expectedTrue
                     }
+                    onSubmitBoolAnswer(allCorrect)
                 }
-                .padding(16.dp)
-        ) {
-            Text(
-                text = option,
-                color = if (isSelected) CyberWhite else GrayBody,
-                fontSize = 14.sp,
-                fontFamily = WenKaiFontFamily
             )
+        }
+        QuizType.MATCHING -> {
+            // Matching: show items as key → value pairs with options
+            MatchingQuiz(
+                prompt = question.prompt,
+                items = question.items,
+                explanation = question.explanation,
+                onAnswerSelected = { correct -> onSubmitBoolAnswer(correct) }
+            )
+        }
+        QuizType.ORDERING -> {
+            Text(
+                text = question.prompt,
+                color = CyberWhite,
+                fontSize = 16.sp,
+                fontFamily = WenKaiFontFamily,
+                lineHeight = 26.sp
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            question.items.forEach { item ->
+                Text(
+                    text = "• ${item.key}",
+                    color = GrayBody,
+                    fontSize = 14.sp,
+                    fontFamily = WenKaiFontFamily,
+                    modifier = Modifier.padding(vertical = 4.dp)
+                )
+            }
+        }
+        else -> {
+            // SINGLE_CHOICE / CASE_JUDGE
+            Text(
+                text = question.prompt,
+                color = CyberWhite,
+                fontSize = 16.sp,
+                fontFamily = WenKaiFontFamily,
+                lineHeight = 26.sp
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Options
+            var selectedIndex by remember { mutableIntStateOf(-1) }
+
+            question.options.forEachIndexed { index, option ->
+                val isSelected = selectedIndex == index
+                val feedback = lessonState.answerFeedback
+                val showResult = feedback != null
+                val isCorrect = feedback?.correct == true
+
+                val borderColor = when {
+                    showResult && isSelected && isCorrect -> AccentRed
+                    showResult && isSelected && !isCorrect -> GrayBorder
+                    isSelected -> CyberWhite
+                    else -> GrayBorder
+                }
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp)
+                        .border(1.dp, borderColor)
+                        .clickable {
+                            if (!showResult) {
+                                selectedIndex = index
+                                onSubmitAnswer(index)
+                            }
+                        }
+                        .padding(16.dp)
+                ) {
+                    Text(
+                        text = option,
+                        color = if (isSelected) CyberWhite else GrayBody,
+                        fontSize = 14.sp,
+                        fontFamily = WenKaiFontFamily
+                    )
+                }
+            }
         }
     }
 
@@ -307,7 +356,6 @@ private fun QuizPhase(
             text = if (isLast) "查看结果" else "下一题",
             onClick = {
                 onClearFeedback()
-                selectedIndex = -1
                 if (isLast) onContinue()
             }
         )

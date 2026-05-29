@@ -21,6 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cyberdiviner.ui.shared.DesignTokens
+import com.cyberdiviner.data.model.learning.MatchItem
 import com.cyberdiviner.ui.theme.AccentRed
 import com.cyberdiviner.ui.theme.CyberBlack
 import com.cyberdiviner.ui.theme.CyberWhite
@@ -228,6 +229,100 @@ fun BinaryClassifyQuiz(
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+/**
+ * Matching quiz — show key-value pairs, user confirms the mapping.
+ * Displays items as a list of key → value pairs with a confirm button.
+ *
+ * @param prompt Instruction text
+ * @param items List of MatchItem (key-value pairs)
+ * @param explanation Explanation text shown after answering
+ * @param onAnswerSelected Callback with whether the answer was correct
+ */
+@Composable
+fun MatchingQuiz(
+    prompt: String,
+    items: List<MatchItem>,
+    explanation: String,
+    onAnswerSelected: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var confirmed by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = DesignTokens.ScreenHorizontalPadding),
+        verticalArrangement = Arrangement.spacedBy(DesignTokens.ItemSpacing)
+    ) {
+        Text(
+            text = prompt,
+            color = CyberWhite,
+            fontFamily = WenKaiFontFamily,
+            fontSize = 16.sp,
+            lineHeight = 24.sp,
+            letterSpacing = 1.sp,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        items.forEach { item ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(2.dp))
+                    .background(GraySurface)
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = item.key,
+                    color = CyberWhite,
+                    fontFamily = WenKaiFontFamily,
+                    fontSize = 14.sp
+                )
+                Text(
+                    text = "→",
+                    color = AccentRed,
+                    fontFamily = MonoFontFamily,
+                    fontSize = 14.sp
+                )
+                Text(
+                    text = item.value,
+                    color = AccentRed,
+                    fontFamily = WenKaiFontFamily,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+
+        if (!confirmed) {
+            Spacer(modifier = Modifier.height(8.dp))
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(2.dp))
+                    .clickable {
+                        confirmed = true
+                        onAnswerSelected(true) // matching is always "correct" once confirmed
+                    }
+                    .background(GraySurface)
+                    .padding(vertical = 14.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "确认",
+                    color = CyberWhite,
+                    fontFamily = HuiwenFontFamily,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 3.sp
+                )
             }
         }
     }
