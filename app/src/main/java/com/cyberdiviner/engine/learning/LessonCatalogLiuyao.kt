@@ -23,8 +23,8 @@ object LessonCatalogLiuyao {
             questions = listOf(
                 QuizQuestion(
                     id = "B1_Q1",
-                    type = QuestionType.BINARY_CLASSIFY,
-                    prompt = "判断以下铜钱抛掷结果对应哪种爻",
+                    type = QuestionType.MATCHING,
+                    prompt = "将以下铜钱抛掷结果与对应的爻象配对",
                     items = listOf(
                         MatchItem("三枚都是正面（3+3+3=9）", "老阳（○，动爻）"),
                         MatchItem("两正面一背面（3+3+2=8）", "少阴（⚋，静爻）"),

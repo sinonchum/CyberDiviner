@@ -329,6 +329,138 @@ fun MatchingQuiz(
 }
 
 /**
+ * Ordering quiz — user arranges items in correct order by tapping to swap.
+ * Items are initially shuffled. User taps two items to swap them, then confirms.
+ *
+ * @param prompt Instruction text
+ * @param items List of MatchItem (key = display text, value = sort order string "1","2",...)
+ * @param onAnswerSelected Callback with whether the ordering was correct
+ */
+@Composable
+fun OrderingQuiz(
+    prompt: String,
+    items: List<MatchItem>,
+    onAnswerSelected: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val correctOrder = items.sortedBy { it.value.toIntOrNull() ?: 0 }
+    var shuffled by remember {
+        mutableStateOf(items.shuffled().map { it.key }.toMutableList())
+    }
+    var selectedIndex by remember { mutableStateOf<Int?>(null) }
+    var confirmed by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = DesignTokens.ScreenHorizontalPadding),
+        verticalArrangement = Arrangement.spacedBy(DesignTokens.ItemSpacing)
+    ) {
+        Text(
+            text = prompt,
+            color = CyberWhite,
+            fontFamily = WenKaiFontFamily,
+            fontSize = 16.sp,
+            lineHeight = 24.sp,
+            letterSpacing = 1.sp,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        shuffled.forEachIndexed { index, itemText ->
+            val isSelected = selectedIndex == index
+            val borderColor = when {
+                isSelected -> AccentRed
+                confirmed -> GrayBorder
+                else -> GrayBorder
+            }
+            val bgColor = if (isSelected) GraySurface else CyberBlack
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(2.dp))
+                    .background(bgColor)
+                    .clickable {
+                        if (!confirmed) {
+                            val prev = selectedIndex
+                            if (prev == null) {
+                                selectedIndex = index
+                            } else if (prev == index) {
+                                selectedIndex = null
+                            } else {
+                                // Swap
+                                val newList = shuffled.toMutableList()
+                                val tmp = newList[prev]
+                                newList[prev] = newList[index]
+                                newList[index] = tmp
+                                shuffled = newList
+                                selectedIndex = null
+                            }
+                        }
+                    }
+                    .padding(horizontal = 16.dp, vertical = 14.dp)
+            ) {
+                Canvas(modifier = Modifier.fillMaxSize()) {
+                    drawRoundRect(
+                        color = borderColor,
+                        topLeft = Offset.Zero,
+                        size = Size(size.width, size.height),
+                        cornerRadius = CornerRadius(2f, 2f),
+                        style = Stroke(width = 1.5f)
+                    )
+                }
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = "${index + 1}.",
+                        color = if (isSelected) AccentRed else GrayMuted,
+                        fontFamily = MonoFontFamily,
+                        fontSize = 13.sp,
+                        modifier = Modifier.width(28.dp)
+                    )
+                    Text(
+                        text = itemText,
+                        color = if (isSelected) CyberWhite else GrayBody,
+                        fontFamily = WenKaiFontFamily,
+                        fontSize = 14.sp,
+                        lineHeight = 22.sp
+                    )
+                }
+            }
+        }
+
+        if (!confirmed) {
+            Spacer(modifier = Modifier.height(8.dp))
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(2.dp))
+                    .clickable {
+                        confirmed = true
+                        val isCorrect = shuffled == correctOrder.map { it.key }
+                        onAnswerSelected(isCorrect)
+                    }
+                    .background(GraySurface)
+                    .padding(vertical = 14.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "确认排序",
+                    color = CyberWhite,
+                    fontFamily = HuiwenFontFamily,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 3.sp
+                )
+            }
+        }
+    }
+}
+
+/**
  * Internal composable for a binary true/false button.
  */
 @Composable

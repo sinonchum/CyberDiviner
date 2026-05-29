@@ -6,7 +6,6 @@ import com.cyberdiviner.data.dao.LearningDao
 import com.cyberdiviner.data.model.learning.LearningProgressEntity
 import com.cyberdiviner.data.model.learning.LearningStatsEntity
 import com.cyberdiviner.data.model.learning.Lesson
-import com.cyberdiviner.data.model.learning.LessonPath
 import com.cyberdiviner.engine.learning.LessonCatalogLiuyao
 import com.cyberdiviner.engine.learning.LessonCatalogPractice
 import com.cyberdiviner.engine.learning.LessonCatalogTarot
@@ -275,11 +274,14 @@ class LearningViewModel @Inject constructor(
         val lesson = state.lesson ?: return
         val question = lesson.questions.getOrNull(state.currentQuestionIndex) ?: return
 
-        val correct = question.correctAnswerIds.contains(selectedIndex.toString())
+        val correct = selectedIndex == question.correctIndex
+        val explanation = question.explanation.ifEmpty {
+            if (correct) question.explanationCorrect else question.explanationWrong
+        }
         _lessonState.value = state.copy(
             answerFeedback = AnswerFeedback(
                 correct = correct,
-                explanation = if (correct) question.explanationCorrect else question.explanationWrong
+                explanation = explanation
             ),
             correctCount = state.correctCount + if (correct) 1 else 0,
             quizCorrect = correct

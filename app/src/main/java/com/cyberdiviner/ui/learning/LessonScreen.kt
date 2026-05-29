@@ -10,6 +10,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -96,7 +97,9 @@ fun LessonScreen(
                         lesson = lesson,
                         lessonState = lessonState,
                         onComplete = {
-                            viewModel.completeLesson(lessonState.answerFeedback?.correct ?: false)
+                            val overallCorrect = lessonState.totalQuestions > 0 &&
+                                lessonState.correctCount * 100 / lessonState.totalQuestions >= 70
+                            viewModel.completeLesson(overallCorrect)
                             onLessonComplete(lessonId)
                         }
                     )
@@ -238,12 +241,15 @@ private fun QuizPhase(
 
     when (question.type) {
         QuizType.BINARY_CLASSIFY -> {
+            // Determine the two categories from items; first distinct value = "true" category
+            val categories = question.items.map { it.value }.distinct()
+            val trueCategory = categories.firstOrNull() ?: ""
             BinaryClassifyQuiz(
                 prompt = question.prompt,
-                items = question.items.map { it.key to (it.value == "阳" || it.value == "正确" || it.value == "阳爻" || it.value == "true") },
+                items = question.items.map { it.key to (it.value == trueCategory) },
                 onAnswerSelected = { selections ->
                     val allCorrect = question.items.zip(selections).all { (item, selected) ->
-                        val expectedTrue = item.value == "阳" || item.value == "正确" || item.value == "阳爻" || item.value == "true"
+                        val expectedTrue = item.value == trueCategory
                         selected == expectedTrue
                     }
                     onSubmitBoolAnswer(allCorrect)
@@ -260,23 +266,11 @@ private fun QuizPhase(
             )
         }
         QuizType.ORDERING -> {
-            Text(
-                text = question.prompt,
-                color = CyberWhite,
-                fontSize = 16.sp,
-                fontFamily = WenKaiFontFamily,
-                lineHeight = 26.sp
+            OrderingQuiz(
+                prompt = question.prompt,
+                items = question.items,
+                onAnswerSelected = { correct -> onSubmitBoolAnswer(correct) }
             )
-            Spacer(modifier = Modifier.height(16.dp))
-            question.items.forEach { item ->
-                Text(
-                    text = "• ${item.key}",
-                    color = GrayBody,
-                    fontSize = 14.sp,
-                    fontFamily = WenKaiFontFamily,
-                    modifier = Modifier.padding(vertical = 4.dp)
-                )
-            }
         }
         else -> {
             // SINGLE_CHOICE / CASE_JUDGE
@@ -423,6 +417,34 @@ private fun ResultPhase(
                 lineHeight = 24.sp
             )
         }
+    }
+
+    Spacer(modifier = Modifier.height(16.dp))
+
+    // Share button
+    val context = LocalContext.current
+    var copied by remember { mutableStateOf(false) }
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(1.dp, if (copied) AccentRed else GrayBorder)
+            .clickable {
+                val shareText = "【${lesson.title}】${lesson.subtitle}\n\n${lesson.explanation}\n\n— CyberDiviner 赛博算命"
+                val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                clipboard.setPrimaryClip(android.content.ClipData.newPlainText("knowledge_card", shareText))
+                copied = true
+            }
+            .padding(vertical = 14.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = if (copied) "已复制到剪贴板" else "分享知识卡",
+            color = if (copied) AccentRed else CyberWhite,
+            fontSize = 14.sp,
+            fontFamily = HuiwenFontFamily,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 3.sp
+        )
     }
 
     Spacer(modifier = Modifier.height(32.dp))
