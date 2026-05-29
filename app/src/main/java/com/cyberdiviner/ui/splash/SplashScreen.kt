@@ -22,7 +22,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cyberdiviner.R
 import com.cyberdiviner.engine.AlmanacEngine
-import com.cyberdiviner.engine.AlmanacQuotes
 import com.cyberdiviner.ui.theme.*
 import kotlinx.coroutines.delay
 import java.time.LocalDate
@@ -99,12 +98,7 @@ fun SplashScreen(onTimeout: () -> Unit) {
         animationSpec = tween(700, easing = FastOutSlowInEasing), label = "bottomFade"
     )
 
-    // 每日签语
-    val dailyQuote = remember(today) {
-        AlmanacQuotes.getQuoteForDate(today)
-    }
-
-    // 光标闪烁
+    // 光标保留用于底部交互感
     var cursorVisible by remember { mutableStateOf(true) }
     LaunchedEffect(Unit) {
         while (true) { delay(530); cursorVisible = !cursorVisible }
@@ -198,15 +192,15 @@ fun SplashScreen(onTimeout: () -> Unit) {
             // 固定副标题
             Text(
                 text = "萬物共歸道，演算法虛靈。",
-                color = GrayCaption,
-                fontSize = 12.sp,
+                color = CyberWhite,
+                fontSize = 13.sp,
                 fontFamily = HuiwenFontFamily,
                 letterSpacing = 3.sp,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.alpha(ganzhiAlpha)
             )
 
-            Spacer(modifier = Modifier.weight(0.12f))
+            Spacer(modifier = Modifier.weight(0.15f))
 
             // 节气
             reading.currentSolarTerm?.let {
@@ -219,29 +213,6 @@ fun SplashScreen(onTimeout: () -> Unit) {
                     modifier = Modifier.alpha(bottomAlpha)
                 )
                 Spacer(modifier = Modifier.height(20.dp))
-            }
-
-            // 签语 — 仅保留哲理句
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier
-                    .padding(horizontal = 24.dp)
-                    .alpha(bottomAlpha)
-            ) {
-                Text(
-                    text = dailyQuote.quoteText,
-                    color = CyberWhite,
-                    fontSize = 13.sp,
-                    fontFamily = WenKaiFontFamily,
-                    letterSpacing = 2.sp,
-                    textAlign = TextAlign.Center
-                )
-                Text(
-                    text = if (cursorVisible) "_" else " ",
-                    color = CyberWhite,
-                    fontSize = 14.sp,
-                    fontFamily = MonoFontFamily
-                )
             }
 
             Spacer(modifier = Modifier.weight(0.12f))

@@ -148,17 +148,18 @@ fun SingleChoiceQuiz(
 }
 
 /**
- * Binary classify quiz — classify each item as true or false.
- * Uses AccentRed highlight on the selected classification for each item.
+ * Binary classify quiz — categorize each item into one of two categories.
  *
  * @param prompt Instruction text
- * @param items List of (text, _) pairs — the Boolean is the correct answer (unused for display)
- * @param onAnswerSelected Callback returning list of Boolean choices (true=yes, false=no)
+ * @param items List of (text, _) pairs — the Boolean is the correct answer
+ * @param categoryLabels Pair of (trueLabel, falseLabel) for the two categories
+ * @param onAnswerSelected Callback returning list of Boolean choices (true=first category, false=second)
  */
 @Composable
 fun BinaryClassifyQuiz(
     prompt: String,
     items: List<Pair<String, Boolean>>,
+    categoryLabels: Pair<String, String> = "✓" to "✗",
     onAnswerSelected: (List<Boolean>) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -200,13 +201,13 @@ fun BinaryClassifyQuiz(
                     modifier = Modifier.padding(bottom = 12.dp)
                 )
 
-                // True / False buttons
+                // Category buttons
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     BinaryButton(
-                        label = "✓ 正确",
+                        label = categoryLabels.first,
                         isSelected = currentSelection == true,
                         accentColor = CyberWhite,
                         modifier = Modifier.weight(1f)
@@ -218,7 +219,7 @@ fun BinaryClassifyQuiz(
                     }
 
                     BinaryButton(
-                        label = "✗ 错误",
+                        label = categoryLabels.second,
                         isSelected = currentSelection == false,
                         accentColor = AccentRed,
                         modifier = Modifier.weight(1f)
