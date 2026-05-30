@@ -3,10 +3,13 @@ package com.cyberdiviner.ui.archive
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import android.widget.Toast
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
@@ -18,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -39,7 +43,7 @@ import com.cyberdiviner.engine.FortuneEngine
 
 // ── Data model ─────────────────────────────────────────────────────────────
 
-private data class ArchiveEntry(
+internal data class ArchiveEntry(
     val id: Long,
     val ganzhiDate: String,     // Ganzhi day name (e.g. 丙戌日)
     val solarDate: String,      // Solar date (2026.05.28)
@@ -97,6 +101,7 @@ fun ArchiveScreen(
     val readings by viewModel.readings.collectAsState()
     val learningStats by viewModel.learningStats.collectAsState()
     var expandedIndex by remember { mutableStateOf<Int?>(null) }
+    val context = LocalContext.current
 
     Box(
         modifier = Modifier
@@ -234,6 +239,14 @@ fun ArchiveScreen(
                             onClick = {
                                 expandedIndex = if (isExpanded) null else index
                             },
+                            onShare = {
+                                val bitmap = ArchiveShareGenerator.generate(entry, interpState.value)
+                                val saved = ArchiveShareGenerator.saveToGallery(context, bitmap)
+                                if (saved) {
+                                    Toast.makeText(context, "已存入相册，可继续分享", Toast.LENGTH_SHORT).show()
+                                }
+                                ArchiveShareGenerator.share(context, bitmap, entry)
+                            },
                             onDelete = {
                                 viewModel.deleteReading(reading)
                             }
@@ -247,12 +260,14 @@ fun ArchiveScreen(
 
 // ── Swipe-to-delete card wrapper ──────────────────────────────────────────
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun SwipeToDeleteCard(
     entry: ArchiveEntry,
     isExpanded: Boolean,
     expandedText: String,
     onClick: () -> Unit,
+    onShare: () -> Unit,
     onDelete: () -> Unit
 ) {
     var offsetX by remember { mutableFloatStateOf(0f) }
@@ -310,10 +325,12 @@ private fun SwipeToDeleteCard(
                     .fillMaxWidth()
                     .border(1.dp, GrayBorder)
                     .background(if (isExpanded) GraySurface else CyberBlack)
-                    .clickable(
+                    .combinedClickable(
                         indication = null,
-                        interactionSource = remember { MutableInteractionSource() }
-                    ) { onClick() }
+                        interactionSource = remember { MutableInteractionSource() },
+                        onClick = onClick,
+                        onLongClick = onShare
+                    )
                     .padding(24.dp)
             ) {
                 Column {
@@ -410,13 +427,26 @@ private fun SwipeToDeleteCard(
                         }
                     }
 
-                    // ── Bottom-right: hash watermark ────
+                    // ── Share + hash watermark ────
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(top = 12.dp),
-                        horizontalArrangement = Arrangement.End
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
+                        Text(
+                            text = "分享",
+                            color = AccentRed,
+                            fontSize = 11.sp,
+                            fontFamily = HuiwenFontFamily,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 2.sp,
+                            modifier = Modifier
+                                .border(1.dp, AccentRed.copy(alpha = 0.7f))
+                                .clickable { onShare() }
+                                .padding(horizontal = 12.dp, vertical = 6.dp)
+                        )
                         Text(
                             text = entry.hash,
                             color = GrayMuted,
