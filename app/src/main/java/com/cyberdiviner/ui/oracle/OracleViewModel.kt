@@ -44,10 +44,14 @@ class OracleViewModel @Inject constructor(
     /**
      * 物理拦截 AI 的"老头行为"。
      * 剔除括号动作描写、Emoji、拟人化市井词汇。
+     * 保留 [ 载入签文 ] [ 逻辑解析 ] [ 最终断语 ] 等方括号节标题。
      */
     private fun sanitizeOracleResponse(rawResponse: String): String {
-        // 1. 物理剔除括号内的描述 (包含中文和英文括号)
-        val noDescriptions = rawResponse.replace(Regex("(?s)[(（].*?[)）]"), "")
+        // 1. 只剔除括号内的动作/表情描写，不破坏正文
+        //    匹配短小的动作描述（≤30字符），如（点点头）、(沉思片刻)
+        //    不匹配跨行或超长内容（那些是正文，不是动作描写）
+        val actionPattern = Regex("[（(][^）)\\n]{0,30}[）)]")
+        val noDescriptions = actionPattern.replace(rawResponse, "")
 
         // 2. 剔除 Emoji
         val noEmoji = noDescriptions.replace(Regex("[\\x{10000}-\\x{10FFFF}]"), "")
@@ -59,7 +63,37 @@ class OracleViewModel @Inject constructor(
             .replace("师傅", "先知")
             .trim()
 
-        return cleaned
+        // 4. 剔除末尾的"问题"回显（LLM有时会把用户问题复述一遍）
+        val questionEcho = Regex("\\n+问题[：:].+$", RegexOption.DOT_MATCHES_ALL)
+        return questionEcho.replace(cleaned, "").trim()
+    }
+
+    /**
+     * Format the poem section in [ 载入签文 ] so that each sentence
+     * appears on its own line. Each sentence naturally contains 2 clauses
+     * separated by ， producing the classical two-clause-per-line layout.
+     */
+    private fun formatOraclePoem(response: String): String {
+        val header = "[ 载入签文 ]"
+        val nextSection = "[ 逻辑解析 ]"
+        val headerIdx = response.indexOf(header)
+        if (headerIdx < 0) return response
+
+        val contentStart = headerIdx + header.length
+        val nextIdx = response.indexOf(nextSection, contentStart)
+        if (nextIdx < 0) return response
+
+        val poemRaw = response.substring(contentStart, nextIdx).trim()
+        // Split on 。 to get complete sentences (keep delimiter attached)
+        val sentences = poemRaw.split(Regex("(?<=。)"))
+            .map { it.trim() }
+            .filter { it.isNotBlank() }
+        if (sentences.isEmpty()) return response
+
+        // Each sentence (two clauses) on its own line
+        val formattedPoem = sentences.joinToString("\n")
+
+        return response.substring(0, contentStart) + "\n$formattedPoem\n\n" + response.substring(nextIdx)
     }
 
     private val _messages = MutableStateFlow<List<OracleMessage>>(emptyList())
@@ -140,17 +174,24 @@ class OracleViewModel @Inject constructor(
                 }
 
                 // Fallback for offline mode when small model produces empty/near-empty output
-                val finalResponse = if (result.isOffline && cleanedResponse.length < 40) {
+                // or doesn't follow the [ 载入签文 ] format
+                val needsFallback = result.isOffline && (
+                    cleanedResponse.length < 80 ||
+                    !cleanedResponse.contains("载入签文")
+                )
+                val finalResponse = if (needsFallback) {
                     generateOfflineFallback(text)
                 } else cleanedResponse
 
+                val formattedResponse = formatOraclePoem(finalResponse)
+
                 // Prefix with mode indicator when offline
                 val displayResponse = if (result.isOffline) {
-                    "[ 本地签筒 ]\n$finalResponse"
-                } else finalResponse
+                    "[ 本地签筒 ]\n$formattedResponse"
+                } else formattedResponse
 
                 addAgentMessage(displayResponse)
-                saveExchangeToArchive(text, finalResponse)
+                saveExchangeToArchive(text, formattedResponse)
             } catch (e: Exception) {
                 Log.e(TAG, "Inference failed", e)
                 addAgentMessage("[ 系统异常 ] 量子因果链中断。错误码: ${e.message ?: "未知"}。请稍后重试。")

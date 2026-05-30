@@ -334,7 +334,7 @@ private fun QuizPhase(
             Spacer(modifier = Modifier.height(20.dp))
 
             // Options
-            var selectedIndex by remember { mutableIntStateOf(-1) }
+            var selectedIndex by remember(question.prompt) { mutableIntStateOf(-1) }
 
             question.options.forEachIndexed { index, option ->
                 val isSelected = selectedIndex == index

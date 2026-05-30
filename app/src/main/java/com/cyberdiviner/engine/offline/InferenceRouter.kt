@@ -63,13 +63,17 @@ class InferenceRouter(
         persona: Persona = Persona.DEFAULT
     ): InferenceResult {
         val mode = getInferenceMode()
+        val offlineEnabled = isOfflineModelEnabled()
 
         return when (mode) {
             InferenceMode.ONLINE -> completeOnline(feature, messages, persona)
                 ?: throw Exception("Online inference failed. Please check API key and network.")
 
-            InferenceMode.OFFLINE -> completeOffline(feature, offlineUserPrompt)
-                ?: throw Exception("Offline inference failed. Please download the model in settings.")
+            InferenceMode.OFFLINE -> {
+                if (!offlineEnabled) throw Exception("Offline model is disabled. Enable it in settings.")
+                completeOffline(feature, offlineUserPrompt)
+                    ?: throw Exception("Offline inference failed. Please download the model in settings.")
+            }
 
             InferenceMode.AUTO -> {
                 // Try online first
@@ -77,6 +81,9 @@ class InferenceRouter(
                 if (onlineResult != null) return onlineResult
 
                 // Fallback to offline
+                if (!offlineEnabled) {
+                    throw Exception("Online inference failed and offline model is disabled.")
+                }
                 Log.d(TAG, "Online failed, falling back to offline")
                 completeOffline(feature, offlineUserPrompt)
                     ?: throw Exception("Both online and offline inference failed.")
@@ -160,6 +167,7 @@ class InferenceRouter(
             }
 
             InferenceMode.OFFLINE -> {
+                if (!isOfflineModelEnabled()) throw Exception("Offline model is disabled. Enable it in settings.")
                 val result = completeOffline(feature, offlineUserPrompt)
                     ?: throw Exception("Offline inference failed")
                 onChunk(result.text) // Emit all at once (no streaming for offline)
@@ -181,6 +189,9 @@ class InferenceRouter(
                     InferenceResult(text = fullText, isOffline = false)
                 } catch (e: Exception) {
                     Log.d(TAG, "Online streaming failed, falling back to offline: ${e.message}")
+                    if (!isOfflineModelEnabled()) {
+                        throw Exception("Online streaming failed and offline model is disabled.")
+                    }
                     val result = completeOffline(feature, offlineUserPrompt)
                         ?: throw Exception("Both online and offline inference failed")
                     onChunk(result.text)
@@ -197,6 +208,10 @@ class InferenceRouter(
         return InferenceMode.fromName(modeName)
     }
 
+    private suspend fun isOfflineModelEnabled(): Boolean {
+        return configManager.offlineModelEnabled.first()
+    }
+
     private fun isNetworkAvailable(): Boolean {
         val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val network = cm.activeNetwork ?: return false
@@ -208,7 +223,7 @@ class InferenceRouter(
      * Whether offline mode is currently usable (model downloaded + engine ready or can initialize).
      */
     suspend fun isOfflineAvailable(): Boolean {
-        return gemmaEngine.isModelDownloaded()
+        return isOfflineModelEnabled() && gemmaEngine.isModelDownloaded()
     }
 
     /**

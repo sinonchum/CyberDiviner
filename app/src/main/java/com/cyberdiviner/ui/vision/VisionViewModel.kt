@@ -183,6 +183,11 @@ class VisionViewModel @Inject constructor(
 
     private var faceLandmarker: FaceLandmarker? = null
     private var cameraProvider: ProcessCameraProvider? = null
+    private val analysisExecutor = java.util.concurrent.Executors.newSingleThreadExecutor()
+
+    /** Guard flag — set true before releasing resources to stop frame processing */
+    @Volatile
+    private var isReleasing = false
 
     /**
      * Scan completion threshold — how many consecutive frames with a face
@@ -251,7 +256,7 @@ class VisionViewModel @Inject constructor(
                 .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
                 .build()
 
-            imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(context)) {
+            imageAnalysis.setAnalyzer(analysisExecutor) {
                 analyzeFrame(it)
             }
 
@@ -288,15 +293,6 @@ class VisionViewModel @Inject constructor(
             phase = VisionPhase.CAPTURING,
             progressMessage = "正在捕捉面部特征..."
         )
-        // The capture happens via the latest analyzed frame; 
-        // we transition to CAPTURING so the next analysis frame performs extraction.
-    }
-
-    /**
-     * Update the user's question.
-     */
-    fun updateQuestion(question: String) {
-        _uiState.value = _uiState.value.copy(question = question)
     }
 
     /**
@@ -309,17 +305,28 @@ class VisionViewModel @Inject constructor(
             return
         }
 
-        viewModelScope.launch {
-            // Save reading
-            val readingId = saveReading(state.featuresJson, state.question)
-
-            _uiState.value = _uiState.value.copy(
-                phase = VisionPhase.ANALYZING,
-                readingId = readingId,
-                progressMessage = "赛博先知正在观面相..."
-            )
-
-            streamInterpretation(state.featuresJson, state.question)
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val readingId = saveReading(state.featuresJson, state.question)
+                _uiState.value = _uiState.value.copy(
+                    phase = VisionPhase.ANALYZING,
+                    readingId = readingId,
+                    progressMessage = "赛博先知正在观面相..."
+                )
+                streamInterpretation(state.featuresJson, state.question)
+            } catch (e: OutOfMemoryError) {
+                Log.e(TAG, "OOM during face analysis", e)
+                _uiState.value = _uiState.value.copy(
+                    phase = VisionPhase.ERROR,
+                    errorMessage = "内存不足，请关闭其他应用后重试"
+                )
+            } catch (e: Throwable) {
+                Log.e(TAG, "Face analysis failed", e)
+                _uiState.value = _uiState.value.copy(
+                    phase = VisionPhase.ERROR,
+                    errorMessage = "分析失败: ${e.message}"
+                )
+            }
         }
     }
 
@@ -331,7 +338,7 @@ class VisionViewModel @Inject constructor(
      * Trigger face analysis — saves reading, tries LLM, falls back to local engine.
      */
     fun triggerFallbackAnalysis() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             val features = FacialFeatures()
             val featuresJson = json.encodeToString(features)
             // Save reading first (like analyzeFaceReading does)
@@ -343,6 +350,7 @@ class VisionViewModel @Inject constructor(
     }
 
     fun resetScan() {
+        isReleasing = false
         _uiState.value = _uiState.value.copy(
             phase = VisionPhase.IDLE,
             faceDetected = false,
@@ -355,27 +363,62 @@ class VisionViewModel @Inject constructor(
     }
 
     /** Release face landmarker to free memory before LLM inference */
-    private fun releaseFaceLandmarker() {
+    private suspend fun releaseFaceLandmarker() {
+        isReleasing = true
+        // Stop camera to prevent new frames
+        releaseCamera()
+        // Wait for analysis executor to drain all queued frames
+        withContext(Dispatchers.IO) {
+            val latch = java.util.concurrent.CountDownLatch(1)
+            analysisExecutor.submit { latch.countDown() }
+            latch.await(3, java.util.concurrent.TimeUnit.SECONDS)
+        }
+        // Wait extra for MediaPipe graph internal thread to finish
+        kotlinx.coroutines.delay(1500)
+        // Now close the landmarker
         try {
             faceLandmarker?.close()
             faceLandmarker = null
             Log.d(TAG, "FaceLandmarker released to free memory")
         } catch (e: Exception) {
             Log.w(TAG, "Failed to release FaceLandmarker", e)
+            faceLandmarker = null // null it anyway to free Java reference
+        }
+        // Final GC before LLM load
+        System.gc()
+        kotlinx.coroutines.delay(500)
+        Log.d(TAG, "Memory freed, ready for LLM inference")
+    }
+
+    /** Unbind camera to free memory before LLM inference */
+    private fun releaseCamera() {
+        try {
+            cameraProvider?.unbindAll()
+            cameraProvider = null
+            Log.d(TAG, "Camera unbound to free memory for LLM inference")
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to unbind camera", e)
         }
     }
 
     override fun onCleared() {
         super.onCleared()
+        isReleasing = true
         faceLandmarker?.close()
         faceLandmarker = null
         cameraProvider?.unbindAll()
+        analysisExecutor.shutdown()
     }
 
     // ── Frame Analysis ─────────────────────────────────────────────────
 
     @OptIn(ExperimentalGetImage::class)
     private fun analyzeFrame(imageProxy: ImageProxy) {
+        // Bail immediately if resources are being released
+        if (isReleasing) {
+            imageProxy.close()
+            return
+        }
         val landmarker = faceLandmarker
         if (landmarker == null) {
             imageProxy.close()
@@ -394,58 +437,62 @@ class VisionViewModel @Inject constructor(
         try {
             // Use Bitmap conversion for RGBA_8888 format compatibility with MediaPipe
             val bitmap = imageProxy.toBitmap()
-            val mpImage = BitmapImageBuilder(bitmap).build()
-            val result = landmarker.detect(mpImage)
+            try {
+                val mpImage = BitmapImageBuilder(bitmap).build()
+                val result = landmarker.detect(mpImage)
 
-            if (result.faceLandmarks().isNotEmpty()) {
-                val landmarks = result.faceLandmarks()[0]
-                val features = extractFeatures(landmarks, result, imageProxy)
+                if (result.faceLandmarks().isNotEmpty()) {
+                    val landmarks = result.faceLandmarks()[0]
+                    val features = extractFeatures(landmarks, result, imageProxy)
 
-                faceDetectedFrameCount++
+                    faceDetectedFrameCount++
 
-                if (currentState == VisionPhase.CAPTURING) {
-                    // Extract image for storage
-                    val imageUri = captureAndSaveImage(imageProxy)
-
-                    _uiState.value = _uiState.value.copy(
-                        phase = VisionPhase.DETECTED,
-                        faceDetected = true,
-                        scanProgress = 1f,
-                        detectedFeatures = features,
-                        featuresJson = json.encodeToString(features),
-                        capturedImageUri = imageUri,
-                        progressMessage = "面部特征已捕捉！"
-                    )
-                    faceDetectedFrameCount = 0
-                } else {
-                    // SCANNING or IDLE — update live preview
-                    val progress = (faceDetectedFrameCount.toFloat() / requiredFramesForScan).coerceAtMost(1f)
-                    _uiState.value = _uiState.value.copy(
-                        phase = VisionPhase.SCANNING,
-                        faceDetected = true,
-                        scanProgress = progress,
-                        detectedFeatures = features,
-                        featuresJson = json.encodeToString(features)
-                    )
-
-                    if (faceDetectedFrameCount >= requiredFramesForScan) {
-                        // Auto-complete scan
+                    if (currentState == VisionPhase.CAPTURING) {
+                        // Extract image for storage
                         val imageUri = captureAndSaveImage(imageProxy)
+
                         _uiState.value = _uiState.value.copy(
                             phase = VisionPhase.DETECTED,
+                            faceDetected = true,
                             scanProgress = 1f,
+                            detectedFeatures = features,
+                            featuresJson = json.encodeToString(features),
                             capturedImageUri = imageUri,
                             progressMessage = "面部特征已捕捉！"
                         )
                         faceDetectedFrameCount = 0
+                    } else {
+                        // SCANNING or IDLE — update live preview
+                        val progress = (faceDetectedFrameCount.toFloat() / requiredFramesForScan).coerceAtMost(1f)
+                        _uiState.value = _uiState.value.copy(
+                            phase = VisionPhase.SCANNING,
+                            faceDetected = true,
+                            scanProgress = progress,
+                            detectedFeatures = features,
+                            featuresJson = json.encodeToString(features)
+                        )
+
+                        if (faceDetectedFrameCount >= requiredFramesForScan) {
+                            // Auto-complete scan
+                            val imageUri = captureAndSaveImage(imageProxy)
+                            _uiState.value = _uiState.value.copy(
+                                phase = VisionPhase.DETECTED,
+                                scanProgress = 1f,
+                                capturedImageUri = imageUri,
+                                progressMessage = "面部特征已捕捉！"
+                            )
+                            faceDetectedFrameCount = 0
+                        }
                     }
+                } else {
+                    faceDetectedFrameCount = 0
+                    _uiState.value = _uiState.value.copy(
+                        faceDetected = false,
+                        scanProgress = 0f
+                    )
                 }
-            } else {
-                faceDetectedFrameCount = 0
-                _uiState.value = _uiState.value.copy(
-                    faceDetected = false,
-                    scanProgress = 0f
-                )
+            } finally {
+                bitmap.recycle()
             }
         } catch (e: Exception) {
             Log.e(TAG, "Face analysis error", e)
@@ -770,8 +817,23 @@ class VisionViewModel @Inject constructor(
             )
 
             val fullText = try {
-                // Release face landmarker before loading LLM to free memory
+                // Release camera + landmarker, wait for memory to settle
                 releaseFaceLandmarker()
+
+                // Check available memory before loading LLM model
+                val runtime = Runtime.getRuntime()
+                val usedMem = runtime.totalMemory() - runtime.freeMemory()
+                val maxMem = runtime.maxMemory()
+                val availMem = maxMem - usedMem
+                val availMB = availMem / (1024 * 1024)
+                Log.d(TAG, "Available heap before LLM: ${availMB}MB")
+
+                if (availMB < 300) {
+                    // Not enough memory for LLM — use fallback directly
+                    Log.w(TAG, "Skipping LLM inference, low memory: ${availMB}MB")
+                    throw IllegalStateException("Low memory: ${availMB}MB")
+                }
+
                 inferenceRouter.completeStream(
                     feature = "vision",
                     messages = messages,

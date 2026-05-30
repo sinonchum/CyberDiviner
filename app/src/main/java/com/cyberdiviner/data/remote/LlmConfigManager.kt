@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
@@ -28,6 +29,7 @@ class LlmConfigManager(private val context: Context) {
         private val KEY_PERSONA_ID = stringPreferencesKey("persona_id")
         private val KEY_TEMPERATURE = stringPreferencesKey("temperature")
         private val KEY_INFERENCE_MODE = stringPreferencesKey("inference_mode")
+        private val KEY_OFFLINE_MODEL_ENABLED = booleanPreferencesKey("offline_model_enabled")
     }
 
     // ── Reactive streams (for UI) ───────────────────────────────────────────
@@ -41,6 +43,7 @@ class LlmConfigManager(private val context: Context) {
         it[KEY_TEMPERATURE]?.toDoubleOrNull() ?: 0.7
     }
     val inferenceMode: Flow<String> = context.dataStore.data.map { it[KEY_INFERENCE_MODE] ?: "AUTO" }
+    val offlineModelEnabled: Flow<Boolean> = context.dataStore.data.map { it[KEY_OFFLINE_MODEL_ENABLED] ?: false }
 
     // ── Setters ─────────────────────────────────────────────────────────────
 
@@ -70,6 +73,10 @@ class LlmConfigManager(private val context: Context) {
 
     suspend fun setInferenceMode(mode: String) {
         context.dataStore.edit { it[KEY_INFERENCE_MODE] = mode }
+    }
+
+    suspend fun setOfflineModelEnabled(enabled: Boolean) {
+        context.dataStore.edit { it[KEY_OFFLINE_MODEL_ENABLED] = enabled }
     }
 
     // ── Config builder ──────────────────────────────────────────────────────

@@ -520,10 +520,10 @@ fun MatchingQuiz(
     modifier: Modifier = Modifier
 ) {
     // Shuffle values once for the options pool
-    val shuffledValues = remember { items.map { it.value }.shuffled() }
+    val shuffledValues = remember(prompt) { items.map { it.value }.shuffled() }
     // User selections: index → selected value (null = not selected)
-    var selections by remember { mutableStateOf(List(items.size) { null as String? }) }
-    var confirmed by remember { mutableStateOf(false) }
+    var selections by remember(prompt) { mutableStateOf(List(items.size) { null as String? }) }
+    var confirmed by remember(prompt) { mutableStateOf(false) }
 
     Column(
         modifier = modifier
@@ -753,11 +753,11 @@ fun OrderingQuiz(
     modifier: Modifier = Modifier
 ) {
     val correctOrder = items.sortedBy { it.value.toIntOrNull() ?: 0 }
-    var shuffled by remember {
+    var shuffled by remember(prompt) {
         mutableStateOf(items.shuffled().map { it.key }.toMutableList())
     }
-    var selectedIndex by remember { mutableStateOf<Int?>(null) }
-    var confirmed by remember { mutableStateOf(false) }
+    var selectedIndex by remember(prompt) { mutableStateOf<Int?>(null) }
+    var confirmed by remember(prompt) { mutableStateOf(false) }
 
     Column(
         modifier = modifier

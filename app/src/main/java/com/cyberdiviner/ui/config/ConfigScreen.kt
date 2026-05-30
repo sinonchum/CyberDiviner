@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cyberdiviner.data.model.InferenceMode
 import com.cyberdiviner.data.remote.LlmConfigManager
+import com.cyberdiviner.engine.offline.GemmaEngine
 import com.cyberdiviner.engine.offline.ModelManager
 import com.cyberdiviner.ui.shared.CyberButton
 import kotlinx.coroutines.launch
@@ -34,12 +35,14 @@ fun ConfigScreen(onBack: () -> Unit) {
     val savedApiKey by configManager.apiKey.collectAsState(initial = "")
     val savedBaseUrl by configManager.baseUrl.collectAsState(initial = "")
     val savedInferenceMode by configManager.inferenceMode.collectAsState(initial = "AUTO")
+    val savedOfflineModelEnabled by configManager.offlineModelEnabled.collectAsState(initial = false)
     val modelState by modelManager.state.collectAsState()
 
     var apiKey by remember(savedApiKey) { mutableStateOf(savedApiKey) }
     var baseUrl by remember(savedBaseUrl) { mutableStateOf(savedBaseUrl) }
     var saved by remember { mutableStateOf(false) }
     var inferenceMode by remember(savedInferenceMode) { mutableStateOf(InferenceMode.fromName(savedInferenceMode)) }
+    var offlineModelEnabled by remember(savedOfflineModelEnabled) { mutableStateOf(savedOfflineModelEnabled) }
 
     Box(
         modifier = Modifier
@@ -235,6 +238,48 @@ fun ConfigScreen(onBack: () -> Unit) {
                     .fillMaxWidth()
                     .padding(bottom = 8.dp)
             )
+
+            // Toggle row
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 4.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "离线模型",
+                        color = CyberWhite,
+                        fontFamily = MonoFontFamily,
+                        fontSize = 14.sp
+                    )
+                    Text(
+                        text = "启用后可离线使用，关闭可释放约1.5GB内存",
+                        color = GrayCaption,
+                        fontFamily = MonoFontFamily,
+                        fontSize = 11.sp
+                    )
+                }
+                Switch(
+                    checked = offlineModelEnabled,
+                    onCheckedChange = { enabled ->
+                        offlineModelEnabled = enabled
+                        scope.launch {
+                            configManager.setOfflineModelEnabled(enabled)
+                            if (!enabled) {
+                                GemmaEngine.forceReleaseActive()
+                            }
+                        }
+                    },
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = CyberWhite,
+                        checkedTrackColor = GrayBody,
+                        uncheckedThumbColor = GrayCaption,
+                        uncheckedTrackColor = CyberBlack
+                    )
+                )
+            }
 
             // Model info
             Text(

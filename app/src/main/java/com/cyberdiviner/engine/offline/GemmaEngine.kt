@@ -25,6 +25,19 @@ class GemmaEngine(private val context: Context) {
     companion object {
         private const val TAG = "GemmaEngine"
         private const val MODEL_FILENAME = "qwen25_1b.task"
+
+        /** Reference to the active singleton instance (set by Hilt). */
+        @Volatile
+        private var activeInstance: GemmaEngine? = null
+
+        /**
+         * Force-release the active engine instance from any caller.
+         * Used by ConfigScreen (which is not Hilt-injected) to free memory.
+         */
+        fun forceReleaseActive() {
+            activeInstance?.release()
+            activeInstance = null
+        }
     }
 
     @Volatile
@@ -34,6 +47,10 @@ class GemmaEngine(private val context: Context) {
     private var modelReady = false
 
     private val initMutex = Mutex()
+
+    init {
+        activeInstance = this
+    }
 
     // ── Model path ────────────────────────────────────────────────────────────
 
@@ -76,7 +93,7 @@ class GemmaEngine(private val context: Context) {
                 Log.d(TAG, "Initializing LLM Inference from $modelPath")
                 val options = LlmInferenceOptions.builder()
                     .setModelPath(modelPath)
-                    .setMaxTopK(64)
+                    .setMaxTopK(16)
                     .build()
 
                 val inference = LlmInference.createFromOptions(context, options)
@@ -218,14 +235,15 @@ class GemmaEngine(private val context: Context) {
 
     /**
      * Check if the device has enough available memory to load the model.
-     * Requires at least 2.5GB free to safely load a ~2GB model.
+     * Requires at least 1.0GB free to safely load the model.
+     * After releasing FaceLandmarker + Camera, this should be achievable.
      */
     private fun hasEnoughMemory(): Boolean {
         val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
         val memInfo = ActivityManager.MemoryInfo()
         activityManager.getMemoryInfo(memInfo)
         val availableMB = memInfo.availMem / (1024 * 1024)
-        Log.d(TAG, "Available memory: ${availableMB}MB, threshold: 1500MB")
-        return availableMB > 1500
+        Log.d(TAG, "Available memory: ${availableMB}MB, threshold: 1000MB")
+        return availableMB > 1000
     }
 }

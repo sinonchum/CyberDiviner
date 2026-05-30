@@ -692,14 +692,14 @@ private fun PlainLanguageSummary(result: LiuyaoEngine.DivinationResult) {
         ) {
             Column {
                 Text(
-                    text = "建议",
+                    text = "指点迷津",
                     color = AccentRed,
-                    fontSize = 12.sp,
+                    fontSize = 13.sp,
                     fontFamily = HuiwenFontFamily,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 2.sp
                 )
-                Spacer(Modifier.height(6.dp))
+                Spacer(Modifier.height(8.dp))
                 Text(
                     text = result.analysis.advice,
                     color = CyberWhite,
