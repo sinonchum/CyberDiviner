@@ -354,6 +354,17 @@ class VisionViewModel @Inject constructor(
         faceDetectedFrameCount = 0
     }
 
+    /** Release face landmarker to free memory before LLM inference */
+    private fun releaseFaceLandmarker() {
+        try {
+            faceLandmarker?.close()
+            faceLandmarker = null
+            Log.d(TAG, "FaceLandmarker released to free memory")
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to release FaceLandmarker", e)
+        }
+    }
+
     override fun onCleared() {
         super.onCleared()
         faceLandmarker?.close()
@@ -759,6 +770,8 @@ class VisionViewModel @Inject constructor(
             )
 
             val fullText = try {
+                // Release face landmarker before loading LLM to free memory
+                releaseFaceLandmarker()
                 inferenceRouter.completeStream(
                     feature = "vision",
                     messages = messages,
@@ -768,10 +781,7 @@ class VisionViewModel @Inject constructor(
                         streamText = _uiState.value.streamText + delta
                     )
                 }.text
-            } catch (e: OutOfMemoryError) {
-                Log.e(TAG, "OOM during vision inference", e)
-                buildFallbackInterpretation(featuresJson, question)
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 Log.e(TAG, "Vision inference failed", e)
                 buildFallbackInterpretation(featuresJson, question)
             }

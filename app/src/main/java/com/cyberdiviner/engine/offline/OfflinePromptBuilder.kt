@@ -3,27 +3,29 @@ package com.cyberdiviner.engine.offline
 class OfflinePromptBuilder {
     companion object {
         private const val SYSTEM_INSTRUCTION =
-            "你是一个算命AI。禁止使用emoji。只输出纯中文。"
-        const val MAX_TOKENS_ORACLE = 500
-        const val MAX_TOKENS_LIUYAO = 200
-        const val MAX_TOKENS_TAROT = 200
+            "你是一个算命AI。禁止使用emoji。只输出纯中文。禁止编号。禁止列表。"
+        const val MAX_TOKENS_ORACLE = 600
+        const val MAX_TOKENS_LIUYAO = 300
+        const val MAX_TOKENS_TAROT = 300
         const val MAX_TOKENS_VISION = 400
     }
 
-    /**
-     * Build system instruction — simplified for 1.5B model.
-     * The small model cannot follow complex multi-section format instructions.
-     * We use a flat, direct prompt that maximizes chance of coherent output.
-     */
     fun buildSystemInstruction(feature: String): String = when (feature) {
         "oracle" -> SYSTEM_INSTRUCTION +
-            "根据用户的问题，生成签诗和解析。必须严格按以下格式输出，不要有多余内容：\n\n" +
+            "严格按以下格式回答，不要添加任何其他内容：\n\n" +
             "[ 载入签文 ]\n" +
-            "（四句签诗）\n\n" +
+            "（四句七言签诗，每句用逗号或句号分隔）\n\n" +
             "[ 逻辑解析 ]\n" +
-            "（白话解析）\n\n" +
+            "（用白话解释签诗含义，3到5句话）\n\n" +
             "[ 最终断语 ]\n" +
-            "（结论和建议）"
+            "（一句话结论和行动建议）\n\n" +
+            "示例：\n" +
+            "[ 载入签文 ]\n" +
+            "春风化雨润无声，柳暗花明又一程。守得云开见月明，静待时机自然成。\n\n" +
+            "[ 逻辑解析 ]\n" +
+            "此签主先难后易。眼前虽有困顿，但因果链已开始转动。关键在于保持定力。\n\n" +
+            "[ 最终断语 ]\n" +
+            "近期宜守不宜攻，等待时机成熟再行动。"
         "liuyao" -> SYSTEM_INSTRUCTION +
             "用户会提供一个六爻卦象。请用2-3句话解读卦象含义，给出吉凶判断和建议。直接开始回答。"
         "tarot" -> SYSTEM_INSTRUCTION +

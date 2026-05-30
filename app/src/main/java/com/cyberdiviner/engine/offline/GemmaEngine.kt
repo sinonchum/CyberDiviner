@@ -225,7 +225,7 @@ class GemmaEngine(private val context: Context) {
         val memInfo = ActivityManager.MemoryInfo()
         activityManager.getMemoryInfo(memInfo)
         val availableMB = memInfo.availMem / (1024 * 1024)
-        Log.d(TAG, "Available memory: ${availableMB}MB, threshold: 2500MB")
-        return availableMB > 2500
+        Log.d(TAG, "Available memory: ${availableMB}MB, threshold: 1500MB")
+        return availableMB > 1500
     }
 }

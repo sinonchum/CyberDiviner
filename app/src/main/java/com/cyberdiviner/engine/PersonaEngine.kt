@@ -198,6 +198,9 @@ data class Persona(
             var result = text
             result = cleanGarbledEncoding(result)
             result = cleanMarkdownArtifacts(result)
+            // Remove loading/waiting messages the model sometimes generates
+            result = result.replace(Regex("\\[[^\\]]*请稍等[^\\]]*\\]"), "")
+            result = result.replace(Regex("\\[[^\\]]*正在[^\\]]*准备[^\\]]*\\]"), "")
             result = REGEX_MULTI_BLANK_LINES.replace(result, "\n\n")
             return result.trim()
         }
