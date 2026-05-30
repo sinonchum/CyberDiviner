@@ -41,6 +41,12 @@ class OracleViewModel @Inject constructor(
         private const val TAG = "OracleViewModel"
     }
 
+    private data class OracleSections(
+        val poem: String,
+        val analysis: String,
+        val verdict: String
+    )
+
     /**
      * 物理拦截 AI 的"老头行为"。
      * 剔除括号动作描写、Emoji、拟人化市井词汇。
@@ -69,31 +75,77 @@ class OracleViewModel @Inject constructor(
     }
 
     /**
-     * Format the poem section in [ 载入签文 ] so that each sentence
-     * appears on its own line. Each sentence naturally contains 2 clauses
-     * separated by ， producing the classical two-clause-per-line layout.
+     * Treat model output as untrusted text and render it through one canonical
+     * Oracle shape. This keeps UI format stable across online/offline/future models.
      */
-    private fun formatOraclePoem(response: String): String {
-        val header = "[ 载入签文 ]"
-        val nextSection = "[ 逻辑解析 ]"
-        val headerIdx = response.indexOf(header)
-        if (headerIdx < 0) return response
+    private fun normalizeOracleResponse(rawResponse: String, question: String): String {
+        val sanitized = sanitizeOracleResponse(rawResponse)
+        val fallback = parseOracleSections(generateOfflineFallback(question))!!
+        val parsed = parseOracleSections(sanitized)
 
-        val contentStart = headerIdx + header.length
-        val nextIdx = response.indexOf(nextSection, contentStart)
-        if (nextIdx < 0) return response
+        val poem = normalizePoem(parsed?.poem).ifBlank { fallback.poem }
+        val analysis = normalizeParagraph(parsed?.analysis, maxSentences = 5, maxChars = 180)
+            .ifBlank { fallback.analysis }
+        val verdict = normalizeParagraph(parsed?.verdict, maxSentences = 2, maxChars = 80)
+            .ifBlank { fallback.verdict }
 
-        val poemRaw = response.substring(contentStart, nextIdx).trim()
-        // Split on 。 to get complete sentences (keep delimiter attached)
-        val sentences = poemRaw.split(Regex("(?<=。)"))
+        return renderOracleSections(OracleSections(poem, analysis, verdict))
+    }
+
+    private fun parseOracleSections(text: String): OracleSections? {
+        val poemHeader = Regex("""(?m)^\s*\[\s*载入签文\s*]\s*$""").find(text) ?: return null
+        val analysisHeader = Regex("""(?m)^\s*\[\s*逻辑解析\s*]\s*$""").find(text, poemHeader.range.last + 1) ?: return null
+        val verdictHeader = Regex("""(?m)^\s*\[\s*最终断语\s*]\s*$""").find(text, analysisHeader.range.last + 1) ?: return null
+
+        val poem = text.substring(poemHeader.range.last + 1, analysisHeader.range.first).trim()
+        val analysis = text.substring(analysisHeader.range.last + 1, verdictHeader.range.first).trim()
+        val verdict = text.substring(verdictHeader.range.last + 1).trim()
+        return OracleSections(poem, analysis, verdict)
+    }
+
+    private fun renderOracleSections(sections: OracleSections): String =
+        "[ 载入签文 ]\n${sections.poem}\n\n" +
+            "[ 逻辑解析 ]\n${sections.analysis}\n\n" +
+            "[ 最终断语 ]\n${sections.verdict}"
+
+    private fun normalizePoem(rawPoem: String?): String {
+        if (rawPoem.isNullOrBlank()) return ""
+
+        val cleaned = rawPoem
+            .replace(Regex("[「」『』“”\"']"), "")
+            .replace(Regex("(?m)^\\s*[一二三四1234][.．、]\\s*"), "")
+            .trim()
+
+        val sentences = cleaned.split(Regex("(?<=[。！？!?])"))
+            .map { it.trim().trim('。', '！', '？', '!', '?') }
+            .filter { it.isNotBlank() }
+            .take(4)
+
+        if (sentences.size < 2) return ""
+
+        return sentences.joinToString("\n") { sentence ->
+            val normalized = sentence.replace(Regex("\\s+"), "")
+            if (normalized.endsWith("。")) normalized else "$normalized。"
+        }
+    }
+
+    private fun normalizeParagraph(raw: String?, maxSentences: Int, maxChars: Int): String {
+        if (raw.isNullOrBlank()) return ""
+
+        val cleaned = raw
+            .replace(Regex("(?m)^\\s*[一二三四五六七八九十\\d]+[.．、]\\s*"), "")
+            .replace(Regex("\\s+"), " ")
+            .trim()
+
+        val sentences = cleaned.split(Regex("(?<=[。！？!?])"))
             .map { it.trim() }
             .filter { it.isNotBlank() }
-        if (sentences.isEmpty()) return response
+            .take(maxSentences)
 
-        // Each sentence (two clauses) on its own line
-        val formattedPoem = sentences.joinToString("\n")
+        val paragraph = if (sentences.isNotEmpty()) sentences.joinToString("")
+        else cleaned
 
-        return response.substring(0, contentStart) + "\n$formattedPoem\n\n" + response.substring(nextIdx)
+        return paragraph.take(maxChars).trim().trimEnd('，', ',', '；', ';')
     }
 
     private val _messages = MutableStateFlow<List<OracleMessage>>(emptyList())
@@ -161,29 +213,12 @@ class OracleViewModel @Inject constructor(
                     )
                 }
 
-                val rawResponse = result.text
-                // For offline: skip Persona.stripActionDescriptions (it strips bracket headers)
-                // But still apply garbled encoding cleanup + markdown cleanup
-                val cleanedResponse = if (result.isOffline) {
-                    var cleaned = rawResponse.replace(Regex("[\\x{10000}-\\x{10FFFF}]"), "") // emoji
-                    cleaned = com.cyberdiviner.engine.Persona.cleanOfflineOutput(cleaned) // garbled + markdown
-                    sanitizeOracleResponse(cleaned)
+                val rawResponse = if (result.isOffline) {
+                    com.cyberdiviner.engine.Persona.cleanOfflineOutput(result.text)
                 } else {
-                    val stripped = com.cyberdiviner.engine.Persona.stripActionDescriptions(rawResponse)
-                    sanitizeOracleResponse(stripped)
+                    com.cyberdiviner.engine.Persona.stripActionDescriptions(result.text)
                 }
-
-                // Fallback for offline mode when small model produces empty/near-empty output
-                // or doesn't follow the [ 载入签文 ] format
-                val needsFallback = result.isOffline && (
-                    cleanedResponse.length < 80 ||
-                    !cleanedResponse.contains("载入签文")
-                )
-                val finalResponse = if (needsFallback) {
-                    generateOfflineFallback(text)
-                } else cleanedResponse
-
-                val formattedResponse = formatOraclePoem(finalResponse)
+                val formattedResponse = normalizeOracleResponse(rawResponse, text)
 
                 // Prefix with mode indicator when offline
                 val displayResponse = if (result.isOffline) {
@@ -284,15 +319,17 @@ class OracleViewModel @Inject constructor(
         )
 
         // Find best matching theme based on keyword frequency
-        val bestMatch = themeMap
-            .map { (keywords, phrase) ->
-                val score = keywords.count { response.contains(it) }
-                phrase to score
-            }
+        val scored = themeMap
+            .map { (keywords, phrase) -> phrase to keywords.count { response.contains(it) } }
             .filter { it.second > 0 }
-            .maxByOrNull { it.second }
+            .sortedByDescending { it.second }
 
-        if (bestMatch != null) return bestMatch.first
+        if (scored.isNotEmpty()) {
+            val topScore = scored.first().second
+            val topGroup = scored.filter { it.second == topScore }
+            val idx = (response.hashCode().toLong().let { if (it < 0) -it else it }).toInt() % topGroup.size
+            return topGroup[idx].first
+        }
 
         // Fallback: pick based on response sentiment / length heuristics
         val fallbackPhrases = listOf(

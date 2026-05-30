@@ -18,6 +18,7 @@
         android:label="赛博算命"
         android:supportsRtl="true"
         android:theme="@style/Theme.CyberDiviner">
+
         <activity
             android:name=".MainActivity"
             android:exported="true"

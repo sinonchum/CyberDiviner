@@ -21,6 +21,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.compose.LocalLifecycleOwner as ComposeLocalLifecycleOwner
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -74,9 +75,9 @@ private val sampleFaceLandmarks = listOf(
  * functional.
  *
  * Flow:
- * 1. Screen loads → idle state with [CyberButton] "START SCAN"
- * 2. Button press → starts camera via ViewModel + simulated fallback
- * 3. ViewModel auto-detects face → SCANNING → DETECTED → ANALYZING
+ * 1. Screen loads → camera preview starts when permission is available
+ * 2. User adjusts angle and taps START to lock the current face
+ * 3. ViewModel captures face → DETECTED → ANALYZING
  * 4. Result card shows real [FacialFeatures] and LLM interpretation
  */
 @Composable
@@ -85,19 +86,19 @@ fun VisionScreen(
     viewModel: VisionViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val lifecycleOwner = LocalLifecycleOwner.current
+    val lifecycleOwner = ComposeLocalLifecycleOwner.current
     val context = LocalContext.current
     android.util.Log.d("VisionScreen", "VisionScreen composable entered")
 
     // ── Scan trigger state ──
-    var scanStarted by remember { mutableStateOf(false) }
-    var cameraFailed by remember { mutableStateOf(false) }
     var hasCameraPermission by remember {
         mutableStateOf(
             ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) ==
                     PackageManager.PERMISSION_GRANTED
         )
     }
+    var scanStarted by remember { mutableStateOf(hasCameraPermission) }
+    var cameraFailed by remember { mutableStateOf(false) }
 
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
@@ -130,6 +131,11 @@ fun VisionScreen(
             android.util.Log.d("VisionScreen", "Initializing FaceLandmarker...")
             viewModel.initializeFaceLandmarker()
             android.util.Log.d("VisionScreen", "FaceLandmarker initialized OK")
+            if (!hasCameraPermission) {
+                permissionLauncher.launch(Manifest.permission.CAMERA)
+            } else {
+                scanStarted = true
+            }
         } catch (e: Throwable) {
             android.util.Log.e("VisionScreen", "FaceLandmarker init failed", e)
         }
@@ -166,62 +172,18 @@ fun VisionScreen(
 
     // ── Simulated fallback state ──
     var simProgress by remember { mutableFloatStateOf(0f) }
-    var simPhaseLabel by remember { mutableStateOf("初始化传感器阵列") }
+    var simPhaseLabel by remember { mutableStateOf("镜阵待启") }
     var simLandmarks by remember { mutableStateOf<List<PointF>>(emptyList()) }
     var simStatusLines by remember { mutableStateOf<List<String>>(emptyList()) }
     var simComplete by remember { mutableStateOf(false) }
 
-    // Simulated scan progression (always runs when scan started, provides visual effects)
     LaunchedEffect(scanStarted) {
         if (!scanStarted) return@LaunchedEffect
-
-        // Phase 0 – init
-        simPhaseLabel = "初始化传感器阵列"
-        delay(800)
-        simPhaseLabel = "面部识别中"
-        delay(600)
-
-        // Phase 1 – face detection: reveal landmarks gradually
-        val landmarksPerStep = 3
-        for (i in sampleFaceLandmarks.indices step landmarksPerStep) {
-            simLandmarks = sampleFaceLandmarks.take(i + landmarksPerStep)
-            simProgress = (i.toFloat() / sampleFaceLandmarks.size).coerceIn(0f, 0.7f)
-            delay(120)
-        }
-
-        // Phase 2 – mapping
-        simPhaseLabel = "绘制面相拓扑"
-        simStatusLines = listOf(
-            "天庭  ████████░░ 78%",
-            "眼睛  ██████████ 100%",
-            "鼻子  ███████░░░ 72%",
-            "嘴巴  █████████░ 95%",
-        )
-        for (p in 70..90) {
-            simProgress = p / 100f
-            delay(80)
-        }
-
-        // Phase 3 – analysis
-        simPhaseLabel = "分析气场能量"
-        simStatusLines = listOf(
-            "五行平衡: 木=3 火=5 土=2 金=4 水=6",
-            "气场频率: 432 Hz",
-            "面相评级: S+",
-        )
-        for (p in 90..100) {
-            simProgress = p / 100f
-            delay(100)
-        }
-
-        // Phase 4 – complete
-        simPhaseLabel = "面相分析完成"
-        simProgress = 1f
-        simComplete = true
-        // Trigger fallback analysis when no real camera data
-        if (!uiState.faceDetected) {
-            viewModel.triggerFallbackAnalysis()
-        }
+        simPhaseLabel = "请将面容置于镜阵"
+        simProgress = 0.15f
+        simLandmarks = emptyList()
+        simStatusLines = listOf("取景中", "调正面容后轻触 START")
+        simComplete = false
     }
 
     // ── Derived display values ──
@@ -247,24 +209,24 @@ fun VisionScreen(
         // Real camera pipeline — face detected, show real progress
         displayProgress = uiState.scanProgress
         displayPhaseLabel = when (uiState.phase) {
-            VisionPhase.IDLE -> "面部识别中"
-            VisionPhase.SCANNING -> "面部识别中"
-            VisionPhase.DETECTED -> "面部已捕捉"
-            VisionPhase.CAPTURING -> "采集面部数据"
-            VisionPhase.ANALYZING -> "分析气场能量"
-            VisionPhase.RESULT -> "面相分析完成"
-            VisionPhase.ERROR -> "系统错误"
+            VisionPhase.IDLE -> "请将面容置于镜阵"
+            VisionPhase.SCANNING -> "镜中见相，可启签镜"
+            VisionPhase.DETECTED -> "面相已入镜"
+            VisionPhase.CAPTURING -> "正在取相"
+            VisionPhase.ANALYZING -> "先知观相中"
+            VisionPhase.RESULT -> "面相批命完成"
+            VisionPhase.ERROR -> "镜阵受阻"
         }
         displayLandmarks = sampleFaceLandmarks
         displayStatusLines = when (uiState.phase) {
             VisionPhase.ANALYZING -> listOf(
-                "面相数据已采集",
-                "正在推演命理...",
-                if (uiState.streamText.isNotEmpty()) uiState.streamText.takeLast(40) else "因果链运算中"
+                "面相已入镜",
+                uiState.progressMessage.ifBlank { "先知正在推演..." },
+                if (uiState.streamText.isNotEmpty()) uiState.streamText.takeLast(40) else "命盘流转中"
             )
             else -> listOf(
-                "FACE  ██████████ DETECTED",
-                "CONF  ████████░░ ${String.format("%.0f", uiState.scanProgress * 100)}%"
+                "镜阵  ██████████ 已见相",
+                "相合  ████████░░ ${String.format("%.0f", uiState.scanProgress * 100)}%"
             )
         }
         isScanning = uiState.phase == VisionPhase.SCANNING || uiState.phase == VisionPhase.CAPTURING || uiState.phase == VisionPhase.ANALYZING
@@ -280,7 +242,7 @@ fun VisionScreen(
     } else {
         // Not started
         displayProgress = 0f
-        displayPhaseLabel = "初始化传感器阵列"
+        displayPhaseLabel = "镜阵待启"
         displayLandmarks = emptyList()
         displayStatusLines = emptyList()
         isScanning = false
@@ -342,6 +304,20 @@ fun VisionScreen(
                     navController.popBackStack()
                 }
             )
+            Spacer(Modifier.width(12.dp))
+            // Mode toggle: 基础 / 高级
+            Text(
+                text = if (uiState.llmEnabled) "✦ 先知" else "◉ 签镜",
+                color = if (uiState.llmEnabled) AccentRed else GrayCaption,
+                fontSize = 12.sp,
+                fontFamily = MonoFontFamily,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(4.dp))
+                    .clickable(enabled = uiState.phase != VisionPhase.ANALYZING) {
+                        viewModel.setVisionLlmEnabled(!uiState.llmEnabled)
+                    }
+                    .padding(horizontal = 6.dp, vertical = 2.dp)
+            )
             Spacer(Modifier.weight(1f))
             Text(
                 "VISION // FACE SCAN",
@@ -380,7 +356,7 @@ fun VisionScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    "系统错误",
+                    "镜阵受阻",
                     color = GrayCaption,
                     fontSize = 16.sp,
                     fontFamily = HuiwenFontFamily
@@ -395,12 +371,62 @@ fun VisionScreen(
                 )
                 Spacer(Modifier.height(16.dp))
                 CyberButton(
-                    text = "[ RETRY ]",
+                    text = "[ 再启镜阵 ]",
                     onClick = {
                         viewModel.dismissError()
                         cameraFailed = false
                         scanStarted = false
                     }
+                )
+            }
+        }
+
+        // ── Long-running analysis overlay ──
+        AnimatedVisibility(
+            visible = uiState.phase == VisionPhase.ANALYZING,
+            enter = fadeIn(tween(250)),
+            exit = fadeOut(tween(200)),
+            modifier = Modifier.align(Alignment.BottomCenter)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp)
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(GraySurface.copy(alpha = 0.94f))
+                    .padding(20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    "先知正在观相",
+                    color = GrayTitle,
+                    fontSize = 18.sp,
+                    fontFamily = HuiwenFontFamily
+                )
+                Spacer(Modifier.height(10.dp))
+                LinearProgressIndicator(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(2.dp),
+                    color = AccentRed,
+                    trackColor = GrayBorder
+                )
+                Spacer(Modifier.height(12.dp))
+                Text(
+                    uiState.progressMessage.ifBlank { "命理流转中，请稍候片刻。" },
+                    color = GrayBody,
+                    fontSize = 13.sp,
+                    lineHeight = 20.sp,
+                    textAlign = TextAlign.Center,
+                    fontFamily = WenKaiFontFamily
+                )
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    "请勿退出此页，批命成文后将自行显现。",
+                    color = GrayCaption,
+                    fontSize = 11.sp,
+                    textAlign = TextAlign.Center,
+                    fontFamily = WenKaiFontFamily
                 )
             }
         }
@@ -423,7 +449,7 @@ fun VisionScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    "面相分析完成",
+                    "面相批命完成",
                     color = GrayCaption,
                     fontSize = 18.sp,
                     fontFamily = HuiwenFontFamily
@@ -505,7 +531,7 @@ fun VisionScreen(
 
                 Spacer(Modifier.height(16.dp))
                 CyberButton(
-                    text = "[ RETURN ]",
+                    text = "[ 归档离镜 ]",
                     onClick = {
                         if (cameraActive) viewModel.resetScan()
                         navController.popBackStack()
@@ -514,20 +540,29 @@ fun VisionScreen(
             }
         }
 
-        // ── START SCAN button (idle state only) ──
-        if (!scanStarted && !showResult && uiState.phase != VisionPhase.ERROR) {
+        // ── START button — lock current face after preview is ready ──
+        if (scanStarted && !showResult && uiState.phase != VisionPhase.ERROR && uiState.phase != VisionPhase.ANALYZING) {
             CyberButton(
-                text = "[ START SCAN ]",
+                text = if (uiState.faceDetected) "[ START ]" else "[ 请入镜 ]",
                 onClick = {
-                    if (hasCameraPermission) {
-                        scanStarted = true
-                    } else {
-                        permissionLauncher.launch(Manifest.permission.CAMERA)
-                    }
+                    viewModel.captureFace()
                 },
                 modifier = Modifier
                     .fillMaxWidth(0.5f)
-                    .align(Alignment.Center)
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 44.dp)
+            )
+        } else if (!scanStarted && !showResult && uiState.phase != VisionPhase.ERROR) {
+            CyberButton(
+                text = "[ 开启镜阵 ]",
+                onClick = {
+                    if (hasCameraPermission) scanStarted = true
+                    else permissionLauncher.launch(Manifest.permission.CAMERA)
+                },
+                modifier = Modifier
+                    .fillMaxWidth(0.5f)
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 44.dp)
             )
         }
 
@@ -541,5 +576,3 @@ private fun StatBadge(label: String, value: String, color: Color) {
         Text(label, color = GrayBody, fontSize = 10.sp, fontFamily = MonoFontFamily)
     }
 }
-
-

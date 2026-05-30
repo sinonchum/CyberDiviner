@@ -35,6 +35,7 @@ import kotlin.math.abs
 import java.time.Instant
 import java.time.ZoneId
 import com.cyberdiviner.engine.AlmanacEngine
+import com.cyberdiviner.engine.FortuneEngine
 
 // ── Data model ─────────────────────────────────────────────────────────────
 
@@ -454,31 +455,27 @@ private fun DivinationReading.toDisplayEntry(): ArchiveEntry {
         }
         DivinationType.TAROT -> {
             // resultJson is JSON array: [{"card_zh":"愚者","isReversed":"true",...}]
-            titleText = try {
+            val firstCard = try {
                 val arr = resultJson.trim()
                 if (arr.startsWith("[")) {
                     val cardZh = Regex("\"card_zh\"\\s*:\\s*\"([^\"]+)\"").find(arr)?.groupValues?.get(1) ?: ""
                     val reversed = Regex("\"isReversed\"\\s*:\\s*\"true\"").containsMatchIn(arr)
-                    if (cardZh.isNotEmpty()) {
-                        cardZh + if (reversed) "逆位" else "正位"
-                    } else question.takeIf { it.length <= 6 } ?: "塔罗占卜"
-                } else question.takeIf { it.length <= 6 } ?: "塔罗占卜"
-            } catch (e: Exception) { "塔罗占卜" }
-            interpretationText = try {
-                val names = Regex("\"card_zh\"\\s*:\\s*\"([^\"]+)\"").findAll(resultJson)
-                    .map { it.groupValues[1] }.toList()
-                if (names.size > 1) names.joinToString(" · ") else ""
-            } catch (e: Exception) { "" }
+                    cardZh to reversed
+                } else "" to false
+            } catch (e: Exception) { "" to false }
+            titleText = if (firstCard.first.isNotBlank()) {
+                FortuneEngine.tarotFortune(firstCard.first, firstCard.second, question)
+            } else "塔罗占卜"
+            interpretationText = if (firstCard.first.isNotBlank()) {
+                FortuneEngine.tarotMeaning(firstCard.first, firstCard.second)
+            } else "牌面已归档，静候复盘。"
         }
         DivinationType.VISION -> {
             titleText = try {
                 val m = Regex("\"fortune\"\\s*:\\s*\"([^\"]+)\"").find(resultJson)
                 m?.groupValues?.get(1) ?: question.ifBlank { "面相分析" }
             } catch (e: Exception) { question.ifBlank { "面相分析" } }
-            interpretationText = try {
-                val m = Regex("\"meaning\"\\s*:\\s*\"([^\"]+)\"").find(resultJson)
-                m?.groupValues?.get(1)?.take(60) ?: ""
-            } catch (e: Exception) { "" }
+            interpretationText = FortuneEngine.visionMeaning(titleText)
         }
         else -> {
             // ORACLE / MUYU: question field is already 4-char fortune summary

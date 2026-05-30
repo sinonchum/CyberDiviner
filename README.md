@@ -1,148 +1,101 @@
-<div align="center">
+# CyberDiviner
 
-# CyberDiviner: Cyberpunk Fortune-Telling for Android
+CyberDiviner is an Android divination app that turns classical fortune-telling rituals into a polished mobile product. It combines I-Ching hexagrams, tarot spreads, face reading, almanac guidance, offline inference, and a local archive inside a restrained black-and-white interface with cinnabar red accents.
 
-**A divination app that blends Chinese metaphysics with modern Android development. Almanac, I-Ching, Tarot, face reading, and more -- wrapped in a refined black-and-white Bridgewater design with accent red highlights.**
+The project is built for users who want a playful but coherent divination experience, and for developers exploring how traditional symbolic systems can be shaped into modern on-device AI applications.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Platform](https://img.shields.io/badge/Platform-Android-3DDC84.svg)]()
-[![Built with](https://img.shields.io/badge/Built%20with-Kotlin-purple.svg)](https://kotlinlang.org)
-[![UI](https://img.shields.io/badge/UI-Jetpack%20Compose-blue.svg)]()
+**Languages:** [English](README.md) | [中文](README.zh.md)
 
----
+## Highlights
 
-**[English](README.md)** | **[中文](README.zh.md)**
+- **Oracle Chat**: ask natural-language questions and receive structured poetic readings.
+- **I-Ching and Liuyao**: shake-to-cast hexagrams, changing lines, classical-style interpretation, and local rule support.
+- **Cyber Tarot**: 78-card deck, multiple spreads, haptic card interaction, and consistent reading cards in the archive.
+- **Face Reading**: camera-guided face alignment, facial feature extraction, and physiognomy-style interpretation.
+- **Cyber Almanac**: daily auspicious guidance, energy level, colors, and a home-screen widget.
+- **Digital Wooden Fish**: a simple merit-tapping interaction for daily retention.
+- **Archive**: local reading history for oracle, I-Ching, tarot, and face readings.
 
-</div>
+## AI And Offline Strategy
 
----
+CyberDiviner supports configurable inference modes:
 
-## What It Does
+| Mode | Behavior |
+|:--|:--|
+| Auto | Prefer online LLM when configured, then use the downloaded local model, then local rules as the final fallback. |
+| Online only | Use the configured online provider. |
+| Offline only | Use the downloaded on-device model. If the model cannot run, the app reports the failure instead of silently downgrading premium output. |
 
-CyberDiviner is a fortune-telling app that takes ancient Chinese divination traditions and presents them through a refined Bridgewater aesthetic. Black-and-white palette with accent red, procedurally generated interpretations, and classical Chinese typography -- all running entirely on your device.
+The offline path uses an on-device Gemma-class model through a LiteRT-LM bridge. Output is normalized per feature so future model changes do not break the product format. Local rule engines remain available for baseline utility and graceful degradation in non-premium paths.
 
-### Core Features
+## Product Surface
 
-**Oracle Chat (叩问天机)**
-A roadside fortune teller chat experience. Ask questions in natural language and receive cryptic, stylized responses drawn from classical Chinese divination lore. The fortune teller has a personality -- part sage, part street poet.
+**Oracle Chat**
 
-**I-Ching Divination (周易六爻)**
-Shake your phone 6 times to simulate three-coin tosses. The app builds a hexagram from your results and generates a reading that blends classical Yi Jing commentary with modern interpretation. Three persona modes available: the ancient sage, the quantum taoist, and the sarcastic bot.
+Produces a fixed three-part response: poetic sign text, interpretation, and final advice.
 
-**Cyber Tarot (赛博塔罗)**
-78-card deck with multiple spread layouts. Choose from a single card draw, three-card past/present/future, or the full Celtic Cross. Card flips come with haptic feedback and elegant animations.
+**I-Ching**
 
-**Face Reading (视界摸骨)**
-Camera-based face scanning using on-device MediaPipe. No images leave your phone. The app tracks 478 facial landmarks, maps them to traditional physiognomy concepts, and generates a reading overlaid with a scan-line HUD.
+Builds hexagrams from simulated coin tosses and maps results to Yi Jing-style guidance.
 
-**Digital Wooden Fish (电子木鱼)**
-Tap to accumulate merit. Sometimes the simplest features get the most daily use.
+**Tarot**
 
-**Archive (因果命簿)**
-Your reading history, stored locally. Review past divinations, track patterns, and revisit previous fortune teller conversations.
+Supports single-card, three-card, Celtic Cross, horseshoe, and relationship spreads. Readings are normalized into a stable structure with a four-character fortune title and a concise one-line meaning.
 
-**Desktop Widget (桌面小插件)**
-A home screen widget that displays your daily almanac -- day energy level, auspicious/inauspicious activities, and lucky colors at a glance.
+**Face Reading**
 
-### Additional Features
+Guides the user into the camera frame, waits for the user to start analysis, extracts face features locally, and generates a traditional physiognomy-style reading.
 
-- **Fortune Poster Generator** -- One-tap shareable cyberpunk posters with your reading results
-- **Offline Core** -- I-Ching engine and almanac calculations run entirely on-device
+**Archive**
 
----
+Stores reading summaries locally and keeps card previews consistent across all divination types.
 
 ## Architecture
 
 ```mermaid
 graph TB
-    subgraph UI["UI Layer"]
-        HOME["HomeScreen\n赛博黄历"]
-        ORACLE["OracleScreen\n叩问天机"]
-        LIUYAO["LiuyaoScreen\n六爻占卜"]
-        TAROT["TarotScreen\n动态塔罗"]
-        VISION["VisionScreen\n科技看相"]
-        MUYU["MuyuScreen\n电子木鱼"]
-        ARCHIVE["ArchiveScreen\n因果命簿"]
-        WIDGET["AlmanacWidget\n桌面小组件"]
-    end
+    UI["Jetpack Compose UI"]
+    ROUTER["Inference Router"]
+    ONLINE["Online LLM Provider"]
+    OFFLINE["LiteRT-LM Local Model"]
+    RULES["Local Rule Engines"]
+    ENGINES["Divination Engines"]
+    DATA["Room + DataStore"]
+    CAMERA["CameraX Face Scan"]
+    WIDGET["Glance Widget"]
 
-    subgraph AI["AI Layer"]
-        LLM["LlmService\n模型无关"]
-        PERSONA["PersonaEngine\n3 种人格"]
-    end
-
-    subgraph ENG["Divination Engine"]
-        LIUYAO_E["LiuyaoEngine\n64 卦 + 铜钱投掷"]
-        TAROT_E["TarotEngine\n78 牌 + 5 阵法"]
-        ALMANAC["AlmanacEngine\n干支 + 黄历"]
-        FORTUNE["FortuneEngine\n运势计算"]
-    end
-
-    subgraph DATA["Data Layer"]
-        ROOM["Room DB\n测算历史"]
-        DS["DataStore\n用户偏好"]
-        CAM["CameraX + MediaPipe"]
-    end
-
-    subgraph SHARE["Sharing"]
-        POSTER["PosterGenerator\n转运符海报"]
-    end
-
-    HOME --> ALMANAC
-    HOME --> LLM
-    LIUYAO --> LIUYAO_E
-    LIUYAO --> LLM
-    TAROT --> TAROT_E
-    TAROT --> LLM
-    VISION --> CAM
-    VISION --> LLM
-    MUYU --> ROOM
-    LIUYAO --> ROOM
-    TAROT --> ROOM
-    VISION --> ROOM
-    ALMANAC --> WIDGET
-    POSTER --> HOME
-    ARCHIVE --> ROOM
-    LLM --> PERSONA
-    ORACLE --> LLM
-    FORTUNE --> ALMANAC
-
-    style HOME fill:#1A1A1A,color:#E0E0E0
-    style ORACLE fill:#CC3333,color:#FFFFFF
-    style LIUYAO fill:#1A1A1A,color:#E0E0E0
-    style TAROT fill:#1A1A1A,color:#E0E0E0
-    style VISION fill:#1A1A1A,color:#E0E0E0
-    style MUYU fill:#333333,color:#E0E0E0
-    style ARCHIVE fill:#333333,color:#E0E0E0
-    style WIDGET fill:#333333,color:#E0E0E0
-    style LLM fill:#CC3333,color:#FFFFFF
-    style PERSONA fill:#1A1A1A,color:#E0E0E0
-    style FORTUNE fill:#1A1A1A,color:#E0E0E0
+    UI --> ROUTER
+    ROUTER --> ONLINE
+    ROUTER --> OFFLINE
+    ROUTER --> RULES
+    UI --> ENGINES
+    UI --> CAMERA
+    UI --> DATA
+    ENGINES --> DATA
+    DATA --> WIDGET
 ```
 
-### Tech Stack
+## Tech Stack
 
-| Layer | Technology |
-|:------|:-----------|
-| UI | Jetpack Compose 1.8, Material 3, Custom shaders |
-| DI | Hilt |
-| Database | Room + DataStore |
-| Camera | CameraX + MediaPipe Face Landmarker |
+| Area | Technology |
+|:--|:--|
+| Language | Kotlin |
+| UI | Jetpack Compose, Material 3 |
+| Architecture | Hilt, ViewModel, Kotlin coroutines |
+| Storage | Room, DataStore |
+| Camera | CameraX with on-device face landmark extraction |
+| AI | Online LLM adapters, LiteRT-LM local inference, deterministic local rules |
 | Widget | Jetpack Glance |
-| Build | Kotlin 2.0, AGP 8.7.3, Java 17 |
+| Build | Android Gradle Plugin, Gradle Wrapper, JDK 17 |
 
----
+## Build
 
-## Getting Started
-
-### Prerequisites
+Requirements:
 
 - Android Studio Ladybug or later
 - JDK 17
 - Android SDK 35
-- A physical Android device (minSdk 26)
-
-### Build
+- Android device or emulator running Android 8.0+
 
 ```bash
 git clone https://github.com/sinonchum/CyberDiviner.git
@@ -150,71 +103,33 @@ cd CyberDiviner
 ./gradlew assembleDebug
 ```
 
-### Install
+Install a debug build:
 
 ```bash
 adb install -t -r app/build/outputs/apk/debug/app-debug.apk
 ```
 
----
+Build a release APK:
 
-## Design Language
-
-The visual identity follows the Bridgewater B&W design system:
-
-- **Palette**: Black-and-white base with AccentRed (#CC3333) highlights on near-black (#0A0A0F)
-- **Typography**: 汇文明朝体 (titles), 霞鹜文楷 (body), JetBrains Mono (data)
-- **Motion**: Spring-physics coin tosses, card flip animations, subtle transitions
-- **Haptics**: Linear motor feedback on coin landings and card interactions
-
----
-
-## Project Structure
-
+```bash
+./gradlew assembleRelease
 ```
+
+## Configuration
+
+Open the in-app Config page to choose inference mode, configure an online provider, enable the local model, and manage the downloaded model file. The app is designed to keep output shape stable across providers, so online and offline readings remain visually consistent.
+
+## Repository Layout
+
+```text
 app/src/main/java/com/cyberdiviner/
-├── ui/
-│   ├── theme/          # Bridgewater B&W, AccentRed, Typography
-│   ├── home/           # Cyber Almanac dashboard
-│   ├── oracle/         # Oracle Chat (叩问天机)
-│   ├── liuyao/         # I-Ching divination + coin animation
-│   ├── tarot/          # Tarot card spreads
-│   ├── vision/         # Face scanning + scan-line HUD
-│   ├── muyu/           # Digital wooden fish
-│   ├── archive/        # Reading history (因果命簿)
-│   └── shared/         # HapticUtils, BinaryClock, PosterGenerator
-├── data/
-│   ├── local/          # Room DB, DAOs, DataStore
-│   └── model/          # Data classes
-├── engine/             # LiuyaoEngine, TarotEngine, AlmanacEngine
-└── widget/             # Glance desktop widget
+├── data/          Room entities, DAOs, remote LLM config, model types
+├── engine/        Divination engines, fortune summaries, offline inference
+├── ui/            Compose screens for each feature
+├── widget/        Home-screen almanac widget
+└── util/          Shared utilities
 ```
-
----
-
-## Development
-
-This project was built using the [Autonomous AI Development Framework](https://github.com/sinonchum/autonomous-ai-framework) at L4 autonomy level. 52 Kotlin files, ~11K lines of code, developed across 4 phases with parallel subagent execution.
-
-| Phase | Scope | Subagents |
-|:------|:------|:----------|
-| Phase 1 | Project skeleton + Data layer + Core UI | 9 parallel |
-| Phase 2 | Haptic feedback + Tarot system | 3 parallel |
-| Phase 3 | CameraX + MediaPipe face scanning | 2 parallel |
-| Phase 4 | Poster generator + Desktop widget | 2 parallel |
-
-**Total wall-clock time: 49 minutes** (12:50 AM to 01:39 AM). From empty directory to installed APK on a Xiaomi 12 Pro. Zero human intervention during autonomous execution.
-
----
 
 ## License
 
 MIT
-
----
-
-<div align="center">
-
-[![GitHub](https://img.shields.io/badge/GitHub-sinonchum-181717?style=flat&logo=github)](https://github.com/sinonchum)
-
-</div>

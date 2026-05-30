@@ -4,9 +4,13 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.animateValue
 import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.VectorConverter
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
@@ -428,6 +432,19 @@ private fun DrawingPhase(uiState: TarotUiState) {
 
 @Composable
 private fun InterpretingPhase(uiState: TarotUiState) {
+    val dots by rememberInfiniteTransition(label = "tarot_interpreting_dots")
+        .animateValue(
+            initialValue = 0,
+            targetValue = 3,
+            typeConverter = Int.VectorConverter,
+            animationSpec = infiniteRepeatable(
+                animation = tween(durationMillis = 900, easing = LinearEasing),
+                repeatMode = RepeatMode.Restart
+            ),
+            label = "dots"
+        )
+    val animatedMessage = uiState.progressMessage + ".".repeat(dots)
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
@@ -444,11 +461,19 @@ private fun InterpretingPhase(uiState: TarotUiState) {
         Spacer(modifier = Modifier.height(24.dp))
 
         Text(
-            text = uiState.progressMessage,
+            text = animatedMessage,
             color = GrayCaption,
             fontSize = 13.sp,
             fontFamily = MonoFontFamily,
             letterSpacing = 1.sp
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "牌阵已开，正在等候本地先知落笔",
+            color = GrayMuted,
+            fontSize = 12.sp,
+            fontFamily = WenKaiFontFamily,
+            textAlign = TextAlign.Center
         )
 
         if (uiState.streamText.isNotEmpty()) {

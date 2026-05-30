@@ -30,6 +30,7 @@ class LlmConfigManager(private val context: Context) {
         private val KEY_TEMPERATURE = stringPreferencesKey("temperature")
         private val KEY_INFERENCE_MODE = stringPreferencesKey("inference_mode")
         private val KEY_OFFLINE_MODEL_ENABLED = booleanPreferencesKey("offline_model_enabled")
+        private val KEY_VISION_LLM_ENABLED = booleanPreferencesKey("vision_llm_enabled")
     }
 
     // ── Reactive streams (for UI) ───────────────────────────────────────────
@@ -44,6 +45,7 @@ class LlmConfigManager(private val context: Context) {
     }
     val inferenceMode: Flow<String> = context.dataStore.data.map { it[KEY_INFERENCE_MODE] ?: "AUTO" }
     val offlineModelEnabled: Flow<Boolean> = context.dataStore.data.map { it[KEY_OFFLINE_MODEL_ENABLED] ?: false }
+    val visionLlmEnabled: Flow<Boolean> = context.dataStore.data.map { it[KEY_VISION_LLM_ENABLED] ?: true }
 
     // ── Setters ─────────────────────────────────────────────────────────────
 
@@ -77,6 +79,10 @@ class LlmConfigManager(private val context: Context) {
 
     suspend fun setOfflineModelEnabled(enabled: Boolean) {
         context.dataStore.edit { it[KEY_OFFLINE_MODEL_ENABLED] = enabled }
+    }
+
+    suspend fun setVisionLlmEnabled(enabled: Boolean) {
+        context.dataStore.edit { it[KEY_VISION_LLM_ENABLED] = enabled }
     }
 
     // ── Config builder ──────────────────────────────────────────────────────

@@ -131,32 +131,32 @@ object FortuneEngine {
         val themeMap = mapOf(
             // Major Arcana
             "愚者" to if (isReversed) "迷途知返" else "无畏启程",
-            "魔术师" to if (isReversed) "力不从心" else "心想事成",
-            "女祭司" to if (isReversed) "表里不一" else "静待花开",
+            "魔术师" to if (isReversed) "重整心火" else "心想事成",
+            "女祭司" to if (isReversed) "返观内心" else "静待花开",
             "女皇" to if (isReversed) "丰盛受阻" else "万物生长",
-            "皇帝" to if (isReversed) "刚愎自用" else "掌控全局",
-            "教皇" to if (isReversed) "离经叛道" else "正道指引",
-            "恋人" to if (isReversed) "情路坎坷" else "天作之合",
-            "战车" to if (isReversed) "方向迷失" else "势如破竹",
-            "力量" to if (isReversed) "信心动摇" else "以柔克刚",
-            "隐者" to if (isReversed) "闭门造车" else "明心见性",
-            "命运之轮" to if (isReversed) "时运不济" else "否极泰来",
-            "正义" to if (isReversed) "偏颇失衡" else "公正无私",
-            "倒吊人" to if (isReversed) "无谓牺牲" else "柳暗花明",
-            "死神" to if (isReversed) "故步自封" else "涅槃重生",
-            "节制" to if (isReversed) "失衡失调" else "中正平和",
-            "恶魔" to if (isReversed) "挣脱枷锁" else "执念深重",
-            "塔" to if (isReversed) "危机将至" else "大厦将倾",
-            "星星" to if (isReversed) "希望渺茫" else "曙光初现",
-            "月亮" to if (isReversed) "拨云见日" else "迷雾重重",
+            "皇帝" to if (isReversed) "松弛有度" else "掌控全局",
+            "教皇" to if (isReversed) "另辟新径" else "正道指引",
+            "恋人" to if (isReversed) "重新择心" else "天作之合",
+            "战车" to if (isReversed) "校准方向" else "势如破竹",
+            "力量" to if (isReversed) "蓄养心力" else "以柔克刚",
+            "隐者" to if (isReversed) "出关见世" else "明心见性",
+            "命运之轮" to if (isReversed) "静候轮转" else "否极泰来",
+            "正义" to if (isReversed) "重归中衡" else "公正无私",
+            "倒吊人" to if (isReversed) "换位重启" else "柳暗花明",
+            "死神" to if (isReversed) "旧念待解" else "涅槃重生",
+            "节制" to if (isReversed) "调息归中" else "中正平和",
+            "恶魔" to if (isReversed) "挣脱枷锁" else "照见执念",
+            "塔" to if (isReversed) "转危为醒" else "破旧立新",
+            "星星" to if (isReversed) "微光仍在" else "曙光初现",
+            "月亮" to if (isReversed) "拨云见日" else "雾中寻真",
             "太阳" to if (isReversed) "短暂阴霾" else "光明普照",
-            "审判" to if (isReversed) "逃避反思" else "浴火重生",
-            "世界" to if (isReversed) "功亏一篑" else "功德圆满",
+            "审判" to if (isReversed) "回声待答" else "浴火重生",
+            "世界" to if (isReversed) "圆满未竟" else "功德圆满",
             // Minor Arcana — suits
-            "权杖" to if (isReversed) "热情消退" else "行动果决",
-            "圣杯" to if (isReversed) "情感受挫" else "心灵丰盈",
-            "宝剑" to if (isReversed) "思绪混乱" else "洞察真相",
-            "星币" to if (isReversed) "财运不稳" else "稳扎稳打"
+            "权杖" to if (isReversed) "火候待稳" else "行动果决",
+            "圣杯" to if (isReversed) "心潮待平" else "心灵丰盈",
+            "宝剑" to if (isReversed) "思路待清" else "洞察真相",
+            "星币" to if (isReversed) "根基待固" else "稳扎稳打"
         )
 
         // Try exact match first
@@ -168,7 +168,7 @@ object FortuneEngine {
         }
 
         // Fallback: generate based on reversal
-        return if (isReversed) "逆境待变" else "顺势而为"
+        return if (isReversed) "转念待明" else "顺势而为"
     }
 
     /** Match fortune based on question topic keywords */
@@ -184,37 +184,56 @@ object FortuneEngine {
             listOf("贵人", "人缘", "人际") to "贵人相助",
             listOf("出行", "旅行", "迁移") to "逢凶化吉",
         )
-        return topicMap
-            .firstOrNull { (keywords, _) -> keywords.any { combined.contains(it) } }
-            ?.second
+        // Score each topic by keyword frequency, pick from top group via hash
+        val scored = topicMap
+            .map { (keywords, phrase) -> phrase to keywords.count { combined.contains(it) } }
+            .filter { it.second > 0 }
+            .sortedByDescending { it.second }
+
+        if (scored.isEmpty()) return null
+
+        val topScore = scored.first().second
+        val topGroup = scored.filter { it.second == topScore }
+        val index = (combined.hashCode().toLong().let { if (it < 0) -it else it }).toInt() % topGroup.size
+        return topGroup[index].first
     }
 
     /** Brief one-line meaning for a tarot card */
     fun tarotMeaning(cardName: String, isReversed: Boolean): String {
         val meanings = mapOf(
-            "愚者" to if (isReversed) "冲动行事将导致失控，应回归理性" else "新的旅程即将开始，保持纯真与勇气",
-            "魔术师" to if (isReversed) "才华被误用，需重新聚焦目标" else "你拥有实现目标的一切资源",
-            "女祭司" to if (isReversed) "忽视直觉的警示，需倾听内心" else "静心聆听内心深处的智慧",
+            "愚者" to if (isReversed) "脚步宜慢，先看清路再启程" else "新的旅程即将开始，保持纯真与勇气",
+            "魔术师" to if (isReversed) "资源尚未聚拢，先重新校准目标" else "你拥有实现目标的一切资源",
+            "女祭司" to if (isReversed) "答案仍在心中，只是暂被杂音遮蔽" else "静心聆听内心深处的智慧",
             "女皇" to if (isReversed) "创造力枯竭，需滋养身心" else "丰饶与创造力正在涌流",
-            "皇帝" to if (isReversed) "控制欲过强，需学会放手" else "建立秩序与稳固的基础",
-            "死神" to if (isReversed) "抗拒必要的改变，需勇敢放手" else "旧阶段结束，新生命萌芽",
-            "塔" to if (isReversed) "勉强维持将导致更大崩塌" else "旧有结构崩塌后方能重建",
+            "皇帝" to if (isReversed) "秩序需要弹性，松一步反能稳局" else "建立秩序与稳固的基础",
+            "死神" to if (isReversed) "旧念仍有牵缠，放下之后路会变宽" else "旧阶段结束，新生命萌芽",
+            "塔" to if (isReversed) "变化已在门前，先整理根基再迎新局" else "旧有结构松动，正适合破旧立新",
             "星星" to if (isReversed) "信心受挫，但黎明终将到来" else "希望之光正在指引方向",
             "月亮" to if (isReversed) "迷雾渐散，真相即将显现" else "表象之下暗藏玄机，需谨慎",
             "太阳" to if (isReversed) "暂时的困难遮不住光明" else "成功与喜悦正在降临",
-            "命运之轮" to if (isReversed) "运势低迷，需蛰伏待机" else "命运转折已至，把握机遇",
+            "命运之轮" to if (isReversed) "轮转未到高处，守住节奏便有回升" else "命运转折已至，把握机遇",
             "正义" to if (isReversed) "偏见蒙蔽判断，需客观审视" else "公正的裁决即将到来",
             "审判" to if (isReversed) "逃避过去，需直面内心" else "觉醒之时，过往皆有答案",
             "世界" to if (isReversed) "尚有未竟之事，需善始善终" else "圆满达成，进入新境界"
         )
         // Try exact match
         meanings[cardName]?.let { return it }
+        val suitMeanings = mapOf(
+            "权杖" to if (isReversed) "行动之火尚需收束，先稳节奏再推进" else "行动之火已燃，适合主动开局",
+            "圣杯" to if (isReversed) "心潮需要安放，关系中宜少猜多问" else "情感之水流动，人心与缘分都有回应",
+            "宝剑" to if (isReversed) "思绪尚有纠结，先厘清事实再决断" else "理性之刃已明，适合看清真相",
+            "星币" to if (isReversed) "现实根基尚待加固，宜从小处积累" else "现实根基渐稳，付出会慢慢见形"
+        )
+        suitMeanings[cardName]?.let { return it }
+        for ((key, value) in suitMeanings) {
+            if (cardName.startsWith(key)) return value
+        }
         // Try partial match for minor arcana
         for ((key, value) in meanings) {
             if (cardName.startsWith(key)) return value
         }
         // Fallback
-        return if (isReversed) "当前形势不利，宜守不宜进" else "天时地利，可以有所作为"
+        return if (isReversed) "局势尚未定型，先稳住心念与步伐" else "天时渐开，可以顺势有所作为"
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -273,51 +292,59 @@ object FortuneEngine {
             listOf("气色", "红润", "光泽") to "气色明朗",
         )
 
-        val best = themeMap
+        // Score each theme by keyword frequency
+        val scored = themeMap
             .map { (keywords, phrase) -> phrase to keywords.count { text.contains(it) } }
             .filter { it.second > 0 }
-            .maxByOrNull { it.second }
+            .sortedByDescending { it.second }
 
-        return best?.first ?: "面相玄机"
+        if (scored.isEmpty()) return "面相玄机"
+
+        // Take top-scoring group (same score) and pick one based on text hash
+        // This avoids always returning "鹏程万里" when career keywords dominate
+        val topScore = scored.first().second
+        val topGroup = scored.filter { it.second == topScore }
+        val index = (text.hashCode().toLong().let { if (it < 0) -it else it }).toInt() % topGroup.size
+        return topGroup[index].first
     }
 
-    /** Derive a contextual one-sentence summary from the 4-char vision title */
+    /** Derive a philosophical one-sentence summary from the 4-char vision title */
     fun visionMeaning(title: String): String {
         return when (title) {
-            "鹏程万里" -> "事业运势亨通，前途光明无量"
-            "权柄在握" -> "领导才能出众，可掌权柄"
-            "基业稳固" -> "事业根基扎实，稳扎稳打可成大器"
-            "财源广进" -> "财运当头，正偏财皆有收获"
-            "衣食无忧" -> "食禄丰厚，一生衣食无缺"
-            "情缘天定" -> "桃花运旺，感情之事顺遂如意"
-            "情深意重" -> "感情专一深沉，重情重义之人"
-            "桃花盈门" -> "异性缘极佳，魅力四射"
-            "身心康泰" -> "面相显示健康运势良好，精力充沛"
-            "先天充沛" -> "先天禀赋优异，体质根基深厚"
-            "贵人相助" -> "贵人运旺盛，凡事有人相助"
-            "广结善缘" -> "人缘极佳，善结交四方好友"
-            "慧根深厚" -> "聪慧过人，学业悟性极高"
-            "洞若观火" -> "洞察力非凡，心思缜密，善观人心"
-            "刚毅果决" -> "性格坚毅果决，意志力超群"
-            "温润如玉" -> "性情温和圆融，处世进退有度"
-            "沉稳内敛" -> "性格沉稳内敛，不露锋芒，厚积薄发"
-            "胸襟豁达" -> "心胸开阔大度，不拘小节"
-            "破局之象" -> "蕴含突破之机，未来大有可为"
-            "蓄势待发" -> "当前处于积累期，时机一到便可一飞冲天"
-            "明哲保身" -> "近期宜谨慎行事，明哲保身为上"
-            "静心养性" -> "多思易耗心神，宜静心修养"
-            "逢凶化吉" -> "虽有变动，但终能化险为夷"
-            "明心见性" -> "内省修身，可得心境澄明"
-            "晚景从容" -> "晚年安乐有福，子女有靠"
-            "少年得志" -> "早年运势强劲，少年便可崭露头角"
-            "中年亨通" -> "中年运势渐开，稳步发展可期"
-            "上善若水" -> "水形面相，柔中带刚，善于变通适应"
-            "木秀于林" -> "木形面相，性格坚韧有远见"
-            "金石之坚" -> "金形面相，刚正不阿，行事有原则"
-            "厚德载物" -> "土形面相，敦厚稳重，可承大任"
-            "端正祥和" -> "面相端正对称，心性公允，运势平顺"
-            "气色明朗" -> "气色红润有光泽，近期运势上扬"
-            else -> "面相已解析，点击查看详细解读"
+            "鹏程万里" -> "眉目藏锋，前路宜以定力换远行。"
+            "权柄在握" -> "有执掌之相，越能自持，越能服众。"
+            "基业稳固" -> "根深者不惧风急，慢行亦是长进。"
+            "财源广进" -> "财不逐躁心而来，守正则流泉自至。"
+            "衣食无忧" -> "口福与食禄相随，惜福则福长。"
+            "情缘天定" -> "缘分将至未必喧哗，真心自有回响。"
+            "情深意重" -> "重情是福，知分寸则情不成累。"
+            "桃花盈门" -> "花开有时，择其清者方成佳缘。"
+            "身心康泰" -> "形安则神定，养气即是养运。"
+            "先天充沛" -> "先天有余，更宜以后天修持护之。"
+            "贵人相助" -> "贵人多在善念处，先结善缘后得助力。"
+            "广结善缘" -> "人和即是风水，言行温厚自聚良缘。"
+            "慧根深厚" -> "慧由静生，少言多察则机心自明。"
+            "洞若观火" -> "眼明不贵看破，贵在看破之后仍从容。"
+            "刚毅果决" -> "刚中须藏柔，断事方能不伤和气。"
+            "温润如玉" -> "温和不是退让，是把锋芒藏入分寸。"
+            "沉稳内敛" -> "不露者未必无光，厚积之人自有后发。"
+            "胸襟豁达" -> "心宽则路宽，能容人处即是好运处。"
+            "破局之象" -> "局未必困人，困人者多是旧念。"
+            "蓄势待发" -> "未动不是停滞，是风起之前的蓄力。"
+            "明哲保身" -> "避其锋不是怯，留其身方能待时。"
+            "静心养性" -> "心静则气顺，气顺则运自平。"
+            "逢凶化吉" -> "险处藏转机，稳住一念便有生路。"
+            "明心见性" -> "照见本心之后，外境便少一分牵缠。"
+            "晚景从容" -> "早修善因，晚来方得从容。"
+            "少年得志" -> "早开的花更需护根，得意时尤宜自省。"
+            "中年亨通" -> "中道见真章，稳处最能生势。"
+            "上善若水" -> "柔能载物，顺势而行反成大力。"
+            "木秀于林" -> "木向光而生，人向远而立。"
+            "金石之坚" -> "坚者贵在有节，过刚则易折。"
+            "厚德载物" -> "能承其重者，终得其厚。"
+            "端正祥和" -> "相由心定，心正则诸事少偏。"
+            "气色明朗" -> "气明则运开，近日宜顺势添柴。"
+            else -> "相不定命，观其势而修其心。"
         }
     }
 }

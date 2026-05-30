@@ -16,10 +16,26 @@
 -dontwarn okio.**
 -keep class okhttp3.** { *; }
 
-# MediaPipe (native methods)
+# MediaPipe — keep ALL classes (tasks + framework + native bridge)
 -keep class com.google.mediapipe.** { *; }
+-keepclassmembers class com.google.mediapipe.** {
+    native <methods>;
+    static <methods>;
+}
 -dontwarn com.google.mediapipe.proto.CalculatorProfileProto$CalculatorProfile
 -dontwarn com.google.mediapipe.proto.GraphTemplateProto$CalculatorGraphTemplate
+
+# CRITICAL: Flogger uses stack inspection (FluentLogger.forEnclosingClass)
+# R8 obfuscation breaks the caller lookup → ExceptionInInitializerError
+-keep class com.google.common.flogger.** { *; }
+-keep class com.google.common.flogger.FluentLogger { *; }
+-keepclassmembers class com.google.common.flogger.** {
+    static <methods>;
+}
+
+# protobuf-javalite (used by MediaPipe GenAI)
+-keep class com.google.protobuf.** { *; }
+-dontwarn com.google.protobuf.**
 
 # javax.lang.model (used by MediaPipe internally)
 -dontwarn javax.lang.model.**
@@ -36,6 +52,7 @@
 -keep class androidx.lifecycle.compose.** { *; }
 -keep class androidx.compose.ui.platform.LocalLifecycleOwner* { *; }
 
-# MediaPipe GenAI (on-device LLM)
--keep class com.google.mediapipe.tasks.genai.** { *; }
--dontwarn com.google.mediapipe.tasks.genai.**
+# LiteRT-LM (on-device LLM, loaded through reflection)
+-keep class com.google.ai.edge.litertlm.** { *; }
+-keepclassmembers class com.google.ai.edge.litertlm.** { *; }
+-dontwarn com.google.ai.edge.litertlm.**

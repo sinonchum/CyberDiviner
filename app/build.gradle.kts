@@ -22,10 +22,10 @@ android {
 
     signingConfigs {
         create("release") {
-            storeFile = file("../cyberdiviner.jks")
-            storePassword = "cyberdiviner123"
+            storeFile = file("cyberdiviner-release.jks")
+            storePassword = "cyberdiviner"
             keyAlias = "cyberdiviner"
-            keyPassword = "cyberdiviner123"
+            keyPassword = "cyberdiviner"
         }
     }
 
@@ -47,6 +47,7 @@ android {
 
     kotlinOptions {
         jvmTarget = "17"
+        freeCompilerArgs += listOf("-Xskip-metadata-version-check")
     }
 
     buildFeatures {
@@ -106,10 +107,12 @@ dependencies {
     implementation("androidx.camera:camera-view:$cameraxVersion")
 
     // MediaPipe Face Mesh
-    implementation("com.google.mediapipe:tasks-vision:0.10.20")
+    implementation("com.google.mediapipe:tasks-vision:0.10.35")
 
-    // MediaPipe LLM Inference (on-device LLM)
-    implementation("com.google.mediapipe:tasks-genai:0.10.27")
+    // On-device LLM
+    runtimeOnly("com.google.ai.edge.litertlm:litertlm-android:0.12.0") {
+        exclude(group = "org.jetbrains.kotlin")
+    }
 
     // Coroutines play services
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.1")

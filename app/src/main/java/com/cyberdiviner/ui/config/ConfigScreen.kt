@@ -23,6 +23,9 @@ import com.cyberdiviner.ui.shared.CyberButton
 import kotlinx.coroutines.launch
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.foundation.text.KeyboardOptions
+import android.content.Intent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,6 +46,19 @@ fun ConfigScreen(onBack: () -> Unit) {
     var saved by remember { mutableStateOf(false) }
     var inferenceMode by remember(savedInferenceMode) { mutableStateOf(InferenceMode.fromName(savedInferenceMode)) }
     var offlineModelEnabled by remember(savedOfflineModelEnabled) { mutableStateOf(savedOfflineModelEnabled) }
+
+    // SAF launcher for manual .task import
+    val importLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        uri?.let {
+            scope.launch {
+                context.contentResolver.openInputStream(it)?.let { stream ->
+                    modelManager.importFromStream(stream)
+                }
+            }
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -283,7 +299,7 @@ fun ConfigScreen(onBack: () -> Unit) {
 
             // Model info
             Text(
-                text = "Qwen2.5 1.5B · ~1.6 GB",
+                text = "${ModelManager.MODEL_DISPLAY_NAME} · ${ModelManager.MODEL_SIZE_DISPLAY}",
                 color = CyberWhite,
                 fontFamily = MonoFontFamily,
                 fontSize = 14.sp,
@@ -305,12 +321,31 @@ fun ConfigScreen(onBack: () -> Unit) {
             // Model status and actions
             when (val state = modelState) {
                 is ModelManager.ModelState.NotDownloaded -> {
-                    CyberButton(
-                        text = "DOWNLOAD",
-                        onClick = {
-                            scope.launch { modelManager.download() }
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        CyberButton(
+                            text = "DOWNLOAD",
+                            onClick = {
+                                scope.launch { modelManager.download() }
+                            }
+                        )
+                        TextButton(
+                            onClick = {
+                                importLauncher.launch(arrayOf("application/octet-stream", "*/*"))
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                text = "IMPORT LOCAL FILE",
+                                color = GrayCaption,
+                                fontFamily = MonoFontFamily,
+                                fontSize = 11.sp,
+                                letterSpacing = 1.sp
+                            )
                         }
-                    )
+                    }
                 }
 
                 is ModelManager.ModelState.Downloading -> {
@@ -318,6 +353,14 @@ fun ConfigScreen(onBack: () -> Unit) {
                         modifier = Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
+                        if (state.sourceName.isNotBlank()) {
+                            Text(
+                                text = "via ${state.sourceName}",
+                                color = GrayCaption,
+                                fontFamily = MonoFontFamily,
+                                fontSize = 11.sp
+                            )
+                        }
                         LinearProgressIndicator(
                             progress = { state.percent / 100f },
                             modifier = Modifier.fillMaxWidth(),
@@ -358,21 +401,40 @@ fun ConfigScreen(onBack: () -> Unit) {
                 }
 
                 is ModelManager.ModelState.Error -> {
-                    Text(
-                        text = "ERROR: ${state.message}",
-                        color = AccentRed,
-                        fontFamily = MonoFontFamily,
-                        fontSize = 11.sp,
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(bottom = 8.dp)
-                    )
-                    CyberButton(
-                        text = "RETRY",
-                        onClick = {
-                            scope.launch { modelManager.download() }
+                            .padding(bottom = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = state.message,
+                            color = AccentRed,
+                            fontFamily = MonoFontFamily,
+                            fontSize = 11.sp,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        CyberButton(
+                            text = "RETRY",
+                            onClick = {
+                                scope.launch { modelManager.download() }
+                            }
+                        )
+                        TextButton(
+                            onClick = {
+                                importLauncher.launch(arrayOf("application/octet-stream", "*/*"))
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                text = "IMPORT INSTEAD",
+                                color = GrayCaption,
+                                fontFamily = MonoFontFamily,
+                                fontSize = 11.sp,
+                                letterSpacing = 1.sp
+                            )
                         }
-                    )
+                    }
                 }
             }
 

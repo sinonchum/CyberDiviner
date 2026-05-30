@@ -3,8 +3,6 @@ package com.cyberdiviner.engine.offline
 import android.app.ActivityManager
 import android.content.Context
 import android.util.Log
-import com.google.mediapipe.tasks.genai.llminference.LlmInference
-import com.google.mediapipe.tasks.genai.llminference.LlmInference.LlmInferenceOptions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -12,28 +10,24 @@ import kotlinx.coroutines.withContext
 import java.io.File
 
 /**
- * Wraps MediaPipe LLM Inference API for on-device Gemma inference.
+ * Wraps LiteRT-LM for on-device Gemma inference.
  *
- * Lifecycle:
- *   initialize() → generate() → release()
+ * Uses a Java reflection bridge so Kotlin sources do not directly import
+ * LiteRT-LM classes with newer Kotlin metadata.
  *
+ * Uses Gemma 3 1B int4 (~529MB) for lower memory pressure.
+ * Lifecycle: initialize() → generate() → release()
  * The engine is lazily initialized on first generate() call.
- * Resources are released when the app enters background or memory is low.
  */
 class GemmaEngine(private val context: Context) {
 
     companion object {
         private const val TAG = "GemmaEngine"
-        private const val MODEL_FILENAME = "qwen25_1b.task"
+        private const val MODEL_FILENAME = "gemma3_1b_int4.task"
 
-        /** Reference to the active singleton instance (set by Hilt). */
         @Volatile
         private var activeInstance: GemmaEngine? = null
 
-        /**
-         * Force-release the active engine instance from any caller.
-         * Used by ConfigScreen (which is not Hilt-injected) to free memory.
-         */
         fun forceReleaseActive() {
             activeInstance?.release()
             activeInstance = null
@@ -41,12 +35,13 @@ class GemmaEngine(private val context: Context) {
     }
 
     @Volatile
-    private var llmInference: LlmInference? = null
+    private var bridge: LiteRtLmBridge? = null
 
     @Volatile
     private var modelReady = false
 
     private val initMutex = Mutex()
+    private val inferenceLock = java.util.concurrent.locks.ReentrantLock()
 
     init {
         activeInstance = this
@@ -54,10 +49,6 @@ class GemmaEngine(private val context: Context) {
 
     // ── Model path ────────────────────────────────────────────────────────────
 
-    /**
-     * Returns the path to the downloaded .task model file,
-     * or null if the model is not yet downloaded.
-     */
     fun getModelPath(): String? {
         val file = File(context.filesDir, "offline_model/$MODEL_FILENAME")
         return if (file.exists() && file.length() > 100_000_000) file.absolutePath else null
@@ -65,17 +56,11 @@ class GemmaEngine(private val context: Context) {
 
     // ── Initialization ────────────────────────────────────────────────────────
 
-    /**
-     * Initialize the MediaPipe LLM Inference engine.
-     * Thread-safe: concurrent calls will wait for the first initialization.
-     * Returns true if the engine is ready, false if model not found or init failed.
-     */
     suspend fun initialize(): Boolean = withContext(Dispatchers.IO) {
-        if (modelReady && llmInference != null) return@withContext true
+        if (modelReady && bridge?.isReady == true) return@withContext true
 
         initMutex.withLock {
-            // Double-check after acquiring lock
-            if (modelReady && llmInference != null) return@withLock true
+            if (modelReady && bridge?.isReady == true) return@withLock true
 
             val modelPath = getModelPath()
             if (modelPath == null) {
@@ -83,27 +68,23 @@ class GemmaEngine(private val context: Context) {
                 return@withLock false
             }
 
-            // Check available memory before loading
             if (!hasEnoughMemory()) {
                 Log.e(TAG, "Insufficient memory to load model")
                 return@withLock false
             }
 
             try {
-                Log.d(TAG, "Initializing LLM Inference from $modelPath")
-                val options = LlmInferenceOptions.builder()
-                    .setModelPath(modelPath)
-                    .setMaxTopK(16)
-                    .build()
-
-                val inference = LlmInference.createFromOptions(context, options)
-
-                llmInference = inference
+                Log.d(TAG, "Initializing LiteRT-LM bridge from $modelPath")
+                val nextBridge = LiteRtLmBridge()
+                nextBridge.initialize(modelPath, context.cacheDir.path, 768)
+                bridge = nextBridge
                 modelReady = true
-                Log.d(TAG, "Engine initialized successfully")
+                Log.d(TAG, "LiteRT-LM bridge initialized successfully")
                 true
             } catch (e: Exception) {
                 Log.e(TAG, "Engine initialization failed", e)
+                bridge?.close()
+                bridge = null
                 modelReady = false
                 false
             }
@@ -112,15 +93,6 @@ class GemmaEngine(private val context: Context) {
 
     // ── Inference ─────────────────────────────────────────────────────────────
 
-    /**
-     * Generate a response from the on-device model.
-     * Non-streaming — returns the complete response text.
-     *
-     * @param systemInstruction System instruction prepended to user prompt.
-     * @param userPrompt The user's input.
-     * @param maxTokens Maximum tokens to generate.
-     * @return The generated text, or null if generation failed.
-     */
     suspend fun generate(
         systemInstruction: String,
         userPrompt: String,
@@ -132,20 +104,25 @@ class GemmaEngine(private val context: Context) {
             return@withContext null
         }
 
-        val inference = llmInference ?: return@withContext null
+        val localBridge = bridge ?: return@withContext null
 
         try {
             Log.d(TAG, "Generating offline response (maxTokens=$maxTokens)")
 
-            // MediaPipe LLM Inference doesn't have a separate system instruction field.
-            // We prepend it as context to the user prompt.
-            val fullPrompt = if (systemInstruction.isNotBlank()) {
-                "$systemInstruction\n\n$userPrompt"
-            } else {
-                userPrompt
-            }
+            val fullPrompt = buildGemmaPrompt(systemInstruction, userPrompt)
 
-            val response = inference.generateResponse(fullPrompt)
+            val response: String? = try {
+                inferenceLock.lock()
+                try {
+                    localBridge.generate(fullPrompt, temperature, 16)
+                } finally {
+                    inferenceLock.unlock()
+                }
+            } catch (e: InterruptedException) {
+                Log.w(TAG, "Inference interrupted")
+                null
+            }
+            if (response == null) return@withContext null
             Log.d(TAG, "Offline generation complete: ${response.length} chars")
             response
         } catch (e: Exception) {
@@ -154,10 +131,6 @@ class GemmaEngine(private val context: Context) {
         }
     }
 
-    /**
-     * Generate a streaming response. Calls onPartialResult for each chunk.
-     * Returns the full accumulated text.
-     */
     suspend fun generateStream(
         systemInstruction: String,
         userPrompt: String,
@@ -170,33 +143,22 @@ class GemmaEngine(private val context: Context) {
             return@withContext null
         }
 
-        val inference = llmInference ?: return@withContext null
+        val localBridge = bridge ?: return@withContext null
 
         try {
-            Log.d(TAG, "Generating offline stream response")
+            Log.d(TAG, "Generating offline response through bridge")
+            val fullPrompt = buildGemmaPrompt(systemInstruction, userPrompt)
 
-            val fullPrompt = if (systemInstruction.isNotBlank()) {
-                "$systemInstruction\n\n$userPrompt"
-            } else {
-                userPrompt
+            val result: String?
+            inferenceLock.lock()
+            try {
+                result = localBridge.generate(fullPrompt, temperature, 16)
+            } finally {
+                inferenceLock.unlock()
             }
 
-            // Use async generation with callback
-            val resultBuilder = StringBuilder()
-            val latch = java.util.concurrent.CountDownLatch(1)
-            var error: Exception? = null
-
-            inference.generateResponseAsync(fullPrompt) { partialResult, done ->
-                resultBuilder.append(partialResult)
-                onPartialResult(partialResult)
-                if (done) {
-                    latch.countDown()
-                }
-            }
-
-            latch.await() // Wait for completion
-            val result = resultBuilder.toString()
-            Log.d(TAG, "Offline stream complete: ${result.length} chars")
+            if (!result.isNullOrBlank()) onPartialResult(result)
+            Log.d(TAG, "Offline bridge generation complete: ${result?.length ?: 0} chars")
             result
         } catch (e: Exception) {
             Log.e(TAG, "Offline stream generation failed", e)
@@ -206,44 +168,46 @@ class GemmaEngine(private val context: Context) {
 
     // ── Resource management ───────────────────────────────────────────────────
 
-    /**
-     * Release engine resources. Safe to call multiple times.
-     * The engine will be lazily re-initialized on next generate() call.
-     */
     fun release() {
+        inferenceLock.lock()
         try {
-            llmInference?.close()
-        } catch (e: Exception) {
-            Log.w(TAG, "Error closing engine", e)
+            try {
+                bridge?.close()
+            } catch (e: Exception) {
+                Log.w(TAG, "Error closing engine", e)
+            }
+            bridge = null
+            modelReady = false
+            Log.d(TAG, "Engine released")
+        } finally {
+            inferenceLock.unlock()
         }
-        llmInference = null
-        modelReady = false
-        Log.d(TAG, "Engine released")
     }
 
-    /**
-     * Whether the engine is currently loaded and ready for inference.
-     */
-    fun isReady(): Boolean = modelReady && llmInference != null
+    fun isReady(): Boolean = modelReady && bridge?.isReady == true
 
-    /**
-     * Whether the model file has been downloaded.
-     */
     fun isModelDownloaded(): Boolean = getModelPath() != null
+
+    private fun buildGemmaPrompt(systemInstruction: String, userPrompt: String): String {
+        return if (systemInstruction.isNotBlank()) {
+            "$systemInstruction\n\n$userPrompt"
+        } else {
+            userPrompt
+        }
+    }
 
     // ── Memory check ──────────────────────────────────────────────────────────
 
     /**
-     * Check if the device has enough available memory to load the model.
-     * Requires at least 1.0GB free to safely load the model.
-     * After releasing FaceLandmarker + Camera, this should be achievable.
+     * Check available memory. Gemma 3 1B int4 needs ~700MB runtime RAM.
+     * Requires at least 800MB free.
      */
     private fun hasEnoughMemory(): Boolean {
         val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
         val memInfo = ActivityManager.MemoryInfo()
         activityManager.getMemoryInfo(memInfo)
         val availableMB = memInfo.availMem / (1024 * 1024)
-        Log.d(TAG, "Available memory: ${availableMB}MB, threshold: 1000MB")
-        return availableMB > 1000
+        Log.d(TAG, "Available memory: ${availableMB}MB, threshold: 800MB")
+        return availableMB > 800
     }
 }

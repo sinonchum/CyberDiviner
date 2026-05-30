@@ -337,7 +337,7 @@ fun SettingsScreen(
                 ) {
                     // Model info
                     Text(
-                        "Gemma 2 2B (int8) · ~2.7 GB",
+                        "${ModelManager.MODEL_DISPLAY_NAME} · ${ModelManager.MODEL_SIZE_DISPLAY}",
                         color = CyberWhite,
                         fontSize = 14.sp,
                         fontFamily = MonoFontFamily,

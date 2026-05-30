@@ -171,6 +171,11 @@ data class Persona(
             result = REGEX_MULTI_BLANK_LINES.replace(result, "\n\n")
             result = cleanGarbledEncoding(result)
             result = cleanMarkdownArtifacts(result)
+            // Remove special tokens from all model types
+            result = result.replace(Regex("<\\|?end_of_turn\\|?>"), "")
+            result = result.replace(Regex("<\\|?endoftext\\|?>"), "")
+            result = result.replace(Regex("<\\|?im_start\\|?>"), "")
+            result = result.replace(Regex("<\\|?im_end\\|?>"), "")
             return result.trim()
         }
 
@@ -201,6 +206,13 @@ data class Persona(
             // Remove loading/waiting messages the model sometimes generates
             result = result.replace(Regex("\\[[^\\]]*请稍等[^\\]]*\\]"), "")
             result = result.replace(Regex("\\[[^\\]]*正在[^\\]]*准备[^\\]]*\\]"), "")
+            // Remove Gemma/Qwen special tokens
+            result = result.replace(Regex("<\\|?end_of_turn\\|?>"), "")
+            result = result.replace(Regex("<\\|?endoftext\\|?>"), "")
+            result = result.replace(Regex("<\\|?im_start\\|?>"), "")
+            result = result.replace(Regex("<\\|?im_end\\|?>"), "")
+            result = result.replace(Regex("<bos>"), "")
+            result = result.replace(Regex("<eos>"), "")
             result = REGEX_MULTI_BLANK_LINES.replace(result, "\n\n")
             return result.trim()
         }

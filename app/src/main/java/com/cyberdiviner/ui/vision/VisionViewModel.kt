@@ -20,7 +20,9 @@ import com.cyberdiviner.data.dao.DivinationDao
 import com.cyberdiviner.data.dao.VisionDao
 import com.cyberdiviner.data.model.DivinationReading
 import com.cyberdiviner.data.model.DivinationType
+import com.cyberdiviner.data.model.InferenceMode
 import com.cyberdiviner.data.model.VisionReading
+import com.cyberdiviner.data.remote.LlmConfigManager
 import com.cyberdiviner.data.remote.LlmMessage
 import com.cyberdiviner.data.remote.PromptManager
 import com.cyberdiviner.engine.offline.InferenceRouter
@@ -157,7 +159,8 @@ data class VisionUiState(
     val errorMessage: String? = null,
     val progressMessage: String = "",
     val fourCharFortune: String = "",
-    val fourCharMeaning: String = ""
+    val fourCharMeaning: String = "",
+    val llmEnabled: Boolean = false      // false=基础版, true=高级版(LLM)
 )
 
 // ── ViewModel ────────────────────────────────────────────────────────────
@@ -169,7 +172,8 @@ class VisionViewModel @Inject constructor(
     private val offlinePromptBuilder: OfflinePromptBuilder,
     private val divinationDao: DivinationDao,
     private val visionDao: VisionDao,
-    private val promptManager: PromptManager
+    private val promptManager: PromptManager,
+    private val configManager: LlmConfigManager
 ) : AndroidViewModel(application) {
 
     companion object {
@@ -185,6 +189,13 @@ class VisionViewModel @Inject constructor(
     private var cameraProvider: ProcessCameraProvider? = null
     private val analysisExecutor = java.util.concurrent.Executors.newSingleThreadExecutor()
 
+    /**
+     * Lock protecting faceLandmarker access to prevent use-after-free.
+     * analyzeFrame() holds this during detect(); releaseFaceLandmarker() acquires
+     * it before closing the native resource.
+     */
+    private val landmarkerLock = java.util.concurrent.locks.ReentrantLock()
+
     /** Guard flag — set true before releasing resources to stop frame processing */
     @Volatile
     private var isReleasing = false
@@ -195,6 +206,19 @@ class VisionViewModel @Inject constructor(
      */
     private var faceDetectedFrameCount = 0
     private val requiredFramesForScan = 5
+    @Volatile
+    private var captureRequested = false
+
+    // ── Init ─────────────────────────────────────────────────────────────
+
+    init {
+        // Load persisted vision LLM preference
+        viewModelScope.launch {
+            configManager.visionLlmEnabled.collect { enabled ->
+                _uiState.value = _uiState.value.copy(llmEnabled = enabled)
+            }
+        }
+    }
 
     // ── Public API ──────────────────────────────────────────────────────
 
@@ -283,15 +307,18 @@ class VisionViewModel @Inject constructor(
      * User manually triggers a scan (captures current face features).
      */
     fun captureFace() {
-        if (!_uiState.value.faceDetected) {
-            _uiState.value = _uiState.value.copy(
-                errorMessage = "请先将面部置于取景框中"
+        val state = _uiState.value
+        if (!state.faceDetected || state.featuresJson == "{}") {
+            _uiState.value = state.copy(
+                errorMessage = "请先将面容置于镜阵之中"
             )
             return
         }
-        _uiState.value = _uiState.value.copy(
-            phase = VisionPhase.CAPTURING,
-            progressMessage = "正在捕捉面部特征..."
+        captureRequested = false
+        _uiState.value = state.copy(
+            phase = VisionPhase.DETECTED,
+            scanProgress = 1f,
+            progressMessage = "面相已入镜"
         )
     }
 
@@ -311,7 +338,12 @@ class VisionViewModel @Inject constructor(
                 _uiState.value = _uiState.value.copy(
                     phase = VisionPhase.ANALYZING,
                     readingId = readingId,
-                    progressMessage = "赛博先知正在观面相..."
+                    streamText = "",
+                    progressMessage = if (state.llmEnabled) {
+                        "本地先知正在观骨听相，约需片刻..."
+                    } else {
+                        "本地签镜正在排布面相..."
+                    }
                 )
                 streamInterpretation(state.featuresJson, state.question)
             } catch (e: OutOfMemoryError) {
@@ -334,6 +366,14 @@ class VisionViewModel @Inject constructor(
         _uiState.value = VisionUiState()
     }
 
+    /** Toggle between basic (local) and advanced (LLM) vision mode */
+    fun setVisionLlmEnabled(enabled: Boolean) {
+        _uiState.value = _uiState.value.copy(llmEnabled = enabled)
+        viewModelScope.launch {
+            configManager.setVisionLlmEnabled(enabled)
+        }
+    }
+
     /**
      * Trigger face analysis — saves reading, tries LLM, falls back to local engine.
      */
@@ -351,6 +391,7 @@ class VisionViewModel @Inject constructor(
 
     fun resetScan() {
         isReleasing = false
+        captureRequested = false
         _uiState.value = _uiState.value.copy(
             phase = VisionPhase.IDLE,
             faceDetected = false,
@@ -373,16 +414,19 @@ class VisionViewModel @Inject constructor(
             analysisExecutor.submit { latch.countDown() }
             latch.await(3, java.util.concurrent.TimeUnit.SECONDS)
         }
-        // Wait extra for MediaPipe graph internal thread to finish
-        kotlinx.coroutines.delay(1500)
-        // Now close the landmarker
-        try {
-            faceLandmarker?.close()
-            faceLandmarker = null
-            Log.d(TAG, "FaceLandmarker released to free memory")
-        } catch (e: Exception) {
-            Log.w(TAG, "Failed to release FaceLandmarker", e)
-            faceLandmarker = null // null it anyway to free Java reference
+        // Acquire lock to ensure no in-flight frame is using the landmarker
+        withContext(Dispatchers.IO) {
+            landmarkerLock.lock()
+            try {
+                faceLandmarker?.close()
+                faceLandmarker = null
+                Log.d(TAG, "FaceLandmarker released to free memory")
+            } catch (e: Exception) {
+                Log.w(TAG, "Failed to release FaceLandmarker", e)
+                faceLandmarker = null
+            } finally {
+                landmarkerLock.unlock()
+            }
         }
         // Final GC before LLM load
         System.gc()
@@ -391,10 +435,12 @@ class VisionViewModel @Inject constructor(
     }
 
     /** Unbind camera to free memory before LLM inference */
-    private fun releaseCamera() {
+    private suspend fun releaseCamera() {
         try {
-            cameraProvider?.unbindAll()
-            cameraProvider = null
+            withContext(Dispatchers.Main) {
+                cameraProvider?.unbindAll()
+                cameraProvider = null
+            }
             Log.d(TAG, "Camera unbound to free memory for LLM inference")
         } catch (e: Exception) {
             Log.w(TAG, "Failed to unbind camera", e)
@@ -404,8 +450,15 @@ class VisionViewModel @Inject constructor(
     override fun onCleared() {
         super.onCleared()
         isReleasing = true
-        faceLandmarker?.close()
-        faceLandmarker = null
+        landmarkerLock.lock()
+        try {
+            faceLandmarker?.close()
+            faceLandmarker = null
+        } catch (e: Exception) {
+            Log.w(TAG, "Error closing landmarker in onCleared", e)
+        } finally {
+            landmarkerLock.unlock()
+        }
         cameraProvider?.unbindAll()
         analysisExecutor.shutdown()
     }
@@ -416,11 +469,6 @@ class VisionViewModel @Inject constructor(
     private fun analyzeFrame(imageProxy: ImageProxy) {
         // Bail immediately if resources are being released
         if (isReleasing) {
-            imageProxy.close()
-            return
-        }
-        val landmarker = faceLandmarker
-        if (landmarker == null) {
             imageProxy.close()
             return
         }
@@ -435,11 +483,61 @@ class VisionViewModel @Inject constructor(
         }
 
         try {
-            // Use Bitmap conversion for RGBA_8888 format compatibility with MediaPipe
-            val bitmap = imageProxy.toBitmap()
+            // Create ARGB_8888 bitmap explicitly for MediaPipe compatibility
+            // (imageProxy.toBitmap() may produce incompatible format with RGBA_8888)
+            val width = imageProxy.width
+            val height = imageProxy.height
+            val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
             try {
-                val mpImage = BitmapImageBuilder(bitmap).build()
-                val result = landmarker.detect(mpImage)
+                val buffer = imageProxy.planes[0].buffer
+                val stride = imageProxy.planes[0].rowStride
+                val pixelStride = imageProxy.planes[0].pixelStride
+
+                if (stride == width * pixelStride) {
+                    // No padding — direct copy
+                    buffer.rewind()
+                    bitmap.copyPixelsFromBuffer(buffer)
+                } else {
+                    // Row padding — copy row by row
+                    val rowBytes = ByteArray(width * pixelStride)
+                    for (row in 0 until height) {
+                        buffer.position(row * stride)
+                        buffer.get(rowBytes, 0, rowBytes.size)
+                        val pixels = IntArray(width)
+                        for (col in 0 until width) {
+                            val offset = col * pixelStride
+                            val r = rowBytes[offset].toInt() and 0xFF
+                            val g = rowBytes[offset + 1].toInt() and 0xFF
+                            val b = rowBytes[offset + 2].toInt() and 0xFF
+                            val a = rowBytes[offset + 3].toInt() and 0xFF
+                            pixels[col] = (a shl 24) or (r shl 16) or (g shl 8) or b
+                        }
+                        bitmap.setPixels(pixels, 0, width, row, 0, width, 1)
+                    }
+                }
+
+                // CRITICAL: Hold lock during detect() to prevent use-after-free.
+                // releaseFaceLandmarker() must acquire this lock before closing.
+                val result: FaceLandmarkerResult? = if (landmarkerLock.tryLock()) {
+                    try {
+                        if (isReleasing || faceLandmarker == null) {
+                            null
+                        } else {
+                            val mpImage = BitmapImageBuilder(bitmap).build()
+                            faceLandmarker!!.detect(mpImage)
+                        }
+                    } finally {
+                        landmarkerLock.unlock()
+                    }
+                } else {
+                    // Lock held by release — skip this frame
+                    null
+                }
+
+                if (result == null) {
+                    imageProxy.close()
+                    return
+                }
 
                 if (result.faceLandmarks().isNotEmpty()) {
                     val landmarks = result.faceLandmarks()[0]
@@ -447,7 +545,7 @@ class VisionViewModel @Inject constructor(
 
                     faceDetectedFrameCount++
 
-                    if (currentState == VisionPhase.CAPTURING) {
+                    if (currentState == VisionPhase.CAPTURING && captureRequested) {
                         // Extract image for storage
                         val imageUri = captureAndSaveImage(imageProxy)
 
@@ -458,8 +556,9 @@ class VisionViewModel @Inject constructor(
                             detectedFeatures = features,
                             featuresJson = json.encodeToString(features),
                             capturedImageUri = imageUri,
-                            progressMessage = "面部特征已捕捉！"
+                            progressMessage = "面相已入镜。"
                         )
+                        captureRequested = false
                         faceDetectedFrameCount = 0
                     } else {
                         // SCANNING or IDLE — update live preview
@@ -471,18 +570,6 @@ class VisionViewModel @Inject constructor(
                             detectedFeatures = features,
                             featuresJson = json.encodeToString(features)
                         )
-
-                        if (faceDetectedFrameCount >= requiredFramesForScan) {
-                            // Auto-complete scan
-                            val imageUri = captureAndSaveImage(imageProxy)
-                            _uiState.value = _uiState.value.copy(
-                                phase = VisionPhase.DETECTED,
-                                scanProgress = 1f,
-                                capturedImageUri = imageUri,
-                                progressMessage = "面部特征已捕捉！"
-                            )
-                            faceDetectedFrameCount = 0
-                        }
                     }
                 } else {
                     faceDetectedFrameCount = 0
@@ -818,8 +905,19 @@ class VisionViewModel @Inject constructor(
 
             val fullText = try {
                 // Release camera + landmarker, wait for memory to settle
+                _uiState.value = _uiState.value.copy(
+                    progressMessage = "镜阵已收，先知将启..."
+                )
                 releaseFaceLandmarker()
 
+                val mode = inferenceRouter.currentMode()
+                if (!_uiState.value.llmEnabled && mode != InferenceMode.OFFLINE) {
+                    // 基础版 — 直接用本地面相引擎，不加载 LLM
+                    Log.d(TAG, "Basic mode: using local face reading engine")
+                    throw IllegalStateException("Basic mode — LLM skipped")
+                }
+
+                // 高级版 — 尝试 LLM 推理
                 // Check available memory before loading LLM model
                 val runtime = Runtime.getRuntime()
                 val usedMem = runtime.totalMemory() - runtime.freeMemory()
@@ -828,12 +926,15 @@ class VisionViewModel @Inject constructor(
                 val availMB = availMem / (1024 * 1024)
                 Log.d(TAG, "Available heap before LLM: ${availMB}MB")
 
-                if (availMB < 300) {
+                if (availMB < 300 && mode != InferenceMode.OFFLINE) {
                     // Not enough memory for LLM — use fallback directly
                     Log.w(TAG, "Skipping LLM inference, low memory: ${availMB}MB")
                     throw IllegalStateException("Low memory: ${availMB}MB")
                 }
 
+                _uiState.value = _uiState.value.copy(
+                    progressMessage = "先知正在观相成文，请稍候..."
+                )
                 inferenceRouter.completeStream(
                     feature = "vision",
                     messages = messages,
@@ -845,15 +946,19 @@ class VisionViewModel @Inject constructor(
                 }.text
             } catch (e: Throwable) {
                 Log.e(TAG, "Vision inference failed", e)
+                if (inferenceRouter.currentMode() == InferenceMode.OFFLINE) {
+                    throw IllegalStateException("Offline vision inference failed", e)
+                }
                 buildFallbackInterpretation(featuresJson, question)
             }
 
-            val finalText = if (inferenceRouter.isOfflineAvailable() && !inferenceRouter.isOnlineAvailable()) {
-                val cleaned = com.cyberdiviner.engine.Persona.cleanOfflineOutput(fullText)
-                cleaned.ifBlank { buildFallbackInterpretation(featuresJson, question) }
+            val candidateText = if (inferenceRouter.isOfflineAvailable() && !inferenceRouter.isOnlineAvailable()) {
+                com.cyberdiviner.engine.Persona.cleanOfflineOutput(fullText)
             } else {
-                com.cyberdiviner.engine.Persona.stripActionDescriptions(fullText).ifBlank { buildFallbackInterpretation(featuresJson, question) }
+                com.cyberdiviner.engine.Persona.stripActionDescriptions(fullText)
             }
+            val fallbackText = buildFallbackInterpretation(featuresJson, question)
+            val finalText = normalizeVisionInterpretation(candidateText, fallbackText)
             val fortune = FortuneEngine.visionFortune(finalText)
             val meaning = FortuneEngine.visionMeaning(fortune)
             _uiState.value = _uiState.value.copy(
@@ -866,6 +971,15 @@ class VisionViewModel @Inject constructor(
             persistResult(fortune, meaning, finalText, featuresJson)
         } catch (e: Exception) {
             Log.e(TAG, "Interpretation failed", e)
+            if (inferenceRouter.currentMode() == InferenceMode.OFFLINE) {
+                _uiState.value = _uiState.value.copy(
+                    interpretation = "",
+                    streamText = "",
+                    phase = VisionPhase.ERROR,
+                    errorMessage = "离线先知未能成文。请确认离线模型已下载并已启用，稍后再试。"
+                )
+                return
+            }
             val fallback = buildFallbackInterpretation(featuresJson, question)
             val fortune = FortuneEngine.visionFortune(fallback)
             val meaning = FortuneEngine.visionMeaning(fortune)
@@ -877,6 +991,47 @@ class VisionViewModel @Inject constructor(
             )
             persistResult(fortune, meaning, fallback, featuresJson)
         }
+    }
+
+    private fun normalizeVisionInterpretation(candidate: String, fallback: String): String {
+        val cleaned = candidate
+            .replace(Regex("\\n{3,}"), "\n\n")
+            .trim()
+
+        if (cleaned.isBlank() || isLowQualityVisionOutput(cleaned)) {
+            return fallback
+        }
+
+        return cleaned
+    }
+
+    private fun isLowQualityVisionOutput(text: String): Boolean {
+        val rawDataMarkers = listOf(
+            "分析面形、额头", "每个部位1-2句话", "脸型：", "面部宽度", "宽高比",
+            "左右对称性", "左眼开合度", "右眼开合度", "鼻梁高度", "鼻头宽度比",
+            "眉间距比", "px", "broad额", "straight眉", "medium", "standard",
+            "normal", "level"
+        )
+        val markerHits = rawDataMarkers.count { text.contains(it) }
+        val numericDensity = Regex("""\d+(\.\d+)?""").findAll(text).count()
+        val repeatedUnits = text
+            .split(Regex("[。！？!?\\n]+"))
+            .map { it.trim() }
+            .filter { it.length >= 12 }
+            .groupingBy { it }
+            .eachCount()
+            .count { it.value >= 2 }
+        val hasRequiredReadingShape =
+            text.contains("面形总论") ||
+                text.contains("逐部位详析") ||
+                text.contains("运势总判") ||
+                text.contains("事业运")
+
+        return markerHits >= 2 ||
+            numericDensity >= 8 ||
+            repeatedUnits >= 2 ||
+            !hasRequiredReadingShape ||
+            text.length < 160
     }
 
     /** Persist vision result (fortune + interpretation) to database */
@@ -1015,6 +1170,13 @@ class VisionViewModel @Inject constructor(
             "square" -> "金形面"
             else -> "土形面"
         }
+        val foreheadShape = when (features.forehead.shape) {
+            "broad" -> "宽额"
+            "narrow" -> "窄额"
+            "rounded" -> "圆额"
+            "flat" -> "平额"
+            else -> "平满之额"
+        }
 
         val noseWealth = when (features.nose.shape) {
             "broad" -> "鼻头丰隆，主财运亨通，中年后财源广进"
@@ -1090,7 +1252,11 @@ class VisionViewModel @Inject constructor(
                 else -> "平正，主性情端正，理性与感性兼顾"
             }}。")
             appendLine()
-            appendLine("鼻：$noseWealth。鼻梁${features.nose.bridgeDescription}，山根${if (features.nose.bridgeHeight > 20) "高挺，主中年运势强劲" else "平顺，主中年稳步发展"}。")
+            appendLine("鼻：$noseWealth。鼻梁${when (features.nose.bridgeDescription) {
+                "high" -> "高挺"
+                "low" -> "偏低"
+                else -> "平顺"
+            }}，山根${if (features.nose.bridgeHeight > 20) "高挺，主中年运势强劲" else "平顺，主中年稳步发展"}。")
             appendLine()
             appendLine("口：$mouthFortune。${if (features.mouth.cornerUpturn > 0) "嘴角自然上扬，天生笑相，主乐观积极，逢凶化吉" else "嘴角平直，主性格沉稳，不轻易表露情绪"}。")
             appendLine()
@@ -1113,7 +1279,19 @@ class VisionViewModel @Inject constructor(
                 appendLine("你的问题：$question")
                 appendLine()
             }
-            appendLine("注：以上为本地面相引擎分析。配置API密钥后可获得更深入的十二宫位详析与个性化运势指引。")
+            appendLine("请知会本地专属先知：此判为签镜初断，宜作趋吉避凶之参考，不作定命之论。")
         }
+            .replace(features.forehead.shape + "额", foreheadShape)
+            .replace("upturned", "上扬")
+            .replace("downturned", "下垂")
+            .replace("level", "平正")
+            .replace("broad", "宽阔")
+            .replace("straight", "直")
+            .replace("arched", "弓")
+            .replace("curved", "弯")
+            .replace("natural", "自然")
+            .replace("medium", "中等")
+            .replace("standard", "端正")
+            .replace("normal", "平顺")
     }
 }

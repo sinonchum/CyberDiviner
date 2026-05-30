@@ -65,7 +65,7 @@ fun RitualsMenuScreen(
                 CyberMenuItem(
                     title = "视界摸骨",
                     subtitle = "FACE SCAN",
-                    description = "MediaPipe 面部特征分析",
+                    description = "镜阵观相，五官推演",
                     onClick = onVision
                 )
             }

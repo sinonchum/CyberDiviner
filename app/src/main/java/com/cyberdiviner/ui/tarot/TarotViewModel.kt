@@ -8,6 +8,7 @@ import com.cyberdiviner.data.dao.LearningDao
 import com.cyberdiviner.data.dao.TarotDao
 import com.cyberdiviner.data.model.DivinationReading
 import com.cyberdiviner.data.model.DivinationType
+import com.cyberdiviner.data.model.InferenceMode
 import com.cyberdiviner.data.model.TarotReading
 import com.cyberdiviner.data.remote.LlmMessage
 import com.cyberdiviner.data.remote.PromptManager
@@ -232,7 +233,8 @@ class TarotViewModel @Inject constructor(
             _uiState.value = _uiState.value.copy(
                 phase = TarotPhase.INTERPRETING,
                 readingId = readingId,
-                progressMessage = "赛博先知正在解读..."
+                streamText = "",
+                progressMessage = "正在召唤赛博先知"
             )
 
             streamInterpretation(cards, spread, _uiState.value.question)
@@ -340,7 +342,7 @@ class TarotViewModel @Inject constructor(
                 question = question
             )
 
-            val fullText = inferenceRouter.completeStream(
+            val result = inferenceRouter.completeStream(
                 feature = "tarot",
                 messages = messages,
                 offlineUserPrompt = offlinePrompt
@@ -348,9 +350,16 @@ class TarotViewModel @Inject constructor(
                 _uiState.value = _uiState.value.copy(
                     streamText = _uiState.value.streamText + delta
                 )
-            }.text
+            }
+            val fullText = result.text
 
-            val finalText = com.cyberdiviner.engine.Persona.stripActionDescriptions(fullText).ifBlank { buildFallbackInterpretation(cards, spread, question) }
+            val candidateText = if (result.isOffline) {
+                com.cyberdiviner.engine.Persona.cleanOfflineOutput(fullText)
+            } else {
+                com.cyberdiviner.engine.Persona.stripActionDescriptions(fullText)
+            }
+            val fallbackText = buildFallbackInterpretation(cards, spread, question)
+            val finalText = normalizeTarotInterpretation(candidateText, cards, fallbackText)
             _uiState.value = _uiState.value.copy(
                 interpretation = finalText,
                 phase = TarotPhase.RESULT,
@@ -368,6 +377,15 @@ class TarotViewModel @Inject constructor(
                 }
             } catch (_: Exception) {}
         } catch (e: Exception) {
+            if (inferenceRouter.currentMode() == InferenceMode.OFFLINE) {
+                _uiState.value = _uiState.value.copy(
+                    interpretation = "",
+                    streamText = "",
+                    phase = TarotPhase.ERROR,
+                    errorMessage = "离线先知未能成文。请确认离线模型已下载并已启用，稍后再试。"
+                )
+                return
+            }
             val fallback = buildFallbackInterpretation(cards, spread, question)
             _uiState.value = _uiState.value.copy(
                 interpretation = fallback,
@@ -378,25 +396,110 @@ class TarotViewModel @Inject constructor(
         }
     }
 
+    private fun normalizeTarotInterpretation(
+        candidate: String,
+        cards: List<TarotCard>,
+        fallback: String
+    ): String {
+        val cleaned = candidate
+            .replace(Regex("\\n{3,}"), "\n\n")
+            .replace(Regex("(?i)\\b(Knight|Page|Queen|King|Ace|Two|Three|Four|Five|Six|Seven|Eight|Nine|Ten) of (Cups|Swords|Wands|Pentacles)\\b")) { match ->
+                englishCardNameToChinese(match.value)
+            }
+            .trim()
+
+        if (cleaned.isBlank() || isLowQualityTarotOutput(cleaned, cards)) {
+            return fallback
+        }
+        return cleaned
+    }
+
+    private fun isLowQualityTarotOutput(text: String, cards: List<TarotCard>): Boolean {
+        val numericPseudoCards = Regex("""\b\d{1,2}(?:-\d{1,2}){1,3}\b""").findAll(text).count()
+        val repeatedUnits = repeatedUnitCount(text)
+        val repeatedPhraseHits = listOf("你可能需要", "更强的自信心", "更强的执行力", "并有更强")
+            .sumOf { phrase -> Regex(Regex.escape(phrase)).findAll(text).count() }
+        val englishCardMentions = Regex("""\b(?:Knight|Page|Queen|King|Ace|Two|Three|Four|Five|Six|Seven|Eight|Nine|Ten) of (?:Cups|Swords|Wands|Pentacles)\b""", RegexOption.IGNORE_CASE)
+            .findAll(text)
+            .count()
+        val promptEchoMarkers = listOf(
+            "先解读每张牌", "这张牌的含义是", "牌面：", "请简要解读",
+            "最终结果：", "每张牌的含义及其位置关系", "不要写数字代号"
+        ).count { text.contains(it) }
+        val realCardMentions = cards.count { card ->
+            text.contains(card.nameZh) || text.contains(card.name)
+        }
+        val enoughCardContext = cards.size == 1 || realCardMentions >= minOf(2, cards.size)
+
+        return numericPseudoCards >= 2 ||
+            repeatedUnits >= 2 ||
+            repeatedPhraseHits >= 8 ||
+            englishCardMentions >= 2 ||
+            promptEchoMarkers >= 2 ||
+            !enoughCardContext ||
+            text.length > 1400 ||
+            text.length < 120
+    }
+
+    private fun englishCardNameToChinese(name: String): String {
+        val normalized = name.lowercase()
+        val suit = when {
+            normalized.contains("cups") -> "圣杯"
+            normalized.contains("swords") -> "宝剑"
+            normalized.contains("wands") -> "权杖"
+            normalized.contains("pentacles") -> "星币"
+            else -> ""
+        }
+        val rank = when {
+            normalized.startsWith("ace") -> "一"
+            normalized.startsWith("two") -> "二"
+            normalized.startsWith("three") -> "三"
+            normalized.startsWith("four") -> "四"
+            normalized.startsWith("five") -> "五"
+            normalized.startsWith("six") -> "六"
+            normalized.startsWith("seven") -> "七"
+            normalized.startsWith("eight") -> "八"
+            normalized.startsWith("nine") -> "九"
+            normalized.startsWith("ten") -> "十"
+            normalized.startsWith("page") -> "侍从"
+            normalized.startsWith("knight") -> "骑士"
+            normalized.startsWith("queen") -> "王后"
+            normalized.startsWith("king") -> "国王"
+            else -> ""
+        }
+        return if (suit.isNotBlank() && rank.isNotBlank()) suit + rank else name
+    }
+
+    private fun repeatedUnitCount(text: String): Int {
+        return text
+            .split(Regex("[。！？!?\\n]+"))
+            .map { it.trim() }
+            .filter { it.length >= 12 }
+            .groupingBy { it }
+            .eachCount()
+            .count { it.value >= 2 }
+    }
+
     private fun buildFallbackInterpretation(
         cards: List<TarotCard>,
         spread: SpreadType,
         question: String
     ): String {
         val sb = StringBuilder()
-        sb.appendLine("${spread.displayName}解读")
+        sb.appendLine("塔罗解读")
         sb.appendLine("━━━━━━━━━━━━━━━━━━━━")
         sb.appendLine()
+        sb.appendLine("一、牌阵总论")
+        sb.appendLine("此阵以${spread.displayName}显影，所问为「${question.ifBlank { "当下之势" }}」。牌面所示并非定命，而是提醒你看清当下力量的流向。")
+        sb.appendLine()
+        sb.appendLine("二、逐牌详析")
         cards.forEach { card ->
             val rev = if (card.isReversed) "逆位" else "正位"
-            sb.appendLine("【${card.position}】${card.nameZh} — $rev")
+            sb.appendLine("【${card.position}】${card.nameZh}（$rev）：${FortuneEngine.tarotMeaning(card.nameZh, card.isReversed)}。")
         }
         sb.appendLine()
-        sb.appendLine("━━━━━━━━━━━━━━━━━━━━")
-        sb.appendLine("你的问题：$question")
-        sb.appendLine()
-        sb.appendLine("信号提示：牌阵已展开，但赛博先知暂时离线。")
-        sb.appendLine("请在设置中配置 API 密钥以获取完整的解读。")
+        sb.appendLine("三、最终指引")
+        sb.appendLine("此时宜先稳心，再择一处最可掌控之事落子。请知会本地专属先知：牌阵初断可作趋吉避凶之参照，不作定命之论。")
         return sb.toString()
     }
 }

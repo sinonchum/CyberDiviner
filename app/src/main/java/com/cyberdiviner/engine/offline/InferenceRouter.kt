@@ -203,6 +203,8 @@ class InferenceRouter(
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
+    suspend fun currentMode(): InferenceMode = getInferenceMode()
+
     private suspend fun getInferenceMode(): InferenceMode {
         val modeName = configManager.inferenceMode.first()
         return InferenceMode.fromName(modeName)

@@ -1,139 +1,101 @@
-<div align="center">
+# CyberDiviner
 
-# 🔮 CyberDiviner · 赛博算命
+CyberDiviner 是一款 Android 端占卜应用，把周易六爻、塔罗牌阵、面相解读、黄历宜忌、离线推理和本地命簿整合到一个克制、干净、带朱砂红点缀的黑白界面中。
 
-### AI 驱动的赛博朋克玄学引擎
+它面向两类人：一类是希望获得有仪式感、有趣味、但输出稳定的占卜体验的用户；另一类是关注传统符号系统如何与端侧 AI、移动交互和商业产品结合的开发者。
 
-**将中国传统玄学与 AI 结合的占卜应用。赛博黄历、六爻起卦、动态塔罗、科技看相，搭配 Bridgewater 黑白设计与朱砂红点缀。**
+**语言:** [English](README.md) | [中文](README.zh.md)
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Platform](https://img.shields.io/badge/Platform-Android-3DDC84.svg)]()
-[![Built with](https://img.shields.io/badge/Built%20with-Kotlin-purple.svg)](https://kotlinlang.org)
-[![UI](https://img.shields.io/badge/UI-Jetpack%20Compose-blue.svg)]()
+## 核心能力
 
----
+- **叩问天机**：自然语言提问，输出固定结构的签文、解析和断语。
+- **周易六爻**：摇动手机起卦，自动生成本卦、变卦和动爻解读。
+- **赛博塔罗**：78 张塔罗牌，多种牌阵，翻牌动效与震感反馈。
+- **视界摸骨**：相机引导入框，端侧提取面部特征，生成古风面相批语。
+- **赛博黄历**：每日宜忌、能量值、幸运色与桌面小组件。
+- **电子木鱼**：轻量点击交互，适合高频日常使用。
+- **因果命簿**：本地保存签文、卦象、塔罗和面相记录。
 
-**[English](README.md)** | **[中文](README.zh.md)**
+## AI 与离线策略
 
-</div>
+CyberDiviner 支持三种推理模式：
 
----
+| 模式 | 行为 |
+|:--|:--|
+| 自动 | 优先使用已配置的在线模型；在线不可用时使用已下载的本地模型；两者都不可用时才进入本地规则。 |
+| 仅在线 | 只使用配置页指定的在线模型。 |
+| 仅离线 | 只使用已下载的端侧模型；如果模型无法运行，应用会明确提示失败，不会静默降级成普通规则输出。 |
 
-## 功能
+离线路径通过 LiteRT-LM bridge 调用 Gemma 级别端侧模型。每个功能都有输出规整层，用来限制格式漂移、提示词回声、英文混入和重复文本。基础规则引擎仍保留，用于非高级路径和兜底场景。
 
-**赛博黄历**
-基于中国传统干支纪时的每日运势。日柱能量等级、宜忌活动、幸运色彩、赛博风格的 AI 哲理金句。支持桌面小组件，一眼就能看到今日运势。
+## 产品模块
 
-**六爻占卜**
-摇一摇手机，模拟三枚铜钱六次掷卦。完整六十四卦库，本卦变卦自动演算。三种人格模型：古道仙风、量子道士、毒舌程序。
+**叩问天机**
 
-**动态塔罗**
-78 张卡牌，AI 根据问题复杂程度自动推荐牌阵。从单牌到凯尔特十字，手指划卡触发线性马达震感。
+固定输出「载入签文」「逻辑解析」「最终断语」，适合快速问事。
 
-**科技看相**
-基于 MediaPipe 的面部扫描。478 个关键点追踪，完全端侧计算，原图不上传。扫描界面模拟经络线扫描动画，输出十二宫位分析。
+**周易六爻**
 
-**电子木鱼**
-点击积累功德值。最简单的交互，最高的日活。
+从铜钱爻象生成六十四卦推演，兼顾传统语感和现代解释。
 
-### 附加功能
+**赛博塔罗**
 
-- **转运符海报** — 一键生成赛博朋克风格分享图
-- **三种 AI 人格** — 匹配不同场景的角色语调
-- **模型无关后端** — 支持 OpenAI、Anthropic、Ollama 或任意兼容接口
-- **离线核心** — 六爻算法和黄历计算完全本地运行，无需联网
+支持单牌、三牌、凯尔特十字、马蹄和关系牌阵。每次解读包含四字批命、一句话命意和结构化牌阵解析。
 
----
+**视界摸骨**
 
-## 技术架构
+进入界面即开启相机，用户调整角度后手动开始分析。面部特征在端侧处理，并转写为传统面相风格的批语。
+
+**因果命簿**
+
+本地保存历史记录，并让塔罗、六爻、面相卡片遵循一致的标题与摘要逻辑。
+
+## 架构
 
 ```mermaid
 graph TB
-    subgraph UI["UI 层"]
-        HOME["首页\n赛博黄历"]
-        LIUYAO["六爻界面\n六爻占卜"]
-        TAROT["塔罗界面\n动态塔罗"]
-        VISION["面相界面\n科技看相"]
-        MUYU["木鱼界面\n电子木鱼"]
-        WIDGET["桌面小组件\n黄历 Widget"]
-    end
+    UI["Jetpack Compose 界面"]
+    ROUTER["推理路由"]
+    ONLINE["在线模型"]
+    OFFLINE["LiteRT-LM 本地模型"]
+    RULES["本地规则引擎"]
+    ENGINES["术数引擎"]
+    DATA["Room + DataStore"]
+    CAMERA["CameraX 观相"]
+    WIDGET["Glance 小组件"]
 
-    subgraph AI["AI 层"]
-        LLM["LlmService\n模型无关"]
-        PROMPT["PromptManager\n场景 Prompt"]
-        PERSONA["PersonaEngine\n3 种人格"]
-    end
-
-    subgraph ENG["占卜引擎"]
-        LIUYAO_E["LiuyaoEngine\n64 卦 + 铜钱投掷"]
-        TAROT_E["TarotEngine\n78 牌 + 5 阵法"]
-        ALMANAC["AlmanacEngine\n干支 + 黄历"]
-        FORTUNE["FortuneEngine\n运势计算"]
-    end
-
-    subgraph DATA["数据层"]
-        ROOM["Room DB\n测算历史"]
-        DS["DataStore\n用户偏好"]
-        CAM["CameraX + MediaPipe"]
-    end
-
-    subgraph SHARE["分享"]
-        POSTER["PosterGenerator\n转运符海报"]
-    end
-
-    HOME --> ALMANAC
-    HOME --> LLM
-    LIUYAO --> LIUYAO_E
-    LIUYAO --> LLM
-    TAROT --> TAROT_E
-    TAROT --> LLM
-    VISION --> CAM
-    VISION --> LLM
-    MUYU --> ROOM
-    LLM --> PROMPT
-    LLM --> PERSONA
-    LIUYAO --> ROOM
-    TAROT --> ROOM
-    VISION --> ROOM
-    ALMANAC --> WIDGET
-    POSTER --> HOME
-    FORTUNE --> ALMANAC
-
-    style HOME fill:#1A1A1A,color:#E0E0E0
-    style LIUYAO fill:#1A1A1A,color:#E0E0E0
-    style TAROT fill:#1A1A1A,color:#E0E0E0
-    style VISION fill:#1A1A1A,color:#E0E0E0
-    style MUYU fill:#333333,color:#E0E0E0
-    style WIDGET fill:#333333,color:#E0E0E0
-    style LLM fill:#CC3333,color:#FFFFFF
-    style PERSONA fill:#1A1A1A,color:#E0E0E0
-    style FORTUNE fill:#1A1A1A,color:#E0E0E0
+    UI --> ROUTER
+    ROUTER --> ONLINE
+    ROUTER --> OFFLINE
+    ROUTER --> RULES
+    UI --> ENGINES
+    UI --> CAMERA
+    UI --> DATA
+    ENGINES --> DATA
+    DATA --> WIDGET
 ```
 
-### 技术选型
+## 技术栈
 
-| 层级 | 技术 |
-|:------|:------|
-| UI | Jetpack Compose 1.8, Material 3, 自定义 Shader |
-| 依赖注入 | Hilt |
-| 数据库 | Room + DataStore |
-| 网络 | OkHttp + kotlinx.serialization |
-| 相机 | CameraX + MediaPipe Face Landmarker |
+| 领域 | 技术 |
+|:--|:--|
+| 语言 | Kotlin |
+| 界面 | Jetpack Compose, Material 3 |
+| 架构 | Hilt, ViewModel, Kotlin coroutines |
+| 存储 | Room, DataStore |
+| 相机 | CameraX 与端侧面部特征提取 |
+| AI | 在线模型适配、LiteRT-LM 本地推理、本地规则引擎 |
 | 小组件 | Jetpack Glance |
-| 构建 | Kotlin 2.0, AGP 8.7.3, Java 17 |
+| 构建 | Android Gradle Plugin, Gradle Wrapper, JDK 17 |
 
----
+## 构建
 
-## 快速开始
+环境要求：
 
-### 环境要求
-
-- Android Studio Ladybug 以上
+- Android Studio Ladybug 或更高版本
 - JDK 17
 - Android SDK 35
-- 安卓真机 (minSdk 26)
-
-### 构建
+- Android 8.0 及以上真机或模拟器
 
 ```bash
 git clone https://github.com/sinonchum/CyberDiviner.git
@@ -141,76 +103,33 @@ cd CyberDiviner
 ./gradlew assembleDebug
 ```
 
-### 安装
+安装调试包：
 
 ```bash
 adb install -t -r app/build/outputs/apk/debug/app-debug.apk
 ```
 
-### AI 配置（可选）
+构建 release 包：
 
-六爻起卦和黄历计算无需联网。如需 AI 解读，在应用内设置或环境变量中配置 API Key。
-
----
-
-## 设计语言
-
-视觉风格遵循 Bridgewater B&W 设计体系：
-
-- **色板**: 黑白基调 + 朱砂红 (#CC3333) 点缀，深色底 (#0A0A0F)
-- **字体**: 汇明朝体（标题）/ 霞鹜文楷（正文）/ JetBrains Mono（数据）
-- **动效**: 基于弹簧物理的铜钱落地、卡牌翻转动画、细腻过渡
-- **触感**: 线性马达在铜钱落地和卡牌交互时触发
-
----
-
-## 开发数据
-
-本项目基于 [Autonomous AI Development Framework](https://github.com/sinonchum/autonomous-ai-framework) 框架，以 L4 自主等级开发。共产生 52 个 Kotlin 文件、约 11,000 行代码，分 4 个阶段、16 个并行子 Agent 完成。
-
-| 阶段 | 范围 | 子 Agent |
-|:------|:------|:----------|
-| Phase 1 | 项目骨架 + 数据层 + 核心 UI | 9 并行 |
-| Phase 2 | 触感反馈 + 塔罗系统 | 3 并行 |
-| Phase 3 | CameraX + MediaPipe 面部扫描 | 2 并行 |
-| Phase 4 | 海报生成 + 桌面小组件 | 2 并行 |
-
-**总挂钟时间：49 分钟**（00:50 到 01:39）。从空目录到安装 APK 在小米 12 Pro 上运行。自主执行期间零人工干预。
-
----
-
-## 项目结构
-
+```bash
+./gradlew assembleRelease
 ```
+
+## 配置
+
+在应用内 Config 页面选择推理模式、配置在线模型、启用本地模型并管理模型文件。应用会尽量保持不同模型之间的输出结构一致，让在线和离线结果在界面上呈现同一套产品规格。
+
+## 目录结构
+
+```text
 app/src/main/java/com/cyberdiviner/
-├── ui/
-│   ├── theme/          # Bridgewater B&W、AccentRed、字体
-│   ├── home/           # 赛博黄历仪表盘
-│   ├── liuyao/         # 六爻占卜 + 铜钱动画
-│   ├── tarot/          # 塔罗牌阵
-│   ├── vision/         # AR 面部扫描
-│   ├── muyu/           # 电子木鱼
-│   └── shared/         # 触感工具、二进制时钟、海报生成
-├── data/
-│   ├── local/          # Room 数据库、DAOs、DataStore
-│   ├── remote/         # LLM 服务、Prompt 管理器
-│   └── model/          # 数据模型
-├── engine/             # 六爻引擎、塔罗引擎、黄历引擎
-└── widget/             # Glance 桌面小组件
+├── data/          Room 实体、DAO、远程模型配置、数据类型
+├── engine/        术数引擎、四字批命、离线推理
+├── ui/            各功能 Compose 页面
+├── widget/        黄历桌面小组件
+└── util/          通用工具
 ```
-
----
 
 ## License
 
 MIT
-
----
-
-<div align="center">
-
-**质量来自系统，而非模型。**
-
-[![GitHub](https://img.shields.io/badge/GitHub-sinonchum-181717?style=flat&logo=github)](https://github.com/sinonchum)
-
-</div>

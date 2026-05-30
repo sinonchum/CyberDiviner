@@ -78,14 +78,7 @@ class ArchiveViewModel @Inject constructor(
             // Generate 4-char fortune summary from interpretation text
             val title = FortuneEngine.visionFortune(interp)
 
-            // One-sentence: first sentence of interpretation, or contextual fallback from title
-            val oneSentence = if (interp.isNotBlank() && !isVisionTechnicalData(interp)) {
-                val end = interp.indexOfFirst { it == '。' || it == '！' || it == '？' || it == '.' }
-                val s = if (end > 0) interp.substring(0, end + 1) else interp.take(50)
-                if (s.length > 50) s.take(47) + "..." else s
-            } else {
-                FortuneEngine.visionMeaning(title)
-            }
+            val oneSentence = FortuneEngine.visionMeaning(title)
 
             Pair(title, oneSentence)
         } catch (e: Exception) { null }
