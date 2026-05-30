@@ -354,7 +354,7 @@ class TarotViewModel @Inject constructor(
             _uiState.value = _uiState.value.copy(
                 interpretation = finalText,
                 phase = TarotPhase.RESULT,
-                fourCharFortune = FortuneEngine.tarotFortune(cards[0].nameZh, cards[0].isReversed),
+                fourCharFortune = FortuneEngine.tarotFortune(cards[0].nameZh, cards[0].isReversed, question, finalText),
                 fourCharMeaning = FortuneEngine.tarotMeaning(cards[0].nameZh, cards[0].isReversed)
             )
             // Persist interpretation to database
@@ -372,7 +372,7 @@ class TarotViewModel @Inject constructor(
             _uiState.value = _uiState.value.copy(
                 interpretation = fallback,
                 phase = TarotPhase.RESULT,
-                fourCharFortune = FortuneEngine.tarotFortune(cards[0].nameZh, cards[0].isReversed),
+                fourCharFortune = FortuneEngine.tarotFortune(cards[0].nameZh, cards[0].isReversed, question, fallback),
                 fourCharMeaning = FortuneEngine.tarotMeaning(cards[0].nameZh, cards[0].isReversed)
             )
         }

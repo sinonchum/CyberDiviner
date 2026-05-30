@@ -189,7 +189,7 @@ class VisionViewModel @Inject constructor(
      * detected before we consider the scan "complete" and auto-capture.
      */
     private var faceDetectedFrameCount = 0
-    private val requiredFramesForScan = 8
+    private val requiredFramesForScan = 5
 
     // ── Public API ──────────────────────────────────────────────────────
 

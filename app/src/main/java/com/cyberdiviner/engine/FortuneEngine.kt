@@ -121,8 +121,13 @@ object FortuneEngine {
     // TAROT Fortune Mapping
     // ═══════════════════════════════════════════════════════════════════
 
-    /** Generate 4-char thematic summary from tarot card */
-    fun tarotFortune(cardName: String, isReversed: Boolean): String {
+    /** Generate 4-char thematic summary from tarot card, context-aware */
+    fun tarotFortune(cardName: String, isReversed: Boolean, question: String = "", interpretation: String = ""): String {
+        // If user asked about a specific topic, prioritize topic-based fortune
+        val topicFortune = matchTopicFortune(question, interpretation)
+        if (topicFortune != null) return topicFortune
+
+        // Otherwise fall back to card-based fortune
         val themeMap = mapOf(
             // Major Arcana
             "愚者" to if (isReversed) "迷途知返" else "无畏启程",
@@ -164,6 +169,24 @@ object FortuneEngine {
 
         // Fallback: generate based on reversal
         return if (isReversed) "逆境待变" else "顺势而为"
+    }
+
+    /** Match fortune based on question topic keywords */
+    private fun matchTopicFortune(question: String, interpretation: String): String? {
+        val combined = question + interpretation
+        val topicMap = listOf(
+            listOf("健康", "身体", "养生", "疾病", "医疗", "康复") to "身心康泰",
+            listOf("感情", "爱情", "恋爱", "婚姻", "桃花", "姻缘") to "情缘天定",
+            listOf("事业", "工作", "职业", "升职", "创业", "前程") to "鹏程万里",
+            listOf("财运", "金钱", "投资", "财富", "理财") to "财源广进",
+            listOf("学业", "考试", "学习", "智慧") to "金榜题名",
+            listOf("家庭", "亲人", "父母", "子女") to "家宅安宁",
+            listOf("贵人", "人缘", "人际") to "贵人相助",
+            listOf("出行", "旅行", "迁移") to "逢凶化吉",
+        )
+        return topicMap
+            .firstOrNull { (keywords, _) -> keywords.any { combined.contains(it) } }
+            ?.second
     }
 
     /** Brief one-line meaning for a tarot card */

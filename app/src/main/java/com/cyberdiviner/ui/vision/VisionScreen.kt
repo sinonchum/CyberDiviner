@@ -149,7 +149,11 @@ fun VisionScreen(
     // ── Auto-trigger LLM analysis when face is captured ──
     LaunchedEffect(uiState.phase) {
         if (uiState.phase == VisionPhase.DETECTED) {
-            viewModel.analyzeFaceReading()
+            try {
+                viewModel.analyzeFaceReading()
+            } catch (e: Throwable) {
+                android.util.Log.e("VisionScreen", "analyzeFaceReading failed", e)
+            }
         }
     }
 
