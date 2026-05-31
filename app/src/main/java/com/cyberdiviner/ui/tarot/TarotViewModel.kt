@@ -8,7 +8,6 @@ import com.cyberdiviner.data.dao.LearningDao
 import com.cyberdiviner.data.dao.TarotDao
 import com.cyberdiviner.data.model.DivinationReading
 import com.cyberdiviner.data.model.DivinationType
-import com.cyberdiviner.data.model.InferenceMode
 import com.cyberdiviner.data.model.TarotReading
 import com.cyberdiviner.data.remote.LlmMessage
 import com.cyberdiviner.data.remote.PromptManager
@@ -368,16 +367,11 @@ class TarotViewModel @Inject constructor(
                     .trim(),
                 cards
             )
-            if (result.isOffline && inferenceRouter.currentMode() == InferenceMode.OFFLINE && lowQuality) {
-                _uiState.value = _uiState.value.copy(
-                    interpretation = "",
-                    streamText = "",
-                    phase = TarotPhase.ERROR,
-                    errorMessage = "离线先知输出异常。请重新占卡，或在配置页重新加载离线模型。"
-                )
-                return
+            val finalText = if (result.isOffline && lowQuality) {
+                fallbackText
+            } else {
+                normalizeTarotInterpretation(candidateText, cards, fallbackText)
             }
-            val finalText = normalizeTarotInterpretation(candidateText, cards, fallbackText)
             _uiState.value = _uiState.value.copy(
                 interpretation = finalText,
                 phase = TarotPhase.RESULT,
@@ -395,15 +389,6 @@ class TarotViewModel @Inject constructor(
                 }
             } catch (_: Exception) {}
         } catch (e: Exception) {
-            if (inferenceRouter.currentMode() == InferenceMode.OFFLINE) {
-                _uiState.value = _uiState.value.copy(
-                    interpretation = "",
-                    streamText = "",
-                    phase = TarotPhase.ERROR,
-                    errorMessage = "离线先知未能成文。请确认离线模型已下载并已启用，稍后再试。"
-                )
-                return
-            }
             val fallback = buildFallbackInterpretation(cards, spread, question)
             _uiState.value = _uiState.value.copy(
                 interpretation = fallback,

@@ -948,9 +948,6 @@ class VisionViewModel @Inject constructor(
                 }.text
             } catch (e: Throwable) {
                 Log.e(TAG, "Vision inference failed", e)
-                if (inferenceRouter.currentMode() == InferenceMode.OFFLINE) {
-                    throw IllegalStateException("Offline vision inference failed", e)
-                }
                 buildFallbackInterpretation(featuresJson, question)
             }
 
@@ -960,18 +957,11 @@ class VisionViewModel @Inject constructor(
                 com.cyberdiviner.engine.Persona.stripActionDescriptions(fullText)
             }
             val fallbackText = buildFallbackInterpretation(featuresJson, question)
-            if (inferenceRouter.currentMode() == InferenceMode.OFFLINE &&
-                (candidateText.isBlank() || isLowQualityVisionOutput(candidateText))
-            ) {
-                _uiState.value = _uiState.value.copy(
-                    interpretation = "",
-                    streamText = "",
-                    phase = VisionPhase.ERROR,
-                    errorMessage = "离线先知输出异常。请重新观相，或在配置页重新加载离线模型。"
-                )
-                return
+            val finalText = if (candidateText.isBlank() || isLowQualityVisionOutput(candidateText)) {
+                fallbackText
+            } else {
+                normalizeVisionInterpretation(candidateText, fallbackText)
             }
-            val finalText = normalizeVisionInterpretation(candidateText, fallbackText)
             val fortune = FortuneEngine.visionFortune(finalText)
             val meaning = FortuneEngine.visionMeaning(fortune)
             _uiState.value = _uiState.value.copy(
@@ -984,15 +974,6 @@ class VisionViewModel @Inject constructor(
             persistResult(fortune, meaning, finalText, featuresJson)
         } catch (e: Exception) {
             Log.e(TAG, "Interpretation failed", e)
-            if (inferenceRouter.currentMode() == InferenceMode.OFFLINE) {
-                _uiState.value = _uiState.value.copy(
-                    interpretation = "",
-                    streamText = "",
-                    phase = VisionPhase.ERROR,
-                    errorMessage = "离线先知未能成文。请确认离线模型已下载并已启用，稍后再试。"
-                )
-                return
-            }
             val fallback = buildFallbackInterpretation(featuresJson, question)
             val fortune = FortuneEngine.visionFortune(fallback)
             val meaning = FortuneEngine.visionMeaning(fortune)

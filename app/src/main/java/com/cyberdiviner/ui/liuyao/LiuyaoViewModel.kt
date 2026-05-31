@@ -408,14 +408,19 @@ class LiuyaoViewModel @Inject constructor(
     ): String {
         val cleaned = candidate
             .replace(Regex("\\d{6,}"), "")
-            .replace("【建议】", "【趋吉避凶】")
-            .replace("建议：", "趋吉避凶：")
-            .replace("建议", "趋吉避凶")
+            .replace("【建议】", "【进退之策】")
+            .replace("【趋吉避凶】", "【进退之策】")
+            .replace("建议：", "进退之策：")
+            .replace("建议:", "进退之策：")
+            .replace("趋吉避凶", "进退之策")
             .replace(Regex("\\n{3,}"), "\n\n")
             .trim()
 
         val lowQuality = cleaned.isBlank() ||
             Regex("""\b(?:12|21|1222|2222|1212){2,}\b""").containsMatchIn(candidate) ||
+            Regex("""\[[^\]]*[A-Za-z][^\]]*\]""").containsMatchIn(cleaned) ||
+            (cleaned.contains("上卦") && cleaned.contains("下卦") && !cleaned.contains("进退之策") && cleaned.length < 180) ||
+            cleaned.length < 80 ||
             listOf("2-3句话", "给出吉凶判断和建议", "直接开始回答", "用户会提供").any { cleaned.contains(it) }
 
         if (!lowQuality) return cleaned
@@ -424,11 +429,19 @@ class LiuyaoViewModel @Inject constructor(
             appendLine("【卦象解读】")
             appendLine("本卦「${result.primaryHexagram.chineseName}」主${result.primaryHexagram.judgment.take(24)}。${result.analysis.interpretation}")
             appendLine()
-            appendLine("【趋吉避凶】")
+            appendLine("【进退之策】")
             appendLine(FortuneEngine.liuyaoFortune(result.primaryHexagram.chineseName))
-            appendLine(result.analysis.advice.removePrefix("建议").removePrefix("：").trim())
+            appendLine(cleanAdviceText(result.analysis.advice))
         }
     }
+
+    private fun cleanAdviceText(text: String): String =
+        text
+            .replace("【建议】", "")
+            .replace("建议：", "")
+            .replace("建议:", "")
+            .replace("建议", "")
+            .trim(' ', '\n', '\r', '：', ':')
 
     override fun onCleared() {
         super.onCleared()
