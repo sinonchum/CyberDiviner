@@ -290,38 +290,48 @@ private fun DrawScope.drawSingingBowl(malletAngleDeg: Float) {
     val cy = size.height / 2f + size.height * 0.05f
     val sw = 2.dp.toPx()
     val W = CyberWhite
+    val W70 = W.copy(alpha = 0.7f)
     val W50 = W.copy(alpha = 0.5f)
     val W30 = W.copy(alpha = 0.3f)
-    val bowlW = size.minDimension * 0.72f
-    val bowlH = size.minDimension * 0.34f
-    val rimY = cy - bowlH * 0.35f
-    val baseY = cy + bowlH * 0.52f
+    val W18 = W.copy(alpha = 0.18f)
+    val bowlW = size.minDimension * 0.78f
+    val bowlH = size.minDimension * 0.42f
+    val rimY = cy - bowlH * 0.42f
+    val baseY = cy + bowlH * 0.46f
 
     val bowlPath = Path().apply {
         moveTo(cx - bowlW * 0.5f, rimY)
-        cubicTo(cx - bowlW * 0.42f, cy + bowlH * 0.36f, cx - bowlW * 0.25f, baseY, cx, baseY)
-        cubicTo(cx + bowlW * 0.25f, baseY, cx + bowlW * 0.42f, cy + bowlH * 0.36f, cx + bowlW * 0.5f, rimY)
+        cubicTo(cx - bowlW * 0.48f, cy + bowlH * 0.16f, cx - bowlW * 0.27f, baseY, cx, baseY)
+        cubicTo(cx + bowlW * 0.27f, baseY, cx + bowlW * 0.48f, cy + bowlH * 0.16f, cx + bowlW * 0.5f, rimY)
     }
+    drawOval(
+        color = W18,
+        topLeft = Offset(cx - bowlW * 0.46f, rimY + bowlH * 0.05f),
+        size = Size(bowlW * 0.92f, bowlH * 0.82f),
+        style = Stroke(sw * 0.9f)
+    )
     drawPath(bowlPath, W, style = Stroke(sw * 1.5f, cap = StrokeCap.Round))
     drawOval(
         color = W,
-        topLeft = Offset(cx - bowlW * 0.5f, rimY - bowlH * 0.16f),
-        size = Size(bowlW, bowlH * 0.32f),
-        style = Stroke(sw * 1.5f)
+        topLeft = Offset(cx - bowlW * 0.52f, rimY - bowlH * 0.18f),
+        size = Size(bowlW * 1.04f, bowlH * 0.36f),
+        style = Stroke(sw * 1.8f)
     )
     drawOval(
-        color = W30,
-        topLeft = Offset(cx - bowlW * 0.38f, rimY - bowlH * 0.07f),
-        size = Size(bowlW * 0.76f, bowlH * 0.15f),
-        style = Stroke(sw)
+        color = W50,
+        topLeft = Offset(cx - bowlW * 0.42f, rimY - bowlH * 0.09f),
+        size = Size(bowlW * 0.84f, bowlH * 0.18f),
+        style = Stroke(sw * 0.9f)
     )
-    drawLine(W30, Offset(cx - bowlW * 0.22f, baseY + bowlH * 0.08f), Offset(cx + bowlW * 0.22f, baseY + bowlH * 0.08f), sw, StrokeCap.Round)
-    drawArc(W30, 210f, 120f, false, Offset(cx - bowlW * 0.68f, rimY - bowlH * 0.38f), Size(bowlW * 1.36f, bowlH * 1.36f), style = Stroke(sw * 0.8f, cap = StrokeCap.Round))
+    drawLine(W30, Offset(cx - bowlW * 0.34f, cy + bowlH * 0.12f), Offset(cx + bowlW * 0.34f, cy + bowlH * 0.12f), sw * 0.8f, StrokeCap.Round)
+    drawLine(W30, Offset(cx - bowlW * 0.2f, baseY + bowlH * 0.08f), Offset(cx + bowlW * 0.2f, baseY + bowlH * 0.08f), sw, StrokeCap.Round)
+    drawArc(W30, 205f, 130f, false, Offset(cx - bowlW * 0.73f, rimY - bowlH * 0.46f), Size(bowlW * 1.46f, bowlH * 1.46f), style = Stroke(sw * 0.8f, cap = StrokeCap.Round))
+    drawArc(W18, 212f, 116f, false, Offset(cx - bowlW * 0.86f, rimY - bowlH * 0.6f), Size(bowlW * 1.72f, bowlH * 1.72f), style = Stroke(sw * 0.6f, cap = StrokeCap.Round))
 
-    val malletPivotX = cx + bowlW * 0.48f
-    val malletPivotY = cy - bowlH * 1.35f
-    val malletTipX0 = cx + bowlW * 0.18f
-    val malletTipY0 = rimY - bowlH * 0.03f
+    val malletPivotX = cx + bowlW * 0.52f
+    val malletPivotY = cy - bowlH * 1.18f
+    val malletTipX0 = cx + bowlW * 0.33f
+    val malletTipY0 = rimY - bowlH * 0.12f
 
     val angleRad = Math.toRadians(malletAngleDeg.toDouble())
     val dx = malletTipX0 - malletPivotX
@@ -329,9 +339,22 @@ private fun DrawScope.drawSingingBowl(malletAngleDeg: Float) {
     val tipX = malletPivotX + (dx * kotlin.math.cos(angleRad) - dy * kotlin.math.sin(angleRad)).toFloat()
     val tipY = malletPivotY + (dx * kotlin.math.sin(angleRad) + dy * kotlin.math.cos(angleRad)).toFloat()
 
-    // Handle
-    drawLine(W50, Offset(malletPivotX, malletPivotY), Offset(tipX, tipY), sw * 2f, StrokeCap.Round)
-    drawCircle(W, radius = bowlW * 0.035f, center = Offset(tipX, tipY))
+    drawLine(W70, Offset(malletPivotX, malletPivotY), Offset(tipX, tipY), sw * 2.2f, StrokeCap.Round)
+    rotate(degrees = malletAngleDeg - 28f, pivot = Offset(tipX, tipY)) {
+        drawRoundRect(
+            color = W,
+            topLeft = Offset(tipX - bowlW * 0.08f, tipY - bowlH * 0.055f),
+            size = Size(bowlW * 0.16f, bowlH * 0.11f),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(bowlH * 0.05f, bowlH * 0.05f)
+        )
+        drawRoundRect(
+            color = W30,
+            topLeft = Offset(tipX - bowlW * 0.095f, tipY - bowlH * 0.068f),
+            size = Size(bowlW * 0.19f, bowlH * 0.136f),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(bowlH * 0.06f, bowlH * 0.06f),
+            style = Stroke(sw * 0.7f)
+        )
+    }
 }
 
 // ── Stat badge ──────────────────────────────────────────────

@@ -326,6 +326,24 @@ private fun ShakePhase(
 private fun ComputingPhase(
     message: String
 ) {
+    val dots by rememberInfiniteTransition(label = "liuyao_waiting_dots")
+        .animateValue(
+            initialValue = 0,
+            targetValue = 3,
+            typeConverter = Int.VectorConverter,
+            animationSpec = infiniteRepeatable(
+                animation = tween(durationMillis = 900, easing = LinearEasing),
+                repeatMode = RepeatMode.Restart
+            ),
+            label = "dots"
+        )
+    val baseMessage = message.trimEnd('.')
+    val animatedMessage = if (baseMessage.contains("正在召唤赛博先知")) {
+        baseMessage.removeSuffix("...").removeSuffix("…") + ".".repeat(dots)
+    } else {
+        message
+    }
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
@@ -341,7 +359,7 @@ private fun ComputingPhase(
         )
 
         Text(
-            text = message,
+            text = animatedMessage,
             color = GrayCaption,
             fontSize = 13.sp,
             fontFamily = WenKaiFontFamily,

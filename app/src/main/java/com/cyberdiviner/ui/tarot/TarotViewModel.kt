@@ -524,7 +524,7 @@ class TarotViewModel @Inject constructor(
         }
         sb.appendLine()
         sb.appendLine("三、最终指引")
-        sb.appendLine("此时宜先稳心，再择一处最可掌控之事落子。请知会本地专属先知：牌阵初断可作趋吉避凶之参照，不作定命之论。")
+        sb.appendLine("此时宜先稳心，再择一处最可掌控之事落子。牌阵所示不是定命，而是提醒你看清当下力量的流向。")
         return sb.toString()
     }
 }
