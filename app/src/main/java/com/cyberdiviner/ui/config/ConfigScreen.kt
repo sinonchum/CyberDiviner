@@ -351,20 +351,32 @@ fun ConfigScreen(onBack: () -> Unit) {
                     ) {
                         if (state.sourceName.isNotBlank()) {
                             Text(
-                                text = "via ${state.sourceName}",
+                                text = state.sourceName,
                                 color = GrayCaption,
                                 fontFamily = MonoFontFamily,
                                 fontSize = 11.sp
                             )
                         }
-                        LinearProgressIndicator(
-                            progress = { state.percent / 100f },
-                            modifier = Modifier.fillMaxWidth(),
-                            color = CyberWhite,
-                            trackColor = GrayBorder.copy(alpha = 0.3f)
-                        )
+                        if (state.totalBytes > 0 && state.percent >= 0) {
+                            LinearProgressIndicator(
+                                progress = { state.percent / 100f },
+                                modifier = Modifier.fillMaxWidth(),
+                                color = CyberWhite,
+                                trackColor = GrayBorder.copy(alpha = 0.3f)
+                            )
+                        } else {
+                            LinearProgressIndicator(
+                                modifier = Modifier.fillMaxWidth(),
+                                color = CyberWhite,
+                                trackColor = GrayBorder.copy(alpha = 0.3f)
+                            )
+                        }
                         Text(
-                            text = "${state.percent}% · ${formatBytes(state.bytesDownloaded)} / ${formatBytes(state.totalBytes)}",
+                            text = if (state.totalBytes > 0 && state.percent >= 0) {
+                                "${state.percent}% · ${formatBytes(state.bytesDownloaded)} / ${formatBytes(state.totalBytes)}"
+                            } else {
+                                "已导入 ${formatBytes(state.bytesDownloaded)}，请勿离开此页"
+                            },
                             color = GrayCaption,
                             fontFamily = MonoFontFamily,
                             fontSize = 11.sp,
@@ -380,7 +392,7 @@ fun ConfigScreen(onBack: () -> Unit) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "READY",
+                            text = "READY · ${ModelManager.MODEL_SIZE_DISPLAY}",
                             color = CyberWhite,
                             fontFamily = MonoFontFamily,
                             fontSize = 12.sp,

@@ -33,9 +33,9 @@ class ModelManager(private val context: Context) {
         private const val MODEL_FILENAME = "gemma3_1b_int4.task"
         private const val TEMP_FILENAME = "gemma3_1b_int4.task.tmp"
 
-        const val MODEL_DISPLAY_NAME = "Gemma 3 1B (int4)"
-        const val MODEL_SIZE_BYTES = 554_400_000L // ~529 MB
-        const val MODEL_SIZE_DISPLAY = "~529 MB"
+        const val MODEL_DISPLAY_NAME = "CyberDiviner Gemma 3 1B"
+        const val MODEL_SIZE_BYTES = 1_025_084_110L // Current dynamic-int8 LiteRT bundle
+        const val MODEL_SIZE_DISPLAY = "~978 MB"
 
         // ── Multi-source URLs ──────────────────────────────────────────────
         private const val REPO_ID = "MiCkSoftware/Gemma3-1B-IT-LiteRT"
@@ -332,10 +332,16 @@ class ModelManager(private val context: Context) {
             }
 
             if (modelFile.exists()) modelFile.delete()
-            tempFile.renameTo(modelFile)
+            if (!tempFile.renameTo(modelFile)) {
+                throw Exception("无法写入模型目录")
+            }
 
             _state.value = ModelState.Ready
-            Log.d(TAG, "Model imported: ${modelFile.absolutePath} ($totalRead bytes)")
+            Log.d(
+                TAG,
+                "Model imported: ${modelFile.absolutePath} " +
+                    "(read=$totalRead bytes, final=${modelFile.length()} bytes)"
+            )
 
         } catch (e: Exception) {
             Log.e(TAG, "Import failed", e)
