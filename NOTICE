@@ -16,5 +16,7 @@ Huiwen Mingchao (汇文明朝体)
 License: CC0 1.0 Universal, as declared by the upstream distribution used for this bundled font.
 Use: Chinese display titles and fortune headings.
 
-The generated singing bowl sound bundled in app/src/main/res/raw/singing_bowl.wav
-was synthesized for CyberDiviner and is not copied from a third-party recording.
+SingingBowl.wav by Monkay
+License: Creative Commons 0
+Use: Electronic singing bowl strike sound, bundled as app/src/main/res/raw/singing_bowl.mp3.
+Source: https://freesound.org/people/Monkay/sounds/48325/

@@ -1251,7 +1251,7 @@ class VisionViewModel @Inject constructor(
                 appendLine("你的问题：$question")
                 appendLine()
             }
-            appendLine("请知会本地专属先知：此判为签镜初断，宜作趋吉避凶之参考，不作定命之论。")
+            appendLine("总判：此相贵在守正蓄势，近期宜稳中求进，先定心神，再择良机而动。")
         }
             .replace(features.forehead.shape + "额", foreheadShape)
             .replace("upturned", "上扬")

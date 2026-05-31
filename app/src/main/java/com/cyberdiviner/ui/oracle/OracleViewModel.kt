@@ -119,6 +119,7 @@ class OracleViewModel @Inject constructor(
         val sentences = cleaned.split(Regex("(?<=[。！？!?])"))
             .map { it.trim().trim('。', '！', '？', '!', '?') }
             .filter { it.isNotBlank() }
+            .filterNot { isOracleBlessingOrPlainWish(it) }
             .take(4)
 
         if (sentences.size < 2) return ""
@@ -127,6 +128,16 @@ class OracleViewModel @Inject constructor(
             val normalized = sentence.replace(Regex("\\s+"), "")
             if (normalized.endsWith("。")) normalized else "$normalized。"
         }
+    }
+
+    private fun isOracleBlessingOrPlainWish(sentence: String): Boolean {
+        val normalized = sentence.replace(Regex("\\s+"), "")
+        val markers = listOf(
+            "希望你", "祝你", "祝愿", "一切顺利", "早日找到",
+            "找到好工作", "找到工作", "加油", "好运"
+        )
+        return markers.any { normalized.contains(it) } ||
+            normalized.length > 18 && listOf("工作", "事业", "感情", "财运", "健康").any { normalized.contains(it) }
     }
 
     private fun normalizeParagraph(raw: String?, maxSentences: Int, maxChars: Int): String {
