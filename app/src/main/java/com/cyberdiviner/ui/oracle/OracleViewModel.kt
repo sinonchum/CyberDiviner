@@ -140,7 +140,7 @@ class OracleViewModel @Inject constructor(
                 .replace(Regex("\\s+"), "")
                 .trim('，', ',', '。', '；', ';')
         }
-        if (normalizedClauses.any { it.length < 4 || it.length > 12 }) return ""
+        if (normalizedClauses.any { it.length != 7 }) return ""
         if (hasRepeatedShortPhraseLoop(normalizedClauses.joinToString(""))) return ""
 
         return "${normalizedClauses[0]}，${normalizedClauses[1]}。\n" +

@@ -318,28 +318,26 @@ fun ConfigScreen(onBack: () -> Unit) {
                     .padding(bottom = 12.dp)
             )
 
-            CyberButton(
-                text = "导入本地模型",
-                onClick = {
-                    importLauncher.launch(arrayOf("application/octet-stream", "application/x-tflite", "*/*"))
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 8.dp)
-            )
-
             // Model status and actions
             when (val state = modelState) {
                 is ModelManager.ModelState.NotDownloaded -> {
-                    Column(
+                    Row(
                         modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         CyberButton(
-                            text = "DOWNLOAD",
+                            text = "导入本地模型",
+                            onClick = {
+                                importLauncher.launch(arrayOf("application/octet-stream", "application/x-tflite", "*/*"))
+                            },
+                            modifier = Modifier.weight(1f)
+                        )
+                        CyberButton(
+                            text = "下载模型",
                             onClick = {
                                 scope.launch { modelManager.download() }
-                            }
+                            },
+                            modifier = Modifier.weight(1f)
                         )
                     }
                 }
@@ -386,10 +384,9 @@ fun ConfigScreen(onBack: () -> Unit) {
                 }
 
                 is ModelManager.ModelState.Ready -> {
-                    Row(
+                    Column(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         Text(
                             text = "READY · ${ModelManager.MODEL_SIZE_DISPLAY}",
@@ -397,14 +394,27 @@ fun ConfigScreen(onBack: () -> Unit) {
                             fontFamily = MonoFontFamily,
                             fontSize = 12.sp,
                             letterSpacing = 2.sp,
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.fillMaxWidth()
                         )
-                        CyberButton(
-                            text = "DELETE",
-                            onClick = {
-                                scope.launch { modelManager.delete() }
-                            }
-                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            CyberButton(
+                                text = "导入本地模型",
+                                onClick = {
+                                    importLauncher.launch(arrayOf("application/octet-stream", "application/x-tflite", "*/*"))
+                                },
+                                modifier = Modifier.weight(1f)
+                            )
+                            CyberButton(
+                                text = "删除模型",
+                                onClick = {
+                                    scope.launch { modelManager.delete() }
+                                },
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
                     }
                 }
 
