@@ -116,23 +116,25 @@ class OracleViewModel @Inject constructor(
             .replace(Regex("(?m)^\\s*[一二三四1234][.．、]\\s*"), "")
             .trim()
 
-        val sentences = cleaned.split(Regex("(?<=[。！？!?])"))
+        val clauses = cleaned.split(Regex("[，,。！？!?；;\\n]+"))
             .map { it.trim().trim('。', '！', '？', '!', '?') }
             .filter { it.isNotBlank() }
             .filterNot { isOracleBlessingOrPlainWish(it) }
             .filterNot { isPlainQuestionEcho(it, question) }
             .take(4)
 
-        if (sentences.size < 4) return ""
+        if (clauses.size < 4) return ""
 
-        val normalizedSentences = sentences.map { sentence ->
-            val normalized = sentence.replace(Regex("\\s+"), "")
-            if (normalized.endsWith("。")) normalized else "$normalized。"
+        val normalizedClauses = clauses.map { clause ->
+            clause
+                .replace(Regex("\\s+"), "")
+                .trim('，', ',', '。', '；', ';')
         }
-        if (normalizedSentences.any { it.length < 7 || it.length > 18 }) return ""
-        if (hasRepeatedShortPhraseLoop(normalizedSentences.joinToString(""))) return ""
+        if (normalizedClauses.any { it.length < 4 || it.length > 12 }) return ""
+        if (hasRepeatedShortPhraseLoop(normalizedClauses.joinToString(""))) return ""
 
-        return normalizedSentences.joinToString("\n")
+        return "${normalizedClauses[0]}，${normalizedClauses[1]}。\n" +
+            "${normalizedClauses[2]}，${normalizedClauses[3]}。"
     }
 
     private fun isOracleBlessingOrPlainWish(sentence: String): Boolean {
