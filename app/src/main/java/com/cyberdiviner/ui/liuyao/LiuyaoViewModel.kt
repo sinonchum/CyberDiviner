@@ -373,7 +373,11 @@ class LiuyaoViewModel @Inject constructor(
                 )
             }.text
 
-            val finalText = com.cyberdiviner.engine.Persona.stripActionDescriptions(fullText).ifBlank { result.summary() }
+            val cleaned = normalizeLiuyaoInterpretation(
+                com.cyberdiviner.engine.Persona.stripActionDescriptions(fullText),
+                result
+            )
+            val finalText = cleaned.ifBlank { result.summary() }
             _uiState.value = _uiState.value.copy(
                 llmInterpretation = finalText,
                 phase = LiuyaoPhase.RESULT
@@ -395,6 +399,34 @@ class LiuyaoViewModel @Inject constructor(
                 llmInterpretation = fallback,
                 phase = LiuyaoPhase.RESULT
             )
+        }
+    }
+
+    private fun normalizeLiuyaoInterpretation(
+        candidate: String,
+        result: LiuyaoEngine.DivinationResult
+    ): String {
+        val cleaned = candidate
+            .replace(Regex("\\d{6,}"), "")
+            .replace("【建议】", "【趋吉避凶】")
+            .replace("建议：", "趋吉避凶：")
+            .replace("建议", "趋吉避凶")
+            .replace(Regex("\\n{3,}"), "\n\n")
+            .trim()
+
+        val lowQuality = cleaned.isBlank() ||
+            Regex("""\b(?:12|21|1222|2222|1212){2,}\b""").containsMatchIn(candidate) ||
+            listOf("2-3句话", "给出吉凶判断和建议", "直接开始回答", "用户会提供").any { cleaned.contains(it) }
+
+        if (!lowQuality) return cleaned
+
+        return buildString {
+            appendLine("【卦象解读】")
+            appendLine("本卦「${result.primaryHexagram.chineseName}」主${result.primaryHexagram.judgment.take(24)}。${result.analysis.interpretation}")
+            appendLine()
+            appendLine("【趋吉避凶】")
+            appendLine(FortuneEngine.liuyaoFortune(result.primaryHexagram.chineseName))
+            appendLine(result.analysis.advice.removePrefix("建议").removePrefix("：").trim())
         }
     }
 

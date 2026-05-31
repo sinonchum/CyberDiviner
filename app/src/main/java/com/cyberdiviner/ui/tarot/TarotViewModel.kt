@@ -444,7 +444,8 @@ class TarotViewModel @Inject constructor(
             .count()
         val promptEchoMarkers = listOf(
             "先解读每张牌", "这张牌的含义是", "牌面：", "请简要解读",
-            "最终结果：", "每张牌的含义及其位置关系", "不要写数字代号"
+            "最终结果：", "每张牌的含义及其位置关系", "不要写数字代号",
+            "2句话", "1到2句话", "每张牌1句话", "必须写真实牌名", "格式说明"
         ).count { text.contains(it) }
         val realCardMentions = cards.count { card ->
             text.contains(card.nameZh) || text.contains(card.name)
@@ -457,6 +458,8 @@ class TarotViewModel @Inject constructor(
             repeatedPhraseHits >= 8 ||
             englishCardMentions >= 2 ||
             promptEchoMarkers >= 2 ||
+            text.contains("页四") ||
+            Regex("""[权圣宝星][杖杯剑币]\s*[一二三四五六七八九十侍骑王后国]*\s*[—-]\s*（?(正位|逆位)""").containsMatchIn(text) ||
             !enoughCardContext ||
             text.length > 1400 ||
             text.length < 120

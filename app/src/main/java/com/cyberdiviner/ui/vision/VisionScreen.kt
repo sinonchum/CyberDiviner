@@ -543,7 +543,7 @@ fun VisionScreen(
         // ── START button — lock current face after preview is ready ──
         if (scanStarted && !showResult && uiState.phase != VisionPhase.ERROR && uiState.phase != VisionPhase.ANALYZING) {
             CyberButton(
-                text = if (uiState.faceDetected) "[ START ]" else "[ 请入镜 ]",
+                text = if (uiState.featuresJson != "{}") "[ START ]" else "[ 请入镜 ]",
                 onClick = {
                     viewModel.captureFace()
                 },

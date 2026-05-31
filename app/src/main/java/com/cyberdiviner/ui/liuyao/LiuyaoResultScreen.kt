@@ -603,7 +603,9 @@ private fun AnalysisCard(result: LiuyaoEngine.DivinationResult) {
 
         Text(result.analysis.interpretation, color = GrayBody, fontSize = 14.sp, fontFamily = WenKaiFontFamily, lineHeight = 24.sp)
         Spacer(Modifier.height(12.dp))
-        Text(result.analysis.advice, color = CyberWhite, fontSize = 14.sp, fontFamily = WenKaiFontFamily, lineHeight = 24.sp, fontWeight = FontWeight.Medium)
+        Text("趋吉避凶", color = AccentRed, fontSize = 13.sp, fontFamily = HuiwenFontFamily, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
+        Spacer(Modifier.height(8.dp))
+        Text(result.analysis.advice.removePrefix("建议").removePrefix("：").trim(), color = CyberWhite, fontSize = 14.sp, fontFamily = WenKaiFontFamily, lineHeight = 24.sp, fontWeight = FontWeight.Medium)
 
         Spacer(Modifier.height(20.dp))
 
@@ -622,6 +624,8 @@ private fun InterpretationCard(result: LiuyaoEngine.DivinationResult, llmText: S
         .replace(Regex("[━─═]{4,}"), "")
         .replace(Regex("六爻占卜 — Liuyao Divination"), "")
         .replace(Regex("━━━ .+ ━━━"), "")
+        .replace("【建议】", "【趋吉避凶】")
+        .replace("建议：", "趋吉避凶：")
         .trim()
 
     if (cleanText.isBlank()) {

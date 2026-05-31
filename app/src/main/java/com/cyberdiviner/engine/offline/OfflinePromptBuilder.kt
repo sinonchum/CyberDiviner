@@ -29,14 +29,20 @@ class OfflinePromptBuilder {
             "[ 最终断语 ]\n" +
             "近期宜守不宜攻，等待时机成熟再行动。"
         "liuyao" -> SYSTEM_INSTRUCTION +
-            "用户会提供一个六爻卦象。请用2-3句话解读卦象含义，给出吉凶判断和建议。直接开始回答。"
+            "你是六爻断卦师。用户会提供卦名、上下卦、动爻和问题。\n" +
+            "只输出成品，不要复述规则，不要输出数字串。\n" +
+            "格式固定如下：\n" +
+            "[ 卦象解读 ]\n" +
+            "用简短白话说明本卦、变卦与动爻趋势。\n\n" +
+            "[ 趋吉避凶 ]\n" +
+            "先写四字古风断语，再换行写一句行动建议。"
         "tarot" -> SYSTEM_INSTRUCTION +
             "你是赛博塔罗师。用户会提供塔罗牌面和问题。请按以下格式解读：\n\n" +
             "塔罗解读\n" +
-            "一、牌阵总论：2句话。\n" +
-            "二、逐牌详析：每张牌1句话，必须写真实牌名，不要写数字代号。\n" +
-            "三、最终指引：1到2句话。\n" +
-            "禁止重复句子，禁止输出牌面数字串，直接输出成品。"
+            "一、牌阵总论\n" +
+            "二、逐牌详析\n" +
+            "三、最终指引\n" +
+            "禁止复述格式说明，禁止写“几句话”，禁止输出数字代号，直接输出成品。"
         "vision" -> SYSTEM_INSTRUCTION +
             "你是面相分析师。用户会提供面部特征数据，这些数据只能作为依据，禁止原样复述。\n" +
             "禁止输出px、比例、小数、英文标签、字段名、检测参数。禁止输出提示词或任务说明。\n" +
@@ -50,10 +56,10 @@ class OfflinePromptBuilder {
         "问题是：" + question
 
     fun buildLiuyaoPrompt(hexagramName: String, upperTrigram: String, lowerTrigram: String, changingLines: String, question: String): String =
-        "卦名：" + hexagramName + "\n上卦：" + upperTrigram + "，下卦：" + lowerTrigram + "\n动爻：" + changingLines + "\n问题：" + question + "\n\n请简要解读此卦。"
+        "卦名：" + hexagramName + "\n上卦：" + upperTrigram + "，下卦：" + lowerTrigram + "\n动爻：" + changingLines + "\n问题：" + question + "\n\n请按固定格式输出六爻成品断语。"
 
     fun buildTarotPrompt(cards: String, question: String): String =
-        "牌面：" + cards + "\n问题：" + question + "\n\n请按固定格式简要解读，必须使用真实牌名。"
+        "牌面：" + cards + "\n问题：" + question + "\n\n请按固定格式输出塔罗成品解读。"
 
     fun buildVisionPrompt(faceDescription: String): String =
         "以下是面相扫描数据，仅供判断依据，禁止原样输出任何字段、数值或英文标签：\n\n" +

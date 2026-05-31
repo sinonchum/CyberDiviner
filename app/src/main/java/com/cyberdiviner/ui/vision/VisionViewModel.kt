@@ -308,8 +308,10 @@ class VisionViewModel @Inject constructor(
      */
     fun captureFace() {
         val state = _uiState.value
-        if (!state.faceDetected || state.featuresJson == "{}") {
+        if (state.featuresJson == "{}") {
             _uiState.value = state.copy(
+                phase = VisionPhase.SCANNING,
+                progressMessage = "镜阵取相中，请正对镜头稍候。",
                 errorMessage = "请先将面容置于镜阵之中"
             )
             return
