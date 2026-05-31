@@ -1015,6 +1015,7 @@ class VisionViewModel @Inject constructor(
             .groupingBy { it }
             .eachCount()
             .count { it.value >= 2 }
+        val repeatedShortPhraseLoop = hasRepeatedShortPhraseLoop(text)
         val hasRequiredReadingShape =
             text.contains("面形总论") ||
                 text.contains("逐部位详析") ||
@@ -1024,8 +1025,25 @@ class VisionViewModel @Inject constructor(
         return markerHits >= 2 ||
             numericDensity >= 8 ||
             repeatedUnits >= 2 ||
+            repeatedShortPhraseLoop ||
             !hasRequiredReadingShape ||
             text.length < 160
+    }
+
+    private fun hasRepeatedShortPhraseLoop(text: String): Boolean {
+        val normalized = text
+            .replace(Regex("[\\s，,。！？!?；;：:、]+"), "|")
+            .trim('|')
+        if (normalized.isBlank()) return false
+        val tokens = normalized.split('|').filter { it.length in 2..8 }
+        if (tokens.groupingBy { it }.eachCount().any { it.value >= 8 }) return true
+
+        for (size in 2..4) {
+            if (tokens.size < size * 4) continue
+            val windows = tokens.windowed(size).map { it.joinToString("") }
+            if (windows.groupingBy { it }.eachCount().any { it.value >= 4 }) return true
+        }
+        return false
     }
 
     /** Persist vision result (fortune + interpretation) to database */

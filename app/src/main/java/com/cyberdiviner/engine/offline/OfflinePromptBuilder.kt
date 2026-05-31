@@ -5,9 +5,9 @@ class OfflinePromptBuilder {
         private const val SYSTEM_INSTRUCTION =
             "你是一个算命AI。禁止使用emoji。只输出纯中文。禁止编号。禁止列表。"
         const val MAX_TOKENS_ORACLE = 600
-        const val MAX_TOKENS_LIUYAO = 700
-        const val MAX_TOKENS_TAROT = 650
-        const val MAX_TOKENS_VISION = 900
+        const val MAX_TOKENS_LIUYAO = 480
+        const val MAX_TOKENS_TAROT = 420
+        const val MAX_TOKENS_VISION = 360
     }
 
     fun buildSystemInstruction(feature: String): String = when (feature) {

@@ -440,6 +440,7 @@ class TarotViewModel @Inject constructor(
         return numericPseudoCards >= 2 ||
             digitLoop ||
             repeatedUnits >= 2 ||
+            hasRepeatedShortPhraseLoop(text) ||
             repeatedPhraseHits >= 8 ||
             englishCardMentions >= 2 ||
             promptEchoMarkers >= 2 ||
@@ -487,6 +488,21 @@ class TarotViewModel @Inject constructor(
             .groupingBy { it }
             .eachCount()
             .count { it.value >= 2 }
+    }
+
+    private fun hasRepeatedShortPhraseLoop(text: String): Boolean {
+        val tokens = text
+            .replace(Regex("[\\s，,。！？!?；;：:、]+"), "|")
+            .trim('|')
+            .split('|')
+            .filter { it.length in 2..8 }
+        if (tokens.groupingBy { it }.eachCount().any { it.value >= 8 }) return true
+        for (size in 2..4) {
+            if (tokens.size < size * 4) continue
+            val windows = tokens.windowed(size).map { it.joinToString("") }
+            if (windows.groupingBy { it }.eachCount().any { it.value >= 4 }) return true
+        }
+        return false
     }
 
     private fun buildFallbackInterpretation(

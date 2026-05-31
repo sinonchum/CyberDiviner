@@ -420,6 +420,7 @@ class LiuyaoViewModel @Inject constructor(
             Regex("""\b(?:12|21|1222|2222|1212){2,}\b""").containsMatchIn(candidate) ||
             Regex("""\[[^\]]*[A-Za-z][^\]]*\]""").containsMatchIn(cleaned) ||
             (cleaned.contains("上卦") && cleaned.contains("下卦") && !cleaned.contains("进退之策") && cleaned.length < 180) ||
+            hasRepeatedShortPhraseLoop(cleaned) ||
             cleaned.length < 80 ||
             listOf("2-3句话", "给出吉凶判断和建议", "直接开始回答", "用户会提供").any { cleaned.contains(it) }
 
@@ -442,6 +443,21 @@ class LiuyaoViewModel @Inject constructor(
             .replace("建议:", "")
             .replace("建议", "")
             .trim(' ', '\n', '\r', '：', ':')
+
+    private fun hasRepeatedShortPhraseLoop(text: String): Boolean {
+        val tokens = text
+            .replace(Regex("[\\s，,。！？!?；;：:、]+"), "|")
+            .trim('|')
+            .split('|')
+            .filter { it.length in 2..8 }
+        if (tokens.groupingBy { it }.eachCount().any { it.value >= 8 }) return true
+        for (size in 2..4) {
+            if (tokens.size < size * 4) continue
+            val windows = tokens.windowed(size).map { it.joinToString("") }
+            if (windows.groupingBy { it }.eachCount().any { it.value >= 4 }) return true
+        }
+        return false
+    }
 
     override fun onCleared() {
         super.onCleared()
