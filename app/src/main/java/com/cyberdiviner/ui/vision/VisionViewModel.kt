@@ -958,6 +958,17 @@ class VisionViewModel @Inject constructor(
                 com.cyberdiviner.engine.Persona.stripActionDescriptions(fullText)
             }
             val fallbackText = buildFallbackInterpretation(featuresJson, question)
+            if (inferenceRouter.currentMode() == InferenceMode.OFFLINE &&
+                (candidateText.isBlank() || isLowQualityVisionOutput(candidateText))
+            ) {
+                _uiState.value = _uiState.value.copy(
+                    interpretation = "",
+                    streamText = "",
+                    phase = VisionPhase.ERROR,
+                    errorMessage = "离线先知输出异常。请重新观相，或在配置页重新加载离线模型。"
+                )
+                return
+            }
             val finalText = normalizeVisionInterpretation(candidateText, fallbackText)
             val fortune = FortuneEngine.visionFortune(finalText)
             val meaning = FortuneEngine.visionMeaning(fortune)

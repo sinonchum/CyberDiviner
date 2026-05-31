@@ -19,7 +19,7 @@ import java.io.FileOutputStream
 
 internal object ArchiveShareGenerator {
     private const val WIDTH = 1080
-    private const val HEIGHT = 1920
+    private const val HEIGHT = 760
     private const val PAD = 86f
 
     private const val BLACK = Color.BLACK
@@ -116,9 +116,6 @@ internal object ArchiveShareGenerator {
         }
         canvas.drawText("CAUSAL LEDGER", PAD, 150f, mono)
         canvas.drawText(entry.solarDate, PAD, 196f, mono)
-        mono.color = RED
-        mono.textAlign = Paint.Align.RIGHT
-        canvas.drawText(entry.type, WIDTH - PAD, 150f, mono)
     }
 
     private fun drawTitle(canvas: Canvas, context: Context, entry: ArchiveEntry) {
@@ -131,13 +128,13 @@ internal object ArchiveShareGenerator {
             textSize = if (entry.title.length <= 4) 112f else 82f
             typeface = Typeface.create(huiwen, Typeface.BOLD)
         }
-        canvas.drawText(entry.title, PAD, 560f, paint)
+        canvas.drawText(entry.title, PAD, 370f, paint)
         val sub = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = GRAY
             textSize = 38f
             typeface = wenkai
         }
-        drawWrappedText(canvas, entry.interpretation, PAD, 650f, WIDTH - PAD, sub, 64f, maxLines = 3)
+        drawWrappedText(canvas, entry.interpretation, PAD, 460f, WIDTH - PAD, sub, 64f, maxLines = 3)
     }
 
     private fun drawFooter(canvas: Canvas, entry: ArchiveEntry) {

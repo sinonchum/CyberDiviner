@@ -359,6 +359,24 @@ class TarotViewModel @Inject constructor(
                 com.cyberdiviner.engine.Persona.stripActionDescriptions(fullText)
             }
             val fallbackText = buildFallbackInterpretation(cards, spread, question)
+            val lowQuality = candidateText.isBlank() || isLowQualityTarotOutput(
+                candidateText
+                    .replace(Regex("\\n{3,}"), "\n\n")
+                    .replace(Regex("(?i)\\b(Knight|Page|Queen|King|Ace|Two|Three|Four|Five|Six|Seven|Eight|Nine|Ten) of (Cups|Swords|Wands|Pentacles)\\b")) { match ->
+                        englishCardNameToChinese(match.value)
+                    }
+                    .trim(),
+                cards
+            )
+            if (result.isOffline && inferenceRouter.currentMode() == InferenceMode.OFFLINE && lowQuality) {
+                _uiState.value = _uiState.value.copy(
+                    interpretation = "",
+                    streamText = "",
+                    phase = TarotPhase.ERROR,
+                    errorMessage = "离线先知输出异常。请重新占卡，或在配置页重新加载离线模型。"
+                )
+                return
+            }
             val finalText = normalizeTarotInterpretation(candidateText, cards, fallbackText)
             _uiState.value = _uiState.value.copy(
                 interpretation = finalText,
@@ -416,6 +434,8 @@ class TarotViewModel @Inject constructor(
 
     private fun isLowQualityTarotOutput(text: String, cards: List<TarotCard>): Boolean {
         val numericPseudoCards = Regex("""\b\d{1,2}(?:-\d{1,2}){1,3}\b""").findAll(text).count()
+        val digitLoop = Regex("""\b(?:12|21|1212|2121){3,}\b""").containsMatchIn(text) ||
+            Regex("""\d{8,}""").containsMatchIn(text)
         val repeatedUnits = repeatedUnitCount(text)
         val repeatedPhraseHits = listOf("你可能需要", "更强的自信心", "更强的执行力", "并有更强")
             .sumOf { phrase -> Regex(Regex.escape(phrase)).findAll(text).count() }
@@ -432,6 +452,7 @@ class TarotViewModel @Inject constructor(
         val enoughCardContext = cards.size == 1 || realCardMentions >= minOf(2, cards.size)
 
         return numericPseudoCards >= 2 ||
+            digitLoop ||
             repeatedUnits >= 2 ||
             repeatedPhraseHits >= 8 ||
             englishCardMentions >= 2 ||

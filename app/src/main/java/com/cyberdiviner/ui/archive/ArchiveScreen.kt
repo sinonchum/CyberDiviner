@@ -282,7 +282,7 @@ fun ArchiveScreen(
                         contentDescription = "因果卡片预览",
                         modifier = Modifier
                             .fillMaxWidth()
-                            .aspectRatio(9f / 16f)
+                            .aspectRatio(preview.bitmap.width.toFloat() / preview.bitmap.height.toFloat())
                             .border(1.dp, GrayBorder)
                     )
                 },

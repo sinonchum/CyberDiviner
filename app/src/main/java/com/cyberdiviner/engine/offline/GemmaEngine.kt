@@ -76,7 +76,7 @@ class GemmaEngine(private val context: Context) {
             try {
                 Log.d(TAG, "Initializing LiteRT-LM bridge from $modelPath")
                 val nextBridge = LiteRtLmBridge()
-                nextBridge.initialize(modelPath, context.cacheDir.path, 768)
+                nextBridge.initialize(modelPath, context.cacheDir.path, 512)
                 bridge = nextBridge
                 modelReady = true
                 Log.d(TAG, "LiteRT-LM bridge initialized successfully")
@@ -97,7 +97,7 @@ class GemmaEngine(private val context: Context) {
         systemInstruction: String,
         userPrompt: String,
         maxTokens: Int = 200,
-        temperature: Double = 0.7
+        temperature: Double = 0.35
     ): String? = withContext(Dispatchers.IO) {
         if (!initialize()) {
             Log.e(TAG, "Cannot generate: engine not initialized")
@@ -114,7 +114,7 @@ class GemmaEngine(private val context: Context) {
             val response: String? = try {
                 inferenceLock.lock()
                 try {
-                    localBridge.generate(fullPrompt, temperature, 16)
+                    localBridge.generate(fullPrompt, temperature, 8)
                 } finally {
                     inferenceLock.unlock()
                 }
@@ -135,7 +135,7 @@ class GemmaEngine(private val context: Context) {
         systemInstruction: String,
         userPrompt: String,
         maxTokens: Int = 200,
-        temperature: Double = 0.7,
+        temperature: Double = 0.35,
         onPartialResult: (String) -> Unit
     ): String? = withContext(Dispatchers.IO) {
         if (!initialize()) {
@@ -152,7 +152,7 @@ class GemmaEngine(private val context: Context) {
             val result: String?
             inferenceLock.lock()
             try {
-                result = localBridge.generate(fullPrompt, temperature, 16)
+                result = localBridge.generate(fullPrompt, temperature, 8)
             } finally {
                 inferenceLock.unlock()
             }
