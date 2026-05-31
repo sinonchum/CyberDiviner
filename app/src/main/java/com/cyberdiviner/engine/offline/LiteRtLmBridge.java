@@ -6,6 +6,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -169,6 +170,9 @@ public final class LiteRtLmBridge {
     private String renderResponse(Object conversation, Object response, Map<String, Object> extraContext) throws Exception {
         if (response == null) return "";
 
+        String extracted = extractTextFromMessage(response);
+        if (!extracted.trim().isEmpty()) return extracted;
+
         try {
             Class<?> messageClass = Class.forName("com.google.ai.edge.litertlm.Message");
             Method renderMethod = conversation.getClass().getMethod("renderMessageIntoString", messageClass, Map.class);
@@ -180,6 +184,37 @@ public final class LiteRtLmBridge {
         } catch (Exception e) {
             Log.w(TAG, "Falling back to response.toString()", e);
             return response.toString();
+        }
+    }
+
+    private String extractTextFromMessage(Object response) {
+        try {
+            Method getContents = response.getClass().getMethod("getContents");
+            Object contents = getContents.invoke(response);
+            if (contents == null) return "";
+
+            Method getContentList = contents.getClass().getMethod("getContents");
+            Object listObj = getContentList.invoke(contents);
+            if (!(listObj instanceof List<?>)) return "";
+
+            StringBuilder text = new StringBuilder();
+            for (Object content : (List<?>) listObj) {
+                if (content == null) continue;
+                try {
+                    Method getText = content.getClass().getMethod("getText");
+                    Object value = getText.invoke(content);
+                    if (value != null) {
+                        if (text.length() > 0) text.append('\n');
+                        text.append(value.toString());
+                    }
+                } catch (NoSuchMethodException ignored) {
+                    // Non-text content is irrelevant for this app.
+                }
+            }
+            return text.toString();
+        } catch (Exception e) {
+            Log.w(TAG, "Failed to extract text content from LiteRT-LM message", e);
+            return "";
         }
     }
 

@@ -3,23 +3,26 @@ package com.cyberdiviner.ui.archive
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import android.graphics.Bitmap
 import android.widget.Toast
-import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
@@ -51,6 +54,11 @@ internal data class ArchiveEntry(
     val title: String,          // Hexagram/card name or 4-char fortune
     val interpretation: String, // One-line interpretation
     val hash: String            // Anti-tamper hash
+)
+
+private data class SharePreview(
+    val entry: ArchiveEntry,
+    val bitmap: Bitmap
 )
 
 /** Clean garbled encoding artifacts from offline LLM output (byte-fallback tokenizer issue) */
@@ -102,6 +110,7 @@ fun ArchiveScreen(
     val learningStats by viewModel.learningStats.collectAsState()
     var expandedIndex by remember { mutableStateOf<Int?>(null) }
     val context = LocalContext.current
+    var sharePreview by remember { mutableStateOf<SharePreview?>(null) }
 
     Box(
         modifier = Modifier
@@ -240,12 +249,10 @@ fun ArchiveScreen(
                                 expandedIndex = if (isExpanded) null else index
                             },
                             onShare = {
-                                val bitmap = ArchiveShareGenerator.generate(entry, interpState.value)
-                                val saved = ArchiveShareGenerator.saveToGallery(context, bitmap)
-                                if (saved) {
-                                    Toast.makeText(context, "已存入相册，可继续分享", Toast.LENGTH_SHORT).show()
-                                }
-                                ArchiveShareGenerator.share(context, bitmap, entry)
+                                sharePreview = SharePreview(
+                                    entry = entry,
+                                    bitmap = ArchiveShareGenerator.generate(context, entry)
+                                )
                             },
                             onDelete = {
                                 viewModel.deleteReading(reading)
@@ -255,12 +262,62 @@ fun ArchiveScreen(
                 }
             }
         }
+
+        sharePreview?.let { preview ->
+            AlertDialog(
+                onDismissRequest = { sharePreview = null },
+                containerColor = CyberBlack,
+                titleContentColor = CyberWhite,
+                textContentColor = GrayBody,
+                title = {
+                    Text(
+                        text = "因果卡片",
+                        fontFamily = HuiwenFontFamily,
+                        color = CyberWhite
+                    )
+                },
+                text = {
+                    Image(
+                        bitmap = preview.bitmap.asImageBitmap(),
+                        contentDescription = "因果卡片预览",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(9f / 16f)
+                            .border(1.dp, GrayBorder)
+                    )
+                },
+                confirmButton = {
+                    TextButton(onClick = {
+                        ArchiveShareGenerator.share(context, preview.bitmap, preview.entry)
+                        sharePreview = null
+                    }) {
+                        Text("发送", color = AccentRed, fontFamily = HuiwenFontFamily)
+                    }
+                },
+                dismissButton = {
+                    Row {
+                        TextButton(onClick = {
+                            val saved = ArchiveShareGenerator.saveToGallery(context, preview.bitmap)
+                            Toast.makeText(
+                                context,
+                                if (saved) "已存入相册" else "保存失败",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }) {
+                            Text("保存", color = CyberWhite, fontFamily = HuiwenFontFamily)
+                        }
+                        TextButton(onClick = { sharePreview = null }) {
+                            Text("取消", color = GrayCaption, fontFamily = HuiwenFontFamily)
+                        }
+                    }
+                }
+            )
+        }
     }
 }
 
 // ── Swipe-to-delete card wrapper ──────────────────────────────────────────
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun SwipeToDeleteCard(
     entry: ArchiveEntry,
@@ -325,12 +382,10 @@ private fun SwipeToDeleteCard(
                     .fillMaxWidth()
                     .border(1.dp, GrayBorder)
                     .background(if (isExpanded) GraySurface else CyberBlack)
-                    .combinedClickable(
+                    .clickable(
                         indication = null,
-                        interactionSource = remember { MutableInteractionSource() },
-                        onClick = onClick,
-                        onLongClick = onShare
-                    )
+                        interactionSource = remember { MutableInteractionSource() }
+                    ) { onClick() }
                     .padding(24.dp)
             ) {
                 Column {
@@ -427,7 +482,6 @@ private fun SwipeToDeleteCard(
                         }
                     }
 
-                    // ── Share + hash watermark ────
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -435,18 +489,22 @@ private fun SwipeToDeleteCard(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            text = "分享",
-                            color = AccentRed,
-                            fontSize = 11.sp,
-                            fontFamily = HuiwenFontFamily,
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = 2.sp,
-                            modifier = Modifier
-                                .border(1.dp, AccentRed.copy(alpha = 0.7f))
-                                .clickable { onShare() }
-                                .padding(horizontal = 12.dp, vertical = 6.dp)
-                        )
+                        if (isExpanded) {
+                            Text(
+                                text = "分享",
+                                color = AccentRed,
+                                fontSize = 11.sp,
+                                fontFamily = HuiwenFontFamily,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 2.sp,
+                                modifier = Modifier
+                                    .border(1.dp, AccentRed.copy(alpha = 0.7f))
+                                    .clickable { onShare() }
+                                    .padding(horizontal = 12.dp, vertical = 6.dp)
+                            )
+                        } else {
+                            Spacer(modifier = Modifier.width(1.dp))
+                        }
                         Text(
                             text = entry.hash,
                             color = GrayMuted,

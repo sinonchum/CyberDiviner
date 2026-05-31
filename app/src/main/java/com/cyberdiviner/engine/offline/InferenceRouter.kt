@@ -70,7 +70,7 @@ class InferenceRouter(
                 ?: throw Exception("Online inference failed. Please check API key and network.")
 
             InferenceMode.OFFLINE -> {
-                if (!offlineEnabled) throw Exception("Offline model is disabled. Enable it in settings.")
+                Log.i(TAG, "Inference mode OFFLINE: forcing local model for $feature")
                 completeOffline(feature, offlineUserPrompt)
                     ?: throw Exception("Offline inference failed. Please download the model in settings.")
             }
@@ -167,7 +167,7 @@ class InferenceRouter(
             }
 
             InferenceMode.OFFLINE -> {
-                if (!isOfflineModelEnabled()) throw Exception("Offline model is disabled. Enable it in settings.")
+                Log.i(TAG, "Inference mode OFFLINE: forcing local stream model for $feature")
                 val result = completeOffline(feature, offlineUserPrompt)
                     ?: throw Exception("Offline inference failed")
                 onChunk(result.text) // Emit all at once (no streaming for offline)
@@ -225,7 +225,8 @@ class InferenceRouter(
      * Whether offline mode is currently usable (model downloaded + engine ready or can initialize).
      */
     suspend fun isOfflineAvailable(): Boolean {
-        return isOfflineModelEnabled() && gemmaEngine.isModelDownloaded()
+        return (getInferenceMode() == InferenceMode.OFFLINE || isOfflineModelEnabled()) &&
+            gemmaEngine.isModelDownloaded()
     }
 
     /**

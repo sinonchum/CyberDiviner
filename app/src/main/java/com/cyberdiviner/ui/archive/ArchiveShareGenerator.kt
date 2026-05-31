@@ -11,7 +11,9 @@ import android.graphics.Typeface
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
+import androidx.core.content.res.ResourcesCompat
 import androidx.core.content.FileProvider
+import com.cyberdiviner.R
 import java.io.File
 import java.io.FileOutputStream
 
@@ -27,15 +29,14 @@ internal object ArchiveShareGenerator {
     private const val MUTED = 0xFF6F6F6F.toInt()
     private const val LINE = 0xFF2A2A2A.toInt()
 
-    fun generate(entry: ArchiveEntry, detail: String): Bitmap {
+    fun generate(context: Context, entry: ArchiveEntry): Bitmap {
         val bitmap = Bitmap.createBitmap(WIDTH, HEIGHT, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
         canvas.drawColor(BLACK)
 
         drawFrame(canvas)
         drawHeader(canvas, entry)
-        drawTitle(canvas, entry)
-        drawBody(canvas, entry, detail)
+        drawTitle(canvas, context, entry)
         drawFooter(canvas, entry)
 
         return bitmap
@@ -120,40 +121,23 @@ internal object ArchiveShareGenerator {
         canvas.drawText(entry.type, WIDTH - PAD, 150f, mono)
     }
 
-    private fun drawTitle(canvas: Canvas, entry: ArchiveEntry) {
+    private fun drawTitle(canvas: Canvas, context: Context, entry: ArchiveEntry) {
+        val huiwen = ResourcesCompat.getFont(context, R.font.huiwen_mingchao)
+            ?: Typeface.create(Typeface.SERIF, Typeface.BOLD)
+        val wenkai = ResourcesCompat.getFont(context, R.font.lxgw_wenkai_regular)
+            ?: Typeface.create(Typeface.SERIF, Typeface.NORMAL)
         val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = WHITE
             textSize = if (entry.title.length <= 4) 112f else 82f
-            typeface = Typeface.create(Typeface.SERIF, Typeface.BOLD)
+            typeface = Typeface.create(huiwen, Typeface.BOLD)
         }
-        canvas.drawText(entry.title, PAD, 430f, paint)
+        canvas.drawText(entry.title, PAD, 560f, paint)
         val sub = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = GRAY
             textSize = 38f
-            typeface = Typeface.create(Typeface.SERIF, Typeface.NORMAL)
+            typeface = wenkai
         }
-        drawWrappedText(canvas, entry.interpretation, PAD, 510f, WIDTH - PAD, sub, 62f, maxLines = 3)
-    }
-
-    private fun drawBody(canvas: Canvas, entry: ArchiveEntry, detail: String) {
-        val divider = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = LINE
-            strokeWidth = 2f
-        }
-        canvas.drawLine(PAD, 690f, WIDTH - PAD, 690f, divider)
-        val label = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = RED
-            textSize = 30f
-            typeface = Typeface.create(Typeface.SERIF, Typeface.BOLD)
-        }
-        canvas.drawText("命簿摘录", PAD, 760f, label)
-        val body = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = GRAY
-            textSize = 36f
-            typeface = Typeface.create(Typeface.SERIF, Typeface.NORMAL)
-        }
-        val text = detail.ifBlank { entry.interpretation }.replace(Regex("\\s+"), " ").trim()
-        drawWrappedText(canvas, text, PAD, 835f, WIDTH - PAD, body, 58f, maxLines = 13)
+        drawWrappedText(canvas, entry.interpretation, PAD, 650f, WIDTH - PAD, sub, 64f, maxLines = 3)
     }
 
     private fun drawFooter(canvas: Canvas, entry: ArchiveEntry) {
