@@ -83,8 +83,9 @@ class OracleViewModel @Inject constructor(
         val sanitized = sanitizeOracleResponse(rawResponse)
         val fallback = parseOracleSections(generateOfflineFallback(question))!!
         val parsed = parseOracleSections(sanitized)
+        val fallbackPoem = normalizePoem(fallback.poem, question).ifBlank { fallback.poem }
 
-        val poem = normalizePoem(parsed?.poem, question).ifBlank { fallback.poem }
+        val poem = normalizePoem(parsed?.poem, question).ifBlank { fallbackPoem }
         val analysis = normalizeParagraph(parsed?.analysis, maxSentences = 5, maxChars = 180)
             .ifBlank { fallback.analysis }
         val verdict = normalizeParagraph(parsed?.verdict, maxSentences = 2, maxChars = 80)
