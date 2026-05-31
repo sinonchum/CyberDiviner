@@ -552,7 +552,7 @@ private fun DivinationReading.toDisplayEntry(): ArchiveEntry {
                 } else "" to false
             } catch (e: Exception) { "" to false }
             titleText = if (firstCard.first.isNotBlank()) {
-                FortuneEngine.tarotFortune(firstCard.first, firstCard.second, question)
+                FortuneEngine.tarotFortune(firstCard.first, firstCard.second)
             } else "塔罗占卜"
             interpretationText = if (firstCard.first.isNotBlank()) {
                 FortuneEngine.tarotMeaning(firstCard.first, firstCard.second)

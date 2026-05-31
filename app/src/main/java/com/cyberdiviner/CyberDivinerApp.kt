@@ -36,7 +36,9 @@ class CyberDivinerApp : Application() {
 
     override fun onTrimMemory(level: Int) {
         super.onTrimMemory(level)
-        if (level >= ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW) @Suppress("DEPRECATION") {
+        if (level == ComponentCallbacks2.TRIM_MEMORY_RUNNING_CRITICAL ||
+            level >= ComponentCallbacks2.TRIM_MEMORY_BACKGROUND
+        ) @Suppress("DEPRECATION") {
             Log.d("CyberDivinerApp", "Memory pressure (level=$level), releasing offline model")
             if (::gemmaEngine.isInitialized) {
                 gemmaEngine.release()

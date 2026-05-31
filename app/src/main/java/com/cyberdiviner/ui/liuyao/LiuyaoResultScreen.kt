@@ -318,9 +318,11 @@ private fun buildCardList(
     CardInfo("批命", "FORTUNE") { FortuneCard(fourCharFortune, fourCharMeaning) },
     CardInfo("卦象", "HEXAGRAM") { HexagramCard(result) },
     CardInfo("爻象", "LINES") { LinesCard(result) },
-    CardInfo("六神", "SPIRITS") { SpiritsCard(result) },
-    CardInfo("断卦", "ANALYSIS") { AnalysisCard(result) },
+    CardInfo("六神", "SPIRITS") { SpiritsCard(result) }
+) + if (llmText.isNotBlank()) listOf(
     CardInfo("解读", "INTERPRETATION") { InterpretationCard(result, llmText) }
+) else listOf(
+    CardInfo("断卦", "ANALYSIS") { AnalysisCard(result) }
 ) + if (annotations.isNotEmpty()) listOf(
     CardInfo("学习", "LEARNING") { LearningAnnotationsCard(annotations) }
 ) else emptyList()

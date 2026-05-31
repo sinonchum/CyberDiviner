@@ -199,15 +199,16 @@ class GemmaEngine(private val context: Context) {
     // ── Memory check ──────────────────────────────────────────────────────────
 
     /**
-     * Check available memory. Gemma 3 1B int4 needs ~700MB runtime RAM.
-     * Requires at least 800MB free.
+     * Check available memory. Gemma 3 1B int4 is the low-memory path, so avoid
+     * rejecting normal devices just because Android reports conservative free RAM.
      */
     private fun hasEnoughMemory(): Boolean {
         val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
         val memInfo = ActivityManager.MemoryInfo()
         activityManager.getMemoryInfo(memInfo)
         val availableMB = memInfo.availMem / (1024 * 1024)
-        Log.d(TAG, "Available memory: ${availableMB}MB, threshold: 800MB")
-        return availableMB > 800
+        val thresholdMB = 450L
+        Log.d(TAG, "Available memory: ${availableMB}MB, threshold: ${thresholdMB}MB, lowMemory=${memInfo.lowMemory}")
+        return availableMB > thresholdMB && !memInfo.lowMemory
     }
 }
