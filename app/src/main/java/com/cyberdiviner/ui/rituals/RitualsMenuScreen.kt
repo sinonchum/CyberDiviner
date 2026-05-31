@@ -15,7 +15,7 @@ import com.cyberdiviner.ui.shared.StaggeredItem
 /**
  * RitualsMenuScreen -- Tab for ritual selection (bottom nav destination).
  *
- * Four options: 周易六爻, 赛博塔罗, 视界摸骨, 电子木鱼.
+ * Four options: 周易六爻, 赛博塔罗, 视界摸骨, 电子颂钵.
  * Left-aligned. No back button — navigation handled by bottom bar.
  */
 @Composable
@@ -73,9 +73,9 @@ fun RitualsMenuScreen(
 
             StaggeredItem(index = 3) {
                 CyberMenuItem(
-                    title = "电子木鱼",
-                    subtitle = "WOODEN FISH",
-                    description = "敲击积功德",
+                    title = "电子颂钵",
+                    subtitle = "SINGING BOWL",
+                    description = "一击清音，静心调息",
                     onClick = onMuyu
                 )
             }

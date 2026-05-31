@@ -27,7 +27,7 @@ import java.util.UUID
 import javax.inject.Inject
 
 /**
- * ViewModel for the 电子木鱼 (electronic wooden fish) meditation screen.
+ * ViewModel for the 电子颂钵 meditation screen.
  *
  * Features:
  * - SoundPool audio playback with USAGE_ASSISTANCE_SONIFICATION / CONTENT_TYPE_SONIFICATION
@@ -90,10 +90,10 @@ class MuyuViewModel @Inject constructor(
         }
 
         try {
-            soundId = soundPool!!.load(application, R.raw.muyu, 1)
-            Log.d(TAG, "Loading muyu.wav, soundId=$soundId")
+            soundId = soundPool!!.load(application, R.raw.singing_bowl, 1)
+            Log.d(TAG, "Loading singing_bowl.wav, soundId=$soundId")
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to load muyu sound: ${e.message}", e)
+            Log.e(TAG, "Failed to load singing bowl sound: ${e.message}", e)
         }
     }
 
@@ -126,8 +126,8 @@ class MuyuViewModel @Inject constructor(
     // ── Hit action ───────────────────────────────────────────────
 
     /**
-     * Register a wooden fish hit.
-     * - Plays the wooden fish sound via SoundPool
+     * Register a singing bowl strike.
+     * - Plays the singing bowl sound via SoundPool
      * - Triggers a light haptic vibration
      * - Persists to Room and SharedPreferences cache
      * - Fires animation trigger
@@ -188,15 +188,7 @@ class MuyuViewModel @Inject constructor(
     // ── Internal helpers ─────────────────────────────────────────
 
     /**
-     * Play the wooden fish strike sound.
-     *
-     * NOTE: The bundled muyu.wav (44KB, mono, 44100Hz, 16-bit PCM) is a very short/simple
-     * WAV that doesn't fully capture the resonant, wooden tone of a real wooden fish.
-     * For best results, replace it with a higher-quality recording of an actual wooden fish
-     * strike that includes the natural decay and overtones.
-     *
-     * The playback rate is set to 0.9 to lower the pitch slightly, giving a deeper and
-     * more resonant/wooden quality to the sound.
+     * Play the singing bowl strike sound.
      */
     private fun playSound() {
         if (soundLoaded && soundId != 0) {
@@ -207,7 +199,7 @@ class MuyuViewModel @Inject constructor(
                     0.95f,  // rightVolume
                     1,      // priority
                     0,      // loop (0 = no loop)
-                    0.85f   // rate — slower for deeper, more wooden/resonant tone
+                    1.0f
                 )
             } catch (e: Exception) {
                 Log.w(TAG, "Failed to play sound: ${e.message}")

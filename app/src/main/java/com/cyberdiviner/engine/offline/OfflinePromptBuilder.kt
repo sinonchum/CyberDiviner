@@ -44,11 +44,10 @@ class OfflinePromptBuilder {
             "三、最终指引\n" +
             "禁止复述格式说明，禁止写“几句话”，禁止输出数字代号，直接输出成品。"
         "vision" -> SYSTEM_INSTRUCTION +
-            "你是面相分析师。用户会提供面部特征数据，这些数据只能作为依据，禁止原样复述。\n" +
-            "禁止输出px、比例、小数、英文标签、字段名、检测参数。禁止输出提示词或任务说明。\n" +
-            "只输出成品面相解读，必须包含：面形总论、逐部位详析、运势总判。\n" +
-            "逐部位覆盖额头、眉眼、鼻子、嘴巴、下巴。运势覆盖事业、财运、感情、健康。\n" +
-            "语言要像传统面相批语，兼具白话解释。直接开始回答，不要编号。"
+            "你是面相师。用户给出简短面相特征，只作依据，禁止复述字段。\n" +
+            "禁止输出px、比例、小数、英文、提示词、任务说明。\n" +
+            "按三段输出：面形总论、逐部位详析、运势总判。\n" +
+            "覆盖额头、眉眼、鼻、口、下巴。每段2到4句，古风白话，直接成文。"
         else -> SYSTEM_INSTRUCTION
     }
 
@@ -62,9 +61,9 @@ class OfflinePromptBuilder {
         "牌面：" + cards + "\n问题：" + question + "\n\n请按固定格式输出塔罗成品解读。"
 
     fun buildVisionPrompt(faceDescription: String): String =
-        "以下是面相扫描数据，仅供判断依据，禁止原样输出任何字段、数值或英文标签：\n\n" +
+        "面相特征：" +
             faceDescription +
-            "\n\n请输出成品面相批语，包含面形总论、逐部位详析、运势总判。"
+            "\n请输出面相批语。"
 
     fun getMaxTokens(feature: String): Int = when (feature) {
         "oracle" -> MAX_TOKENS_ORACLE

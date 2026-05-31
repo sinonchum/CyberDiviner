@@ -76,7 +76,7 @@ class GemmaEngine(private val context: Context) {
             try {
                 Log.d(TAG, "Initializing LiteRT-LM bridge from $modelPath")
                 val nextBridge = LiteRtLmBridge()
-                nextBridge.initialize(modelPath, context.cacheDir.path, 512)
+                nextBridge.initialize(modelPath, context.cacheDir.path, 1024)
                 bridge = nextBridge
                 modelReady = true
                 Log.d(TAG, "LiteRT-LM bridge initialized successfully")

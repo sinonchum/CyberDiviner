@@ -464,8 +464,8 @@ private fun InterpretingPhase(uiState: TarotUiState) {
             text = animatedMessage,
             color = GrayCaption,
             fontSize = 13.sp,
-            fontFamily = MonoFontFamily,
-            letterSpacing = 1.sp
+            fontFamily = HuiwenFontFamily,
+            letterSpacing = 2.sp
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(

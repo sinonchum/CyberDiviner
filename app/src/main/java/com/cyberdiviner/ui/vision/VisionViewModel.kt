@@ -1062,89 +1062,49 @@ class VisionViewModel @Inject constructor(
     private fun buildFeaturesDescription(featuresJson: String): String {
         return try {
             val features = json.decodeFromString<FacialFeatures>(featuresJson)
-            buildString {
-                // ── 面形总论 ──
-                appendLine("【面形数据】")
-                val shapeDesc = when (features.faceOval.shape) {
-                    "round" -> "圆面（水形面）"
-                    "long" -> "长面（木形面）"
-                    "square" -> "方面（金形面）"
-                    else -> "椭圆面（标准面形）"
-                }
-                appendLine("脸型：$shapeDesc")
-                appendLine("面部宽度：${String.format("%.1f", features.faceOval.width)}px，高度：${String.format("%.1f", features.faceOval.height)}px")
-                appendLine("宽高比：${String.format("%.2f", features.faceOval.width / features.faceOval.height.coerceAtLeast(1f))}")
-                appendLine("左右对称性：${String.format("%.0f", features.faceOval.symmetry * 100)}%")
-                appendLine()
-
-                // ── 三停分析 ──
-                appendLine("【三停比例】")
-                appendLine("上停（发际至眉）：${features.forehead.shape}额，额头高度 ${String.format("%.1f", features.forehead.height)}px")
-                appendLine("中停（眉至鼻尖）：鼻子长度占比 ${String.format("%.0f", features.nose.noseLength * 100)}%")
-                appendLine("下停（鼻尖至下巴）：下巴突出度 ${String.format("%.2f", features.chin.prominence)}")
-                appendLine()
-
-                // ── 天庭 ──
-                appendLine("【天庭（额头）】")
-                appendLine("形态：${features.forehead.shape}额")
-                appendLine("宽度比例：${String.format("%.2f", features.forehead.width)}")
-                appendLine("饱满度：${features.forehead.fullness}")
-                appendLine("纹路：${features.forehead.lineCount}条")
-                appendLine()
-
-                // ── 眉 ──
-                appendLine("【眉（保寿官）】")
-                appendLine("眉形：${features.eyebrows.arch}眉")
-                appendLine("左眉厚度：${String.format("%.3f", features.eyebrows.leftThickness)}")
-                appendLine("右眉厚度：${String.format("%.3f", features.eyebrows.rightThickness)}")
-                appendLine("眉间距比：${String.format("%.2f", features.eyebrows.spacing)}")
-                appendLine("整体形态：${features.eyebrows.shape}")
-                appendLine()
-
-                // ── 眼 ──
-                appendLine("【眼（监察官）】")
-                appendLine("眼型大小：${features.eyes.eyeSize}")
-                appendLine("眼尾走向：${features.eyes.eyeTilt}")
-                appendLine("左眼开合度：${String.format("%.3f", features.eyes.leftEyeOpenness)}")
-                appendLine("右眼开合度：${String.format("%.3f", features.eyes.rightEyeOpenness)}")
-                appendLine("两眼间距比：${String.format("%.2f", features.eyes.eyeSpacing)}")
-                appendLine("目光方向：${features.eyes.gazeDirection}")
-                appendLine()
-
-                // ── 鼻 ──
-                appendLine("【鼻（审辨官）】")
-                appendLine("鼻形：${features.nose.shape}")
-                appendLine("鼻梁描述：${features.nose.bridgeDescription}")
-                appendLine("鼻梁高度：${String.format("%.1f", features.nose.bridgeHeight)}px")
-                appendLine("鼻头宽度比：${String.format("%.2f", features.nose.tipWidth)}")
-                appendLine("鼻子长度比：${String.format("%.2f", features.nose.noseLength)}")
-                appendLine()
-
-                // ── 口 ──
-                appendLine("【口（出纳官）】")
-                appendLine("唇形：${features.mouth.shape}")
-                appendLine("嘴宽比：${String.format("%.2f", features.mouth.width)}")
-                appendLine("唇厚比：${String.format("%.3f", features.mouth.lipThickness)}")
-                val cornerDesc = if (features.mouth.cornerUpturn > 0) "嘴角上扬（笑相）" else "嘴角平直"
-                appendLine("嘴角走势：$cornerDesc")
-                appendLine()
-
-                // ── 地阁 ──
-                appendLine("【地阁（下巴）】")
-                appendLine("下巴形态：${features.chin.shape}")
-                appendLine("下巴宽度比：${String.format("%.2f", features.chin.width)}")
-                appendLine("下巴突出度：${String.format("%.2f", features.chin.prominence)}")
-                appendLine()
-
-                // ── 耳 ──
-                appendLine("【耳（采听官）】")
-                appendLine("耳朵大小：${features.ears.shape}")
-                appendLine("左耳比例：${String.format("%.2f", features.ears.leftEarSize)}")
-                appendLine("右耳比例：${String.format("%.2f", features.ears.rightEarSize)}")
-                appendLine("耳型：${features.ears.attachment}")
+            val face = when (features.faceOval.shape) {
+                "round" -> "水形圆面"
+                "long" -> "木形长面"
+                "square" -> "金形方面"
+                "heart" -> "上宽下收之面"
+                else -> "端正椭圆面"
             }
+            val forehead = when (features.forehead.shape) {
+                "broad" -> "天庭开阔"
+                "narrow" -> "天庭略窄"
+                "rounded" -> "额圆而润"
+                else -> "额相平正"
+            }
+            val brow = when (features.eyebrows.arch) {
+                "straight" -> "眉直"
+                "arched" -> "眉弓"
+                else -> "眉形自然"
+            }
+            val eyes = when (features.eyes.eyeSize) {
+                "large" -> "眼大有神"
+                "small" -> "眼小聚光"
+                else -> "眼势平和"
+            }
+            val nose = when (features.nose.shape) {
+                "broad" -> "鼻头丰"
+                "pointed" -> "鼻梁锐"
+                "round" -> "鼻形圆"
+                else -> "鼻形直"
+            }
+            val mouth = when (features.mouth.shape) {
+                "full" -> "唇厚"
+                "thin" -> "唇薄"
+                else -> "口形端"
+            }
+            val chin = when (features.chin.shape) {
+                "square" -> "地阁方"
+                "pointed" -> "地阁尖"
+                else -> "地阁圆"
+            }
+            val symmetry = if (features.faceOval.symmetry > 0.9f) "左右均衡" else "左右略偏"
+            "$face，$symmetry；$forehead；$brow，$eyes；$nose，$mouth；$chin。"
         } catch (e: Exception) {
-            featuresJson
+            "面形端正，五官可辨，气色待察。"
         }
     }
 

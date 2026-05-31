@@ -8,5 +8,5 @@ enum class DivinationType(val displayName: String, val icon: String) {
     LIUYAO("六爻", ""),
     TAROT("塔罗", ""),
     VISION("面相", ""),
-    MUYU("木鱼", "")
+    MUYU("颂钵", "")
 }

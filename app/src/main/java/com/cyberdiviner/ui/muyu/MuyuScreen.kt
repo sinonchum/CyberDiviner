@@ -33,7 +33,7 @@ import androidx.navigation.NavController
 import com.cyberdiviner.ui.theme.*
 
 /**
- * Electronic Wooden Fish (电子木鱼)
+ * Electronic Singing Bowl (电子颂钵)
  */
 @Composable
 fun MuyuScreen(
@@ -57,7 +57,7 @@ fun MuyuScreen(
         label = "bounceScale"
     )
 
-    // Mallet strike animation
+    // Striker animation
     var malletStrike by remember { mutableStateOf(false) }
     val malletAngle by animateFloatAsState(
         targetValue = if (malletStrike) -30f else 0f,
@@ -65,16 +65,16 @@ fun MuyuScreen(
             dampingRatio = Spring.DampingRatioMediumBouncy,
             stiffness = Spring.StiffnessHigh
         ),
-        label = "malletAngle"
+        label = "strikerAngle"
     )
 
     LaunchedEffect(isPressed) {
         if (isPressed) {
             kotlinx.coroutines.delay(80)
             isPressed = false
-            malletStrike = true
-            kotlinx.coroutines.delay(250)
-            malletStrike = false
+                malletStrike = true
+                kotlinx.coroutines.delay(320)
+                malletStrike = false
         }
     }
 
@@ -131,7 +131,7 @@ fun MuyuScreen(
                 )
                 Spacer(modifier = Modifier.width(16.dp))
                 Text(
-                    text = "电子木鱼",
+                    text = "电子颂钵",
                     color = GrayCaption,
                     fontSize = 14.sp,
                     fontFamily = HuiwenFontFamily,
@@ -164,13 +164,13 @@ fun MuyuScreen(
                     .padding(horizontal = 24.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                StatBadge(label = "本次功德", value = "$sessionHits")
-                StatBadge(label = "总功德", value = "$totalHits")
+                StatBadge(label = "本次清音", value = "$sessionHits")
+                StatBadge(label = "总清音", value = "$totalHits")
             }
 
             Spacer(modifier = Modifier.weight(1f))
 
-            // ── Wooden fish area ──────────────────────────────────
+            // ── Singing bowl area ─────────────────────────────────
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier.size(320.dp)
@@ -195,7 +195,7 @@ fun MuyuScreen(
                     }
                 }
 
-                // Wooden fish + mallet
+                // Singing bowl + striker
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
@@ -213,7 +213,6 @@ fun MuyuScreen(
                             viewModel.hit()
                         }
                 ) {
-                    // Canvas-drawn temple wooden fish — clearer than PNG
                     Canvas(
                         modifier = Modifier
                             .fillMaxSize()
@@ -221,7 +220,7 @@ fun MuyuScreen(
                                 rotationZ = malletAngle * 0.1f
                             }
                     ) {
-                        drawTempleWoodenFish(malletAngle)
+                        drawSingingBowl(malletAngle)
                     }
                 }
             }
@@ -237,7 +236,7 @@ fun MuyuScreen(
             ) {
                 if (meritActive) {
                     Text(
-                        text = "＋1 功德",
+                        text = "＋1 清音",
                         color = CyberWhite,
                         fontSize = 20.sp,
                         fontFamily = WenKaiFontFamily,
@@ -251,7 +250,7 @@ fun MuyuScreen(
             }
 
             Text(
-                text = "轻触木鱼，积累功德",
+                text = "轻触颂钵，听一声清响",
                 color = GrayCaption,
                 fontSize = 14.sp,
                 fontFamily = WenKaiFontFamily,
@@ -286,114 +285,43 @@ fun MuyuScreen(
     }
 }
 
-// ── Temple Wooden Fish ────────────────────────────────────
-//
-//   Based on real Buddhist temple wooden fish reference:
-//   - Nearly spherical hollow wooden body
-//   - Horizontal slit (鱼口/开口) at equator — sound resonance opening
-//   - Fish scale pattern (鱼鳞) on upper hemisphere — overlapping semicircles
-//   - Two decorative eyes on upper section
-//   - Central strike point where mallet hits
-//   - Rests on a small wooden cradle/cushion (no handle — rests on surface)
-//   - Mallet with round bulbous head
-//
-//            ╭─────────────╮
-//          ╱  ◯  ╌╌╌  ◯   ╲       ← eyes
-//        ╱  ⌇⌇⌇⌇⌇⌇⌇⌇⌇⌇⌇  ╲     ← fish scales
-//       │   ╌╌╌╌╌ ◉ ╌╌╌╌╌  │     ← strike point
-//       │   ═══════════════  │     ← mouth slit (equator)
-//        ╲                 ╱
-//          ╲             ╱
-//            ╰─────────╯
-//           ───┤     ├───         ← cradle base
-
-private fun DrawScope.drawTempleWoodenFish(malletAngleDeg: Float) {
-    // Center the fish body slightly left to make room for the mallet
+private fun DrawScope.drawSingingBowl(malletAngleDeg: Float) {
     val cx = size.width / 2f - size.width * 0.05f
-    val cy = size.height / 2f
+    val cy = size.height / 2f + size.height * 0.05f
     val sw = 2.dp.toPx()
     val W = CyberWhite
     val W50 = W.copy(alpha = 0.5f)
     val W30 = W.copy(alpha = 0.3f)
+    val bowlW = size.minDimension * 0.72f
+    val bowlH = size.minDimension * 0.34f
+    val rimY = cy - bowlH * 0.35f
+    val baseY = cy + bowlH * 0.52f
 
-    // ═══════════════════════════════════════════════════
-    // 1. PEAR/GOURD SHAPE — the body of the wooden fish
-    //    Wider at top, narrower at bottom, smooth organic curve
-    // ═══════════════════════════════════════════════════
-    val bodyW = size.minDimension * 0.36f   // half-width at widest
-    val bodyH = size.minDimension * 0.42f   // half-height
-    val stemW = size.minDimension * 0.04f   // stem width
-    val stemH = size.minDimension * 0.06f   // stem height
-
-    val bodyPath = Path().apply {
-        // Start at bottom center (stem junction)
-        moveTo(cx, cy + bodyH * 0.85f)
-        // Right side — smooth curve outward then back in
-        cubicTo(
-            cx + bodyW * 0.6f, cy + bodyH * 0.85f,   // control 1: out to the right
-            cx + bodyW, cy + bodyH * 0.2f,             // control 2: wide at upper-right
-            cx + bodyW * 0.95f, cy - bodyH * 0.1f     // end: near top-right
-        )
-        // Top — round dome
-        cubicTo(
-            cx + bodyW * 0.85f, cy - bodyH * 0.7f,    // control 1
-            cx - bodyW * 0.85f, cy - bodyH * 0.7f,    // control 2
-            cx - bodyW * 0.95f, cy - bodyH * 0.1f     // end: top-left
-        )
-        // Left side — mirror of right
-        cubicTo(
-            cx - bodyW, cy + bodyH * 0.2f,
-            cx - bodyW * 0.6f, cy + bodyH * 0.85f,
-            cx, cy + bodyH * 0.85f
-        )
-        close()
+    val bowlPath = Path().apply {
+        moveTo(cx - bowlW * 0.5f, rimY)
+        cubicTo(cx - bowlW * 0.42f, cy + bowlH * 0.36f, cx - bowlW * 0.25f, baseY, cx, baseY)
+        cubicTo(cx + bowlW * 0.25f, baseY, cx + bowlW * 0.42f, cy + bowlH * 0.36f, cx + bowlW * 0.5f, rimY)
     }
-    drawPath(bodyPath, W, style = Stroke(sw * 1.5f, cap = StrokeCap.Round))
+    drawPath(bowlPath, W, style = Stroke(sw * 1.5f, cap = StrokeCap.Round))
+    drawOval(
+        color = W,
+        topLeft = Offset(cx - bowlW * 0.5f, rimY - bowlH * 0.16f),
+        size = Size(bowlW, bowlH * 0.32f),
+        style = Stroke(sw * 1.5f)
+    )
+    drawOval(
+        color = W30,
+        topLeft = Offset(cx - bowlW * 0.38f, rimY - bowlH * 0.07f),
+        size = Size(bowlW * 0.76f, bowlH * 0.15f),
+        style = Stroke(sw)
+    )
+    drawLine(W30, Offset(cx - bowlW * 0.22f, baseY + bowlH * 0.08f), Offset(cx + bowlW * 0.22f, baseY + bowlH * 0.08f), sw, StrokeCap.Round)
+    drawArc(W30, 210f, 120f, false, Offset(cx - bowlW * 0.68f, rimY - bowlH * 0.38f), Size(bowlW * 1.36f, bowlH * 1.36f), style = Stroke(sw * 0.8f, cap = StrokeCap.Round))
 
-    // ═══════════════════════════════════════════════════
-    // 2. MOUTH SLIT (开口) — curved horizontal opening
-    //    Follows the curvature of the pear shape
-    // ═══════════════════════════════════════════════════
-    val slitY = cy - bodyH * 0.05f  // slightly above center
-    val slitW = bodyW * 0.75f       // how wide the slit extends
-
-    // The slit is a curved line (arc) that follows the sphere's surface
-    val slitPath = Path().apply {
-        moveTo(cx - slitW, slitY + bodyH * 0.06f)  // left end, slightly lower
-        // Arc upward in the middle, following the sphere curvature
-        quadraticBezierTo(
-            cx, slitY - bodyH * 0.12f,              // peak of the arc (curves up)
-            cx + slitW, slitY + bodyH * 0.06f       // right end, slightly lower
-        )
-    }
-    drawPath(slitPath, W, style = Stroke(sw * 1.4f, cap = StrokeCap.Round))
-
-    // Second line slightly below — creates the "gap" / depth of the slit
-    val slitPath2 = Path().apply {
-        moveTo(cx - slitW * 0.85f, slitY + bodyH * 0.12f)
-        quadraticBezierTo(
-            cx, slitY - bodyH * 0.04f,
-            cx + slitW * 0.85f, slitY + bodyH * 0.12f
-        )
-    }
-    drawPath(slitPath2, W30, style = Stroke(sw * 0.8f, cap = StrokeCap.Round))
-
-    // ═══════════════════════════════════════════════════
-    // 3. STEM (茎) — small tiered detail at the bottom
-    // ═══════════════════════════════════════════════════
-    val stemTop = cy + bodyH * 0.85f
-    // Stepped ridges
-    drawLine(W50, Offset(cx - stemW * 1.5f, stemTop), Offset(cx + stemW * 1.5f, stemTop), sw, StrokeCap.Round)
-    drawLine(W50, Offset(cx - stemW, stemTop + stemH * 0.4f), Offset(cx + stemW, stemTop + stemH * 0.4f), sw, StrokeCap.Round)
-    drawLine(W50, Offset(cx - stemW * 0.5f, stemTop + stemH * 0.8f), Offset(cx + stemW * 0.5f, stemTop + stemH * 0.8f), sw, StrokeCap.Round)
-
-    // ═══════════════════════════════════════════════════
-    // 4. MALLET (木槌) — separate stick with round head
-    // ═══════════════════════════════════════════════════
-    val malletPivotX = cx + bodyW * 1.8f
-    val malletPivotY = cy - bodyH * 0.9f
-    val malletTipX0 = cx + bodyW * 0.2f
-    val malletTipY0 = cy + bodyH * 0.15f
+    val malletPivotX = cx + bowlW * 0.48f
+    val malletPivotY = cy - bowlH * 1.35f
+    val malletTipX0 = cx + bowlW * 0.18f
+    val malletTipY0 = rimY - bowlH * 0.03f
 
     val angleRad = Math.toRadians(malletAngleDeg.toDouble())
     val dx = malletTipX0 - malletPivotX
@@ -403,9 +331,7 @@ private fun DrawScope.drawTempleWoodenFish(malletAngleDeg: Float) {
 
     // Handle
     drawLine(W50, Offset(malletPivotX, malletPivotY), Offset(tipX, tipY), sw * 2f, StrokeCap.Round)
-    // Head — solid round bulb
-    val headR = bodyW * 0.1f
-    drawCircle(W, radius = headR, center = Offset(tipX, tipY))
+    drawCircle(W, radius = bowlW * 0.035f, center = Offset(tipX, tipY))
 }
 
 // ── Stat badge ──────────────────────────────────────────────
@@ -428,4 +354,3 @@ private fun StatBadge(label: String, value: String) {
         )
     }
 }
-
