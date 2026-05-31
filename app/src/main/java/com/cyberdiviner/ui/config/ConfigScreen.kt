@@ -318,6 +318,16 @@ fun ConfigScreen(onBack: () -> Unit) {
                     .padding(bottom = 12.dp)
             )
 
+            CyberButton(
+                text = "导入本地模型",
+                onClick = {
+                    importLauncher.launch(arrayOf("application/octet-stream", "application/x-tflite", "*/*"))
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp)
+            )
+
             // Model status and actions
             when (val state = modelState) {
                 is ModelManager.ModelState.NotDownloaded -> {
@@ -331,20 +341,6 @@ fun ConfigScreen(onBack: () -> Unit) {
                                 scope.launch { modelManager.download() }
                             }
                         )
-                        TextButton(
-                            onClick = {
-                                importLauncher.launch(arrayOf("application/octet-stream", "*/*"))
-                            },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(
-                                text = "IMPORT LOCAL FILE",
-                                color = GrayCaption,
-                                fontFamily = MonoFontFamily,
-                                fontSize = 11.sp,
-                                letterSpacing = 1.sp
-                            )
-                        }
                     }
                 }
 
@@ -420,20 +416,6 @@ fun ConfigScreen(onBack: () -> Unit) {
                                 scope.launch { modelManager.download() }
                             }
                         )
-                        TextButton(
-                            onClick = {
-                                importLauncher.launch(arrayOf("application/octet-stream", "*/*"))
-                            },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(
-                                text = "IMPORT INSTEAD",
-                                color = GrayCaption,
-                                fontFamily = MonoFontFamily,
-                                fontSize = 11.sp,
-                                letterSpacing = 1.sp
-                            )
-                        }
                     }
                 }
             }
