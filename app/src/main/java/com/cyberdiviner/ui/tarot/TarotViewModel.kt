@@ -409,6 +409,9 @@ class TarotViewModel @Inject constructor(
             .replace(Regex("(?i)\\b(Knight|Page|Queen|King|Ace|Two|Three|Four|Five|Six|Seven|Eight|Nine|Ten) of (Cups|Swords|Wands|Pentacles)\\b")) { match ->
                 englishCardNameToChinese(match.value)
             }
+            .replace(Regex("(?m)^\\s*问题[：:].*$"), "")
+            .replace(Regex("问题[：:].*$"), "")
+            .replace(Regex("[。．]{2,}"), "。")
             .trim()
 
         if (cleaned.isBlank() || isLowQualityTarotOutput(cleaned, cards)) {
@@ -430,7 +433,8 @@ class TarotViewModel @Inject constructor(
         val promptEchoMarkers = listOf(
             "先解读每张牌", "这张牌的含义是", "牌面：", "请简要解读",
             "最终结果：", "每张牌的含义及其位置关系", "不要写数字代号",
-            "2句话", "1到2句话", "每张牌1句话", "必须写真实牌名", "格式说明"
+            "2句话", "1到2句话", "每张牌1句话", "必须写真实牌名", "格式说明",
+            "问题：", "问题:"
         ).count { text.contains(it) }
         val realCardMentions = cards.count { card ->
             text.contains(card.nameZh) || text.contains(card.name)

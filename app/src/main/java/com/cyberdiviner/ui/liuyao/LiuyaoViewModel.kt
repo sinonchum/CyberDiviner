@@ -408,21 +408,29 @@ class LiuyaoViewModel @Inject constructor(
     ): String {
         val cleaned = candidate
             .replace(Regex("\\d{6,}"), "")
+            .replace(Regex("(?m)^\\s*解读\\s*$"), "")
+            .replace(Regex("(?m)^\\s*【卦象解读】\\s*【卦象解读】\\s*$"), "【卦象解读】")
+            .replace(Regex("(?m)(【卦象解读】\\s*){2,}"), "【卦象解读】\n")
+            .replace(Regex("(?m)(【进退之策】\\s*){2,}"), "【进退之策】\n")
             .replace("【建议】", "【进退之策】")
             .replace("【趋吉避凶】", "【进退之策】")
             .replace("建议：", "进退之策：")
             .replace("建议:", "进退之策：")
             .replace("趋吉避凶", "进退之策")
+            .replace(Regex("问题[：:].*$"), "")
+            .replace(Regex("[。．]{2,}"), "。")
             .replace(Regex("\\n{3,}"), "\n\n")
             .trim()
 
         val lowQuality = cleaned.isBlank() ||
             Regex("""\b(?:12|21|1222|2222|1212){2,}\b""").containsMatchIn(candidate) ||
+            Regex("""六爻显示[：:][一二三四五六七八九十〇零]{4,}""").containsMatchIn(cleaned) ||
             Regex("""\[[^\]]*[A-Za-z][^\]]*\]""").containsMatchIn(cleaned) ||
+            Regex("""【卦象解读】.*【卦象解读】""", RegexOption.DOT_MATCHES_ALL).containsMatchIn(cleaned) ||
             (cleaned.contains("上卦") && cleaned.contains("下卦") && !cleaned.contains("进退之策") && cleaned.length < 180) ||
             hasRepeatedShortPhraseLoop(cleaned) ||
             cleaned.length < 80 ||
-            listOf("2-3句话", "给出吉凶判断和建议", "直接开始回答", "用户会提供").any { cleaned.contains(it) }
+            listOf("2-3句话", "给出吉凶判断和建议", "直接开始回答", "用户会提供", "六爻显示").any { cleaned.contains(it) }
 
         if (!lowQuality) return cleaned
 

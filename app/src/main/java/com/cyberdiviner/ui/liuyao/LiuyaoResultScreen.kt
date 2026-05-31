@@ -626,11 +626,16 @@ private fun InterpretationCard(result: LiuyaoEngine.DivinationResult, llmText: S
         .replace(Regex("[━─═]{4,}"), "")
         .replace(Regex("六爻占卜 — Liuyao Divination"), "")
         .replace(Regex("━━━ .+ ━━━"), "")
+        .replace(Regex("(?m)^\\s*解读\\s*$"), "")
+        .replace(Regex("(?m)(【卦象解读】\\s*){2,}"), "【卦象解读】\n")
+        .replace(Regex("(?m)(【进退之策】\\s*){2,}"), "【进退之策】\n")
         .replace("【建议】", "【进退之策】")
         .replace("【趋吉避凶】", "【进退之策】")
         .replace("建议：", "进退之策：")
         .replace("建议:", "进退之策：")
         .replace("趋吉避凶", "进退之策")
+        .replace(Regex("问题[：:].*$"), "")
+        .replace(Regex("[。．]{2,}"), "。")
         .trim()
 
     if (cleanText.isBlank()) {
