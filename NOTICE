@@ -1,0 +1,20 @@
+CyberDiviner Third-Party Notices
+
+This app bundles the following fonts:
+
+LXGW WenKai (霞鹜文楷)
+License: SIL Open Font License 1.1
+Use: Chinese body text and dialogue.
+Project: https://github.com/lxgw/LxgwWenKai
+
+JetBrains Mono
+License: SIL Open Font License 1.1
+Use: Latin, numeric, terminal, metadata, and system text.
+Project: https://github.com/JetBrains/JetBrainsMono
+
+Huiwen Mingchao (汇文明朝体)
+License: CC0 1.0 Universal, as declared by the upstream distribution used for this bundled font.
+Use: Chinese display titles and fortune headings.
+
+The generated singing bowl sound bundled in app/src/main/res/raw/singing_bowl.wav
+was synthesized for CyberDiviner and is not copied from a third-party recording.
