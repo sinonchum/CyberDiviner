@@ -83,7 +83,7 @@ class OracleViewModel @Inject constructor(
         val fallback = parseOracleSections(generateOfflineFallback(question))!!
         val parsed = parseOracleSections(sanitized)
 
-        val poem = normalizePoem(parsed?.poem).ifBlank { fallback.poem }
+        val poem = normalizePoem(parsed?.poem, question).ifBlank { fallback.poem }
         val analysis = normalizeParagraph(parsed?.analysis, maxSentences = 5, maxChars = 180)
             .ifBlank { fallback.analysis }
         val verdict = normalizeParagraph(parsed?.verdict, maxSentences = 2, maxChars = 80)
@@ -108,7 +108,7 @@ class OracleViewModel @Inject constructor(
             "[ 逻辑解析 ]\n${sections.analysis}\n\n" +
             "[ 最终断语 ]\n${sections.verdict}"
 
-    private fun normalizePoem(rawPoem: String?): String {
+    private fun normalizePoem(rawPoem: String?, question: String): String {
         if (rawPoem.isNullOrBlank()) return ""
 
         val cleaned = rawPoem
@@ -120,14 +120,19 @@ class OracleViewModel @Inject constructor(
             .map { it.trim().trim('。', '！', '？', '!', '?') }
             .filter { it.isNotBlank() }
             .filterNot { isOracleBlessingOrPlainWish(it) }
+            .filterNot { isPlainQuestionEcho(it, question) }
             .take(4)
 
-        if (sentences.size < 2) return ""
+        if (sentences.size < 4) return ""
 
-        return sentences.joinToString("\n") { sentence ->
+        val normalizedSentences = sentences.map { sentence ->
             val normalized = sentence.replace(Regex("\\s+"), "")
             if (normalized.endsWith("。")) normalized else "$normalized。"
         }
+        if (normalizedSentences.any { it.length < 7 || it.length > 18 }) return ""
+        if (hasRepeatedShortPhraseLoop(normalizedSentences.joinToString(""))) return ""
+
+        return normalizedSentences.joinToString("\n")
     }
 
     private fun isOracleBlessingOrPlainWish(sentence: String): Boolean {
@@ -138,6 +143,34 @@ class OracleViewModel @Inject constructor(
         )
         return markers.any { normalized.contains(it) } ||
             normalized.length > 18 && listOf("工作", "事业", "感情", "财运", "健康").any { normalized.contains(it) }
+    }
+
+    private fun isPlainQuestionEcho(sentence: String, question: String): Boolean {
+        val normalized = sentence.replace(Regex("\\s+"), "")
+        val q = question.replace(Regex("\\s+"), "")
+        val plainTopicWords = listOf(
+            "事业", "工作", "职业", "升职", "求职", "面试",
+            "感情", "恋爱", "婚姻", "复合",
+            "财运", "财富", "投资", "赚钱",
+            "健康", "身体", "疾病", "考试", "学业"
+        )
+        if (plainTopicWords.any { normalized.contains(it) }) return true
+        return q.length >= 4 && normalized.contains(q.take(4))
+    }
+
+    private fun hasRepeatedShortPhraseLoop(text: String): Boolean {
+        val tokens = text
+            .replace(Regex("[\\s，,。！？!?；;：:、]+"), "|")
+            .trim('|')
+            .split('|')
+            .filter { it.length in 2..8 }
+        if (tokens.groupingBy { it }.eachCount().any { it.value >= 4 }) return true
+        for (size in 2..4) {
+            if (tokens.size < size * 4) continue
+            val windows = tokens.windowed(size).map { it.joinToString("") }
+            if (windows.groupingBy { it }.eachCount().any { it.value >= 3 }) return true
+        }
+        return false
     }
 
     private fun normalizeParagraph(raw: String?, maxSentences: Int, maxChars: Int): String {
@@ -282,12 +315,7 @@ class OracleViewModel @Inject constructor(
      * Uses template-based generation with randomized poetic content.
      */
     private fun generateOfflineFallback(question: String): String {
-        val poems = listOf(
-            "云开月明终有日，守得初心见真章。\n春来草木自青青，莫问前程且自行。",
-            "山重水复疑无路，柳暗花明又一村。\n静水深流藏真意，守正待时自有期。",
-            "风起青萍末，事成细微中。\n天道酬勤终不负，行稳致远自亨通。",
-            "否极泰来运将转，守得云开见月明。\n蓄势待发正当时，厚积薄发展宏图。"
-        )
+        val poems = oracleFallbackPoems(question)
         val analyses = listOf(
             "此签主先难后易。眼前虽有困顿，但因果链已开始转动。关键在于保持定力，不被短期波动干扰。",
             "签文显示局势正在酝酿变化。当前的停滞并非坏事，而是系统在重新校准方向。宜静观其变。",
@@ -305,6 +333,36 @@ class OracleViewModel @Inject constructor(
         val advice = advices[(idx shr 8) % advices.size]
 
         return "[ 载入签文 ]\n$poem\n\n[ 逻辑解析 ]\n$analysis\n\n[ 最终断语 ]\n$advice"
+    }
+
+    private fun oracleFallbackPoems(question: String): List<String> {
+        val career = listOf("事业", "工作", "职业", "升职", "求职", "面试").any { question.contains(it) }
+        val love = listOf("感情", "恋爱", "婚姻", "复合", "桃花").any { question.contains(it) }
+        val money = listOf("财运", "投资", "赚钱", "财富", "收入").any { question.contains(it) }
+        val health = listOf("健康", "身体", "疾病", "养生").any { question.contains(it) }
+
+        return when {
+            career -> listOf(
+                "云门半启见微光。\n石径初晴草木香。\n莫逐急潮争一渡。\n待逢东信自成航。",
+                "寒灯照壁影犹长。\n旧履沾尘未碍霜。\n且把寸心磨作刃。\n春雷一动见锋芒。"
+            )
+            love -> listOf(
+                "桃枝未语雨先来。\n隔岸灯明水自开。\n若问归舟何处泊。\n清风吹月入君怀。",
+                "玉露凝枝夜色深。\n一弦未断有回音。\n莫将急语催花信。\n静待东风认本心。"
+            )
+            money -> listOf(
+                "金声未响火先明。\n细水穿沙自有程。\n莫向浮云追幻影。\n守仓待稔见秋成。",
+                "小泉入壑聚成川。\n旧土培根可养年。\n若问盈虚何处定。\n一分稳处一分圆。"
+            )
+            health -> listOf(
+                "晨钟未远露初收。\n静养元神胜远游。\n莫把微寒轻作过。\n一灯守夜护清秋。",
+                "松风入牖洗尘心。\n缓步调息听古琴。\n若问平安何处得。\n先安方寸再安身。"
+            )
+            else -> listOf(
+                "云开月落见微芒。\n石上清泉过旧霜。\n莫问前程多少路。\n一心守定自成章。",
+                "山重水复未须惊。\n柳暗花明渐有声。\n静水深流藏远势。\n守正待时见月明。"
+            )
+        }
     }
 
     private fun generateFourCharSummary(response: String): String {
