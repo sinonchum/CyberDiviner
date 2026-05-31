@@ -67,6 +67,7 @@ class OracleViewModel @Inject constructor(
             .replace("老夫", "本系统")
             .replace("小伙子", "使用者")
             .replace("师傅", "先知")
+            .let(::cleanOracleArtifacts)
             .trim()
 
         // 4. 剔除末尾的"问题"回显（LLM有时会把用户问题复述一遍）
@@ -108,12 +109,21 @@ class OracleViewModel @Inject constructor(
             "[ 逻辑解析 ]\n${sections.analysis}\n\n" +
             "[ 最终断语 ]\n${sections.verdict}"
 
+    private fun cleanOracleArtifacts(text: String): String =
+        text
+            .replace(Regex("(?i)poh"), "")
+            .replace(Regex("(?m)(?<=[\\u4E00-\\u9FFF])[A-Za-z]{2,}(?=\\s*[，,。！？!?；;]|\\s*$)"), "")
+            .replace(Regex("[ \\t]+([，,。！？!?；;])"), "$1")
+            .replace(Regex("([，,；;])\\s*([。！？!?])"), "$2")
+            .trim()
+
     private fun normalizePoem(rawPoem: String?, question: String): String {
         if (rawPoem.isNullOrBlank()) return ""
 
         val cleaned = rawPoem
             .replace(Regex("[「」『』“”\"']"), "")
             .replace(Regex("(?m)^\\s*[一二三四1234][.．、]\\s*"), "")
+            .let(::cleanOracleArtifacts)
             .trim()
 
         val clauses = cleaned.split(Regex("[，,。！？!?；;\\n]+"))
@@ -180,6 +190,7 @@ class OracleViewModel @Inject constructor(
 
         val cleaned = raw
             .replace(Regex("(?m)^\\s*[一二三四五六七八九十\\d]+[.．、]\\s*"), "")
+            .let(::cleanOracleArtifacts)
             .replace(Regex("\\s+"), " ")
             .trim()
 

@@ -447,7 +447,7 @@ fun ConfigScreen(onBack: () -> Unit) {
                 )
             }
 
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.height(24.dp))
 
             // Save button
             CyberButton(
