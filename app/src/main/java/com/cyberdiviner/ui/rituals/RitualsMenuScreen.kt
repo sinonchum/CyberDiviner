@@ -11,6 +11,8 @@ import com.cyberdiviner.ui.shared.CyberMenuItem
 import com.cyberdiviner.ui.theme.CyberBlack
 import com.cyberdiviner.ui.shared.SectionHeader
 import com.cyberdiviner.ui.shared.StaggeredItem
+import com.cyberdiviner.ui.localization.CyberCopy
+import com.cyberdiviner.ui.localization.LocalAppLanguage
 
 /**
  * RitualsMenuScreen -- Tab for ritual selection (bottom nav destination).
@@ -27,6 +29,8 @@ fun RitualsMenuScreen(
     onAlmanac: () -> Unit,
     @Suppress("UNUSED_PARAMETER") onBack: () -> Unit
 ) {
+    val lang = LocalAppLanguage.current
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -38,14 +42,14 @@ fun RitualsMenuScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.Start
         ) {
-            SectionHeader(title = "术数推演", subtitle = "RITUAL EXECUTION")
+            SectionHeader(title = CyberCopy.ritualsTitle(lang), subtitle = CyberCopy.ritualsSubtitle(lang))
             Spacer(modifier = Modifier.height(48.dp))
 
             StaggeredItem(index = 0) {
                 CyberMenuItem(
-                    title = "周易六爻",
+                    title = CyberCopy.ritualIChing(lang),
                     subtitle = "I-CHING",
-                    description = "摇钱起卦，六爻断事",
+                    description = CyberCopy.ritualIChingDesc(lang),
                     onClick = onIChing
                 )
             }
@@ -53,9 +57,9 @@ fun RitualsMenuScreen(
 
             StaggeredItem(index = 1) {
                 CyberMenuItem(
-                    title = "赛博塔罗",
+                    title = CyberCopy.ritualTarot(lang),
                     subtitle = "CYBER TAROT",
-                    description = "七十八牌，阵法推演",
+                    description = CyberCopy.ritualTarotDesc(lang),
                     onClick = onTarot
                 )
             }
@@ -63,9 +67,9 @@ fun RitualsMenuScreen(
 
             StaggeredItem(index = 2) {
                 CyberMenuItem(
-                    title = "视界摸骨",
+                    title = CyberCopy.ritualVision(lang),
                     subtitle = "FACE SCAN",
-                    description = "镜阵观相，五官推演",
+                    description = CyberCopy.ritualVisionDesc(lang),
                     onClick = onVision
                 )
             }
@@ -73,9 +77,9 @@ fun RitualsMenuScreen(
 
             StaggeredItem(index = 3) {
                 CyberMenuItem(
-                    title = "电子颂钵",
+                    title = CyberCopy.ritualBowl(lang),
                     subtitle = "SINGING BOWL",
-                    description = "一击清音，静心调息",
+                    description = CyberCopy.ritualBowlDesc(lang),
                     onClick = onMuyu
                 )
             }
@@ -83,9 +87,9 @@ fun RitualsMenuScreen(
 
             StaggeredItem(index = 4) {
                 CyberMenuItem(
-                    title = "赛博黄历",
+                    title = CyberCopy.ritualAlmanac(lang),
                     subtitle = "ALMANAC",
-                    description = "干支黄历，每日宜忌",
+                    description = CyberCopy.ritualAlmanacDesc(lang),
                     onClick = onAlmanac
                 )
             }

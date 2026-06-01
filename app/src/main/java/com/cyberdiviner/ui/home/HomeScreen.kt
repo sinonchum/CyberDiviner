@@ -19,6 +19,8 @@ import com.cyberdiviner.ui.theme.AccentRed
 import com.cyberdiviner.ui.theme.*
 import com.cyberdiviner.ui.theme.GrayCaption
 import com.cyberdiviner.ui.shared.*
+import com.cyberdiviner.ui.localization.CyberCopy
+import com.cyberdiviner.ui.localization.LocalAppLanguage
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 
@@ -35,6 +37,8 @@ fun HomeScreen(
     onArchive: () -> Unit,
     onConfig: () -> Unit
 ) {
+    val lang = LocalAppLanguage.current
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -56,13 +60,13 @@ fun HomeScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.Start
         ) {
-            SectionHeader(title = "CYBERDIVINER", subtitle = "")
+            SectionHeader(title = CyberCopy.brandName(lang), subtitle = "")
 
             Spacer(modifier = Modifier.height(48.dp))
 
             StaggeredItem(index = 0) {
                 CyberMenuItem(
-                    title = "叩问天机",
+                    title = CyberCopy.homeOracle(lang),
                     subtitle = "",
                     description = "",
                     onClick = onOracle
@@ -72,7 +76,7 @@ fun HomeScreen(
 
             StaggeredItem(index = 1) {
                 CyberMenuItem(
-                    title = "术数推演",
+                    title = CyberCopy.homeRituals(lang),
                     subtitle = "",
                     description = "",
                     onClick = onRituals
@@ -82,7 +86,7 @@ fun HomeScreen(
 
             StaggeredItem(index = 2) {
                 CyberMenuItem(
-                    title = "因果命簿",
+                    title = CyberCopy.homeArchive(lang),
                     subtitle = "",
                     description = "",
                     onClick = onArchive

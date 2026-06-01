@@ -14,30 +14,32 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cyberdiviner.ui.theme.*
+import com.cyberdiviner.ui.localization.CyberCopy
+import com.cyberdiviner.ui.localization.LocalAppLanguage
 
 sealed class BottomNavItem(
     val route: String,
-    val label: String,
+    val label: (com.cyberdiviner.ui.settings.AppLanguage) -> String,
     val icon: @Composable (Boolean) -> Unit  // selected -> Unit
 ) {
     data object Oracle : BottomNavItem(
         route = Routes.ORACLE,
-        label = "叩问天机",
+        label = { CyberCopy.navOracle(it) },
         icon = { selected -> OracleIcon(selected) }
     )
     data object Rituals : BottomNavItem(
         route = Routes.RITUALS,
-        label = "术数推演",
+        label = { CyberCopy.navRituals(it) },
         icon = { selected -> TrigramIcon(selected) }
     )
     data object Learn : BottomNavItem(
         route = Routes.LEARN,
-        label = "修习之路",
+        label = { CyberCopy.navLearn(it) },
         icon = { selected -> LearnIcon(selected) }
     )
     data object Archive : BottomNavItem(
         route = Routes.ARCHIVE,
-        label = "因果命簿",
+        label = { CyberCopy.navArchive(it) },
         icon = { selected -> ScrollIcon(selected) }
     )
 }
@@ -154,6 +156,7 @@ fun BottomNavBar(
     currentRoute: String?,
     onNavigate: (String) -> Unit
 ) {
+    val lang = LocalAppLanguage.current
     NavigationBar(
         containerColor = CyberBlack,
         contentColor = CyberWhite,
@@ -165,7 +168,7 @@ fun BottomNavBar(
                 icon = { item.icon(selected) },
                 label = {
                     Text(
-                        text = item.label,
+                        text = item.label(lang),
                         fontFamily = HuiwenFontFamily,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Normal

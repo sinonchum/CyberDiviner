@@ -24,6 +24,8 @@ import com.cyberdiviner.ui.theme.*
 import com.cyberdiviner.engine.Persona
 import com.cyberdiviner.data.model.InferenceMode
 import com.cyberdiviner.engine.offline.ModelManager
+import com.cyberdiviner.ui.localization.CyberCopy
+import com.cyberdiviner.ui.localization.LocalAppLanguage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,7 +40,10 @@ fun SettingsScreen(
     val personaId by viewModel.personaId.collectAsState()
     val saved by viewModel.saved.collectAsState()
     val inferenceMode by viewModel.inferenceMode.collectAsState()
+    val appLanguage by viewModel.appLanguage.collectAsState()
     val modelState by viewModel.modelState.collectAsState()
+
+    val lang = LocalAppLanguage.current
 
     var showApiKey by remember { mutableStateOf(false) }
     var providerExpanded by remember { mutableStateOf(false) }
@@ -57,7 +62,7 @@ fun SettingsScreen(
             TopAppBar(
                 title = {
                     Text(
-                        "算命设置",
+                        CyberCopy.settingsTitle(lang),
                         fontFamily = MonoFontFamily,
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp
@@ -102,6 +107,67 @@ fun SettingsScreen(
                         fontSize = 13.sp,
                         fontFamily = MonoFontFamily
                     )
+                }
+            }
+
+            // ── Section: Language ─────────────────────────────────────
+            SectionHeader("Language / 语言")
+
+            Card(
+                colors = CardDefaults.cardColors(containerColor = GraySurface),
+                shape = MaterialTheme.shapes.medium
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text(
+                            "Global audience mode",
+                            color = CyberWhite,
+                            fontSize = 14.sp,
+                            fontFamily = MonoFontFamily,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            appLanguage.description,
+                            color = GrayMuted,
+                            fontSize = 12.sp,
+                            lineHeight = 18.sp,
+                            fontFamily = MonoFontFamily
+                        )
+                    }
+                    Column(
+                        horizontalAlignment = Alignment.End,
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Switch(
+                            checked = appLanguage == AppLanguage.BILINGUAL_EN,
+                            onCheckedChange = {
+                                viewModel.setAppLanguage(
+                                    if (it) AppLanguage.BILINGUAL_EN else AppLanguage.ZH_CN
+                                )
+                            },
+                            colors = SwitchDefaults.colors(
+                                checkedThumbColor = CyberBlack,
+                                checkedTrackColor = CyberWhite,
+                                uncheckedThumbColor = CyberWhite,
+                                uncheckedTrackColor = GrayMuted
+                            )
+                        )
+                        Text(
+                            appLanguage.displayName,
+                            color = CyberWhite,
+                            fontSize = 11.sp,
+                            fontFamily = MonoFontFamily
+                        )
+                    }
                 }
             }
 
@@ -275,7 +341,7 @@ fun SettingsScreen(
             )
 
             // ── Section: Inference Mode ────────────────────────────────
-            SectionHeader("推理模式")
+            SectionHeader(CyberCopy.settingsInferenceMode(lang))
 
             var modeExpanded by remember { mutableStateOf(false) }
             ExposedDropdownMenuBox(
@@ -323,7 +389,7 @@ fun SettingsScreen(
             }
 
             // ── Section: Offline Model ─────────────────────────────────
-            SectionHeader("离线模型")
+            SectionHeader(CyberCopy.settingsOfflineModel(lang))
 
             Card(
                 colors = CardDefaults.cardColors(
@@ -345,7 +411,7 @@ fun SettingsScreen(
                     )
 
                     Text(
-                        "无网络时提供基础离线推理能力。下载后可离线生成签文、解卦、牌义。",
+                        CyberCopy.settingsOfflineDesc(lang),
                         color = GrayMuted,
                         fontSize = 12.sp,
                         lineHeight = 18.sp,
@@ -365,7 +431,7 @@ fun SettingsScreen(
                                 shape = MaterialTheme.shapes.medium
                             ) {
                                 Text(
-                                    "下载离线模型",
+                                    CyberCopy.settingsDownloadModel(lang),
                                     fontFamily = MonoFontFamily,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 14.sp
@@ -382,7 +448,7 @@ fun SettingsScreen(
                                     trackColor = GrayMuted.copy(alpha = 0.3f)
                                 )
                                 Text(
-                                    "下载中 ${state.percent}% · ${formatBytes(state.bytesDownloaded)} / ${formatBytes(state.totalBytes)}",
+                                    CyberCopy.settingsDownloading(lang, state.percent, formatBytes(state.bytesDownloaded), formatBytes(state.totalBytes)),
                                     color = GrayMuted,
                                     fontSize = 12.sp,
                                     fontFamily = MonoFontFamily
@@ -397,7 +463,7 @@ fun SettingsScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    "已就绪",
+                                    CyberCopy.settingsModelReady(lang),
                                     color = CyberWhite,
                                     fontSize = 14.sp,
                                     fontFamily = MonoFontFamily,
@@ -415,7 +481,7 @@ fun SettingsScreen(
                                     shape = MaterialTheme.shapes.medium
                                 ) {
                                     Text(
-                                        "删除模型",
+                                        CyberCopy.settingsDeleteModel(lang),
                                         fontFamily = MonoFontFamily,
                                         fontSize = 13.sp
                                     )
@@ -425,7 +491,7 @@ fun SettingsScreen(
 
                         is ModelManager.ModelState.Error -> {
                             Text(
-                                "下载失败: ${state.message}",
+                                CyberCopy.settingsDownloadFailed(lang, state.message),
                                 color = AccentRed,
                                 fontSize = 12.sp,
                                 fontFamily = MonoFontFamily
@@ -439,7 +505,7 @@ fun SettingsScreen(
                                 shape = MaterialTheme.shapes.medium
                             ) {
                                 Text(
-                                    "重试",
+                                    CyberCopy.settingsRetry(lang),
                                     fontFamily = MonoFontFamily,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 14.sp

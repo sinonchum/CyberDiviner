@@ -14,6 +14,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -36,9 +37,16 @@ import com.cyberdiviner.ui.splash.SplashScreen
 import com.cyberdiviner.ui.tarot.TarotScreen
 import com.cyberdiviner.ui.shared.GearSettingsIcon
 import com.cyberdiviner.ui.learning.LearnHomeScreen
+import com.cyberdiviner.ui.localization.CyberCopy
+import com.cyberdiviner.ui.localization.LocalAppLanguage
 import com.cyberdiviner.ui.theme.CyberBlack
 import com.cyberdiviner.ui.theme.GrayCaption
 import com.cyberdiviner.ui.vision.VisionScreen
+import com.cyberdiviner.ui.settings.AppLanguage
+import com.cyberdiviner.data.remote.LlmConfigManager
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.LocalContext
 
 /**
  * v6.0 Navigation: Bottom navigation bar with three main tabs.
@@ -73,6 +81,13 @@ fun CyberDivinerNavGraph(navController: NavHostController) {
     val currentRoute = navBackStackEntry?.destination?.route
     val showBottomBar = currentRoute in bottomNavRoutes
 
+    // Observe app language and provide to entire Compose tree
+    val context = LocalContext.current
+    val configManager = remember { LlmConfigManager(context) }
+    val langName by configManager.appLanguage.collectAsState(initial = "BILINGUAL_EN")
+    val appLanguage = remember(langName) { AppLanguage.fromName(langName) }
+
+    CompositionLocalProvider(LocalAppLanguage provides appLanguage) {
     Scaffold(
         containerColor = CyberBlack,
         bottomBar = {
@@ -330,4 +345,5 @@ fun CyberDivinerNavGraph(navController: NavHostController) {
             }
         }
     }
+    } // CompositionLocalProvider
 }
