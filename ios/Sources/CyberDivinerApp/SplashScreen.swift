@@ -62,8 +62,12 @@ public struct SplashScreen: View {
 
     public var body: some View {
         ZStack {
-            // Mountain background placeholder (black)
-            CyberColors.cyberBlack
+            // Mountain background image
+            Image("splash_mountain", bundle: nil)
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .opacity(0.15)
+                .blendMode(.lighten)
                 .ignoresSafeArea()
 
             // Bottom gradient overlay

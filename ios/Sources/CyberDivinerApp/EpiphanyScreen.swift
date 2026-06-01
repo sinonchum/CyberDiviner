@@ -45,8 +45,11 @@ public struct EpiphanyScreen: View {
         let ganzhi = ganzhiDate
 
         ZStack {
-            // Background (black placeholder for mountain image)
-            CyberColors.cyberBlack
+            // Mountain background (brighter than splash)
+            Image("splash_mountain", bundle: nil)
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .opacity(0.25)
                 .ignoresSafeArea()
 
             // Bottom gradient overlay
