@@ -37,6 +37,8 @@ import com.cyberdiviner.ui.theme.GraySurface
 import com.cyberdiviner.ui.theme.HuiwenFontFamily
 import com.cyberdiviner.ui.theme.MonoFontFamily
 import com.cyberdiviner.ui.theme.WenKaiFontFamily
+import com.cyberdiviner.ui.localization.LocalAppLanguage
+import com.cyberdiviner.ui.settings.AppLanguage
 
 /**
  * Learn Home Screen — entry point for the learning quest feature.
@@ -80,7 +82,8 @@ fun LearnHomeScreen(
                 )
         ) {
             // ── Header ─────────────────────────────────────────────────────
-            SectionHeader(title = "修习之路", subtitle = "LEARNING QUEST")
+            val lang = LocalAppLanguage.current
+            SectionHeader(title = if (lang == AppLanguage.BILINGUAL_EN) "LEARNING QUEST" else "修习之路", subtitle = if (lang == AppLanguage.BILINGUAL_EN) "修习之路" else "LEARNING QUEST")
 
             Spacer(modifier = Modifier.height(20.dp))
 
@@ -89,7 +92,7 @@ fun LearnHomeScreen(
                 StatsBar(
                     xp = stats?.totalXp ?: 0,
                     streak = stats?.currentStreak ?: 0,
-                    title = stats?.title ?: "初入卦门",
+                    title = stats?.title ?: if (lang == AppLanguage.BILINGUAL_EN) "Beginner" else "初入卦门",
                     onTitleClick = { navController.navigate("learn/title") }
                 )
             }
@@ -109,7 +112,7 @@ fun LearnHomeScreen(
 
             // ── Section: 学习路径 ──────────────────────────────────────────
             StaggeredItem(index = 2) {
-                SectionHeader(title = "学习路径", subtitle = "PATHS")
+                SectionHeader(title = if (lang == AppLanguage.BILINGUAL_EN) "PATHS" else "学习路径", subtitle = if (lang == AppLanguage.BILINGUAL_EN) "学习路径" else "PATHS")
             }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -148,6 +151,7 @@ fun LearnHomeScreen(
 
 @Composable
 private fun StatsBar(xp: Int, streak: Int, title: String, onTitleClick: () -> Unit) {
+    val lang = LocalAppLanguage.current
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -158,9 +162,9 @@ private fun StatsBar(xp: Int, streak: Int, title: String, onTitleClick: () -> Un
         verticalAlignment = Alignment.CenterVertically
     ) {
         StatItem(label = "XP", value = xp.toString())
-        StatItem(label = "连续", value = "${streak}日")
+        StatItem(label = if (lang == AppLanguage.BILINGUAL_EN) "Streak" else "连续", value = if (lang == AppLanguage.BILINGUAL_EN) "${streak}d" else "${streak}日")
         Box(modifier = Modifier.clickable { onTitleClick() }) {
-            StatItem(label = "称号", value = title)
+            StatItem(label = if (lang == AppLanguage.BILINGUAL_EN) "Title" else "称号", value = title)
         }
     }
 }
@@ -190,6 +194,7 @@ private fun StatItem(label: String, value: String) {
 
 @Composable
 private fun DailyLessonCard(
+    lang: AppLanguage = LocalAppLanguage.current,
     paths: List<LearningPath>,
     pathProgress: Map<String, List<LearningProgressEntity>>,
     onClick: (String) -> Unit
@@ -226,7 +231,7 @@ private fun DailyLessonCard(
 
         Column(modifier = Modifier.padding(start = 16.dp)) {
             Text(
-                text = "今日修习",
+                text = if (lang == AppLanguage.BILINGUAL_EN) "TODAY'S PRACTICE" else "今日修习",
                 color = GrayCaption,
                 fontFamily = MonoFontFamily,
                 fontSize = 10.sp,
@@ -234,7 +239,7 @@ private fun DailyLessonCard(
             )
             Spacer(modifier = Modifier.height(6.dp))
             Text(
-                text = targetPath?.title ?: "学习",
+                text = targetPath?.title ?: if (lang == AppLanguage.BILINGUAL_EN) "Learn" else "学习",
                 color = CyberWhite,
                 fontFamily = HuiwenFontFamily,
                 fontSize = 18.sp,
@@ -242,7 +247,7 @@ private fun DailyLessonCard(
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "第${order}课 · 点击开始",
+                text = if (lang == AppLanguage.BILINGUAL_EN) "Lesson $order · Tap to start" else "第${order}课 · 点击开始",
                 color = GrayBody,
                 fontFamily = WenKaiFontFamily,
                 fontSize = 13.sp
@@ -255,6 +260,7 @@ private fun DailyLessonCard(
 
 @Composable
 private fun PathCard(
+    lang: AppLanguage = LocalAppLanguage.current,
     path: LearningPath,
     completedCount: Int,
     onClick: () -> Unit,
