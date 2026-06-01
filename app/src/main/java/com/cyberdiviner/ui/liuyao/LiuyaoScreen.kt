@@ -25,6 +25,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.cyberdiviner.engine.HexagramData.LineState
+import com.cyberdiviner.ui.localization.CyberCopy
+import com.cyberdiviner.ui.localization.LocalAppLanguage
 import com.cyberdiviner.ui.shared.CyberButton
 import com.cyberdiviner.ui.shared.SectionHeader
 import com.cyberdiviner.ui.shared.VoiceInputField
@@ -48,6 +50,7 @@ fun LiuyaoScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val focusManager = LocalFocusManager.current
+    val lang = LocalAppLanguage.current
 
     // Show result screen inline when interpretation is complete
     if (uiState.phase == LiuyaoPhase.RESULT) {
@@ -66,6 +69,7 @@ fun LiuyaoScreen(
     ) {
         when (uiState.phase) {
             LiuyaoPhase.INPUT -> InputPhase(
+                lang = lang,
                 question = uiState.question,
                 errorMessage = uiState.errorMessage,
                 onQuestionChange = viewModel::updateQuestion,
@@ -77,15 +81,18 @@ fun LiuyaoScreen(
             )
 
             LiuyaoPhase.TOSSING -> ShakePhase(
+                lang = lang,
                 uiState = uiState
             )
 
             LiuyaoPhase.COMPUTING, LiuyaoPhase.INTERPRETING -> ComputingPhase(
+                lang = lang,
                 message = uiState.progressMessage
             )
 
             LiuyaoPhase.ERROR -> ErrorPhase(
-                message = uiState.errorMessage ?: "未知错误",
+                lang = lang,
+                message = uiState.errorMessage ?: CyberCopy.liuyaoUnknownError(lang),
                 onDismiss = viewModel::dismissError
             )
 
@@ -98,6 +105,7 @@ fun LiuyaoScreen(
 
 @Composable
 private fun InputPhase(
+    lang: com.cyberdiviner.ui.settings.AppLanguage,
     question: String,
     errorMessage: String?,
     onQuestionChange: (String) -> Unit,
@@ -110,14 +118,14 @@ private fun InputPhase(
     ) {
         // Header
         SectionHeader(
-            title = "周易起卦",
-            subtitle = "三钱法 · 六次演算"
+            title = CyberCopy.liuyaoTitle(lang),
+            subtitle = CyberCopy.liuyaoSubtitle(lang)
         )
         Spacer(modifier = Modifier.height(48.dp))
 
         // Prompt
         Text(
-            text = "心诚则灵",
+            text = CyberCopy.liuyaoSincerity(lang),
             color = GrayBody,
             fontSize = 16.sp,
             fontFamily = WenKaiFontFamily,
@@ -125,7 +133,7 @@ private fun InputPhase(
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = "静心冥想，然后输入你的问题",
+            text = CyberCopy.liuyaoPrompt(lang),
             color = GrayCaption,
             fontSize = 13.sp,
             fontFamily = WenKaiFontFamily
@@ -137,7 +145,7 @@ private fun InputPhase(
             text = question,
             onTextChange = onQuestionChange,
             onSend = onStartDivination,
-            placeholder = "例如：我的事业前景如何？",
+            placeholder = CyberCopy.liuyaoPlaceholder(lang),
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -155,7 +163,7 @@ private fun InputPhase(
 
         // Start button
         CyberButton(
-            text = "起卦",
+            text = CyberCopy.liuyaoCast(lang),
             onClick = onStartDivination,
             modifier = Modifier.fillMaxWidth()
         )
@@ -164,7 +172,7 @@ private fun InputPhase(
 
         // Back
         CyberButton(
-            text = "[ 返回 ]",
+            text = CyberCopy.liuyaoBack(lang),
             onClick = onBack,
             modifier = Modifier.fillMaxWidth()
         )
@@ -175,6 +183,7 @@ private fun InputPhase(
 
 @Composable
 private fun ShakePhase(
+    lang: com.cyberdiviner.ui.settings.AppLanguage,
     uiState: LiuyaoUiState
 ) {
     val hapticFeedback = LocalHapticFeedback.current
@@ -204,7 +213,7 @@ private fun ShakePhase(
         modifier = Modifier.fillMaxSize()
     ) {
         // Header
-        SectionHeader(title = "周易起卦")
+        SectionHeader(title = CyberCopy.liuyaoTitle(lang))
         Spacer(modifier = Modifier.height(64.dp))
 
         // Shake instruction — pulsing
@@ -219,7 +228,7 @@ private fun ShakePhase(
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "用力摇动手机",
+            text = CyberCopy.liuyaoShake(lang),
             color = GrayCaption,
             fontSize = 13.sp,
             fontFamily = WenKaiFontFamily
@@ -229,7 +238,7 @@ private fun ShakePhase(
         // Show generated lines so far
         if (uiState.tossResults.isNotEmpty()) {
             Text(
-                text = "已得",
+                text = CyberCopy.liuyaoObtained(lang),
                 color = GrayCaption,
                 fontSize = 11.sp,
                 fontFamily = WenKaiFontFamily,
@@ -248,10 +257,10 @@ private fun ShakePhase(
                     else -> ""
                 }
                 val label = when (lineState) {
-                    LineState.YOUNG_YANG -> "少阳"
-                    LineState.YOUNG_YIN -> "少阴"
-                    LineState.OLD_YANG -> "老阳"
-                    LineState.OLD_YIN -> "老阴"
+                    LineState.YOUNG_YANG -> CyberCopy.liuyaoYoungYang(lang)
+                    LineState.YOUNG_YIN -> CyberCopy.liuyaoYoungYin(lang)
+                    LineState.OLD_YANG -> CyberCopy.liuyaoOldYang(lang)
+                    LineState.OLD_YIN -> CyberCopy.liuyaoOldYin(lang)
                 }
                 Row(
                     modifier = Modifier
@@ -324,6 +333,7 @@ private fun ShakePhase(
 
 @Composable
 private fun ComputingPhase(
+    lang: com.cyberdiviner.ui.settings.AppLanguage,
     message: String
 ) {
     val dots by rememberInfiniteTransition(label = "liuyao_waiting_dots")
@@ -350,7 +360,7 @@ private fun ComputingPhase(
         modifier = Modifier.fillMaxSize()
     ) {
         Text(
-            text = "卦象已成",
+            text = CyberCopy.liuyaoCastComplete(lang),
             color = GrayTitle,
             fontSize = 20.sp,
             fontFamily = HuiwenFontFamily,
@@ -372,6 +382,7 @@ private fun ComputingPhase(
 
 @Composable
 private fun ErrorPhase(
+    lang: com.cyberdiviner.ui.settings.AppLanguage,
     message: String,
     onDismiss: () -> Unit
 ) {
@@ -381,7 +392,7 @@ private fun ErrorPhase(
         modifier = Modifier.fillMaxSize()
     ) {
         Text(
-            text = "起卦失败",
+            text = CyberCopy.liuyaoCastFailed(lang),
             color = GrayTitle,
             fontSize = 20.sp,
             fontFamily = WenKaiFontFamily,
@@ -399,7 +410,7 @@ private fun ErrorPhase(
         )
 
         CyberButton(
-            text = "重新开始",
+            text = CyberCopy.liuyaoRestart(lang),
             onClick = onDismiss
         )
     }

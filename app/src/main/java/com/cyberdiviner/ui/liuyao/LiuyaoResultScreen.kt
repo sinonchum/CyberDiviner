@@ -29,6 +29,8 @@ import androidx.navigation.NavController
 import com.cyberdiviner.engine.HexagramData.LineState
 import com.cyberdiviner.engine.LiuyaoEngine
 import com.cyberdiviner.ui.theme.*
+import com.cyberdiviner.ui.localization.CyberCopy
+import com.cyberdiviner.ui.localization.LocalAppLanguage
 import kotlin.math.abs
 
 /**
@@ -46,13 +48,14 @@ fun LiuyaoResultScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val result = uiState.divinationResult
+    val lang = LocalAppLanguage.current
 
     if (result == null) {
         Box(
             modifier = Modifier.fillMaxSize().background(CyberBlack),
             contentAlignment = Alignment.Center
         ) {
-            Text("量子因果链运算中...", color = GrayMuted, fontSize = 13.sp, fontFamily = WenKaiFontFamily)
+            Text(CyberCopy.liuyaoLoading(lang), color = GrayMuted, fontSize = 13.sp, fontFamily = WenKaiFontFamily)
         }
         return
     }
@@ -98,7 +101,7 @@ fun LiuyaoResultScreen(
             ) {
                 // Back
                 Text(
-                    text = "< 返回",
+                    text = CyberCopy.liuyaoBack(lang),
                     color = GrayCaption,
                     fontSize = 13.sp,
                     fontFamily = HuiwenFontFamily,
@@ -220,7 +223,7 @@ fun LiuyaoResultScreen(
 
             // Swipe hint
             Text(
-                text = if (currentPage < totalPages - 1) "< 左滑翻页 >" else "< 右滑返回 >",
+                text = if (currentPage < totalPages - 1) "< Swipe >" else "< Back >",
                 color = GrayMuted,
                 fontSize = 10.sp,
                 fontFamily = MonoFontFamily,

@@ -63,6 +63,9 @@ import androidx.navigation.NavController
 import com.cyberdiviner.ui.shared.CyberButton
 import com.cyberdiviner.ui.shared.SectionHeader
 import com.cyberdiviner.ui.shared.VoiceInputField
+import com.cyberdiviner.ui.localization.CyberCopy
+import com.cyberdiviner.ui.localization.LocalAppLanguage
+import com.cyberdiviner.ui.settings.AppLanguage
 import com.cyberdiviner.ui.theme.CyberBlack
 import com.cyberdiviner.ui.theme.CyberWhite
 import com.cyberdiviner.ui.theme.GrayBody
@@ -90,6 +93,7 @@ fun TarotScreen(
     viewModel: TarotViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val lang = LocalAppLanguage.current
 
     // Plain Column — no Scaffold, no TopAppBar
     Column(
@@ -113,7 +117,7 @@ fun TarotScreen(
             )
             Spacer(modifier = Modifier.width(16.dp))
             Text(
-                text = "塔罗协议",
+                text = CyberCopy.tarotTitle(lang),
                 color = GrayCaption,
                 fontSize = 11.sp,
                 fontFamily = HuiwenFontFamily,
@@ -154,7 +158,7 @@ fun TarotScreen(
                 }
 
                 TarotPhase.ERROR -> ErrorPhase(
-                    message = uiState.errorMessage ?: "未知错误",
+                    message = uiState.errorMessage ?: "Unknown error",
                     onDismiss = viewModel::dismissError
                 )
             }
@@ -173,6 +177,7 @@ private fun SelectSpreadPhase(
     onSelectSpread: (SpreadType) -> Unit,
     onStartReading: () -> Unit
 ) {
+    val lang = LocalAppLanguage.current
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -185,8 +190,8 @@ private fun SelectSpreadPhase(
 
         // ── Header ──
         SectionHeader(
-            title = "塔罗协议",
-            subtitle = "静心凝神，然后输入你的问题",
+            title = CyberCopy.tarotTitle(lang),
+            subtitle = CyberCopy.tarotAskQuestion(lang),
             modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
         )
 
@@ -195,7 +200,7 @@ private fun SelectSpreadPhase(
             text = uiState.question,
             onTextChange = onQuestionChange,
             onSend = onStartReading,
-            placeholder = "你想问什么？",
+            placeholder = CyberCopy.tarotAskQuestion(lang),
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -215,7 +220,7 @@ private fun SelectSpreadPhase(
         if (uiState.recommendedSpread != null) {
             val rec = uiState.recommendedSpread!!
             Text(
-                text = "推荐: ${rec.displayName}（${rec.cardCount}张牌）",
+                text = "${rec.displayName} (${rec.cardCount} cards)",
                 color = GrayCaption,
                 fontSize = 12.sp,
                 fontFamily = WenKaiFontFamily,
@@ -225,7 +230,7 @@ private fun SelectSpreadPhase(
 
         // ── Spread selection ──────────────────────────────────────────
         Text(
-            text = "选择牌阵",
+            text = "Choose Spread",
             color = GrayCaption,
             fontSize = 13.sp,
             fontFamily = WenKaiFontFamily,
@@ -260,7 +265,7 @@ private fun SelectSpreadPhase(
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = "${spread.cardCount}张牌 · ${spread.positions.joinToString(", ")}",
+                        text = "${spread.cardCount} cards · ${spread.positions.joinToString(", ")}",
                         color = GrayMuted,
                         fontSize = 10.sp,
                         fontFamily = WenKaiFontFamily
@@ -281,7 +286,7 @@ private fun SelectSpreadPhase(
 
         // ── Start button ──────────────────────────────────────────────
         CyberButton(
-            text = "开始占卜",
+            text = CyberCopy.tarotDrawCards(lang),
             onClick = onStartReading,
             enabled = uiState.question.isNotBlank(),
             modifier = Modifier.height(52.dp)
@@ -289,7 +294,7 @@ private fun SelectSpreadPhase(
 
         Spacer(modifier = Modifier.height(12.dp))
         Text(
-            text = "赛博算命 · 玄学解读",
+            text = CyberCopy.brandSubtitle(lang),
             color = GrayMuted,
             fontSize = 9.sp,
             fontFamily = WenKaiFontFamily,
@@ -307,9 +312,11 @@ private fun SelectSpreadPhase(
 private fun ShufflePhase(
     onShuffleComplete: () -> Unit
 ) {
+    val lang = LocalAppLanguage.current
     var isShuffling by remember { mutableStateOf(false) }
     var shuffleTextIndex by remember { mutableStateOf(0) }
-    val shuffleTexts = listOf("洗牌中", "洗牌中.", "洗牌中..", "洗牌中...")
+    val shufflePrefix = if (lang == AppLanguage.BILINGUAL_EN) "Shuffling" else "洗牌中"
+    val shuffleTexts = listOf(shufflePrefix, "$shufflePrefix.", "$shufflePrefix..", "$shufflePrefix...")
 
     val infiniteTransition = rememberInfiniteTransition(label = "shuffle")
     val rotation by infiniteTransition.animateFloat(
@@ -348,7 +355,7 @@ private fun ShufflePhase(
             )
         } else {
             Text(
-                text = "准备好了吗？",
+                text = if (lang == AppLanguage.BILINGUAL_EN) "Ready?" else "准备好了吗？",
                 color = GrayCaption,
                 fontSize = 14.sp,
                 fontFamily = WenKaiFontFamily,
@@ -357,7 +364,7 @@ private fun ShufflePhase(
             )
 
             Text(
-                text = "洗 牌",
+                text = if (lang == AppLanguage.BILINGUAL_EN) "SHUFFLE" else "洗 牌",
                 color = CyberWhite,
                 fontSize = 20.sp,
                 fontFamily = HuiwenFontFamily,
@@ -371,7 +378,7 @@ private fun ShufflePhase(
 
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = "轻触牌堆开始",
+                text = if (lang == AppLanguage.BILINGUAL_EN) "Tap the deck to begin" else "轻触牌堆开始",
                 color = GrayMuted,
                 fontSize = 11.sp,
                 fontFamily = WenKaiFontFamily,
@@ -385,6 +392,7 @@ private fun ShufflePhase(
 
 @Composable
 private fun DrawingPhase(uiState: TarotUiState) {
+    val lang = LocalAppLanguage.current
     val infiniteTransition = rememberInfiniteTransition(label = "pulse")
     val pulseAlpha by infiniteTransition.animateFloat(
         initialValue = 0.3f,
@@ -432,6 +440,7 @@ private fun DrawingPhase(uiState: TarotUiState) {
 
 @Composable
 private fun InterpretingPhase(uiState: TarotUiState) {
+    val lang = LocalAppLanguage.current
     val dots by rememberInfiniteTransition(label = "tarot_interpreting_dots")
         .animateValue(
             initialValue = 0,
@@ -468,7 +477,7 @@ private fun InterpretingPhase(uiState: TarotUiState) {
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = "牌阵已开，正在等候本地先知落笔",
+            text = if (lang == AppLanguage.BILINGUAL_EN) "Spread dealt, awaiting local oracle..." else "牌阵已开，正在等候本地先知落笔",
             color = GrayMuted,
             fontSize = 12.sp,
             fontFamily = WenKaiFontFamily,
@@ -505,6 +514,7 @@ private fun ResultPhase(
     onNewReading: () -> Unit,
     onBack: () -> Unit
 ) {
+    val lang = LocalAppLanguage.current
     val cnNums = listOf("壹", "贰", "叁", "肆", "伍", "陆", "柒", "捌", "玖", "拾")
     val totalPages = if (annotations.isNotEmpty()) 4 else 3 // +1 for learning annotations
     var currentPage by remember { mutableStateOf(0) }
@@ -541,14 +551,14 @@ private fun ResultPhase(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "< 返回",
+                    text = CyberCopy.tarotBack(lang),
                     color = GrayCaption,
                     fontSize = 13.sp,
                     fontFamily = HuiwenFontFamily,
                     modifier = Modifier.clickable { onBack() }
                 )
                 Text(
-                    text = "塔罗解读",
+                    text = CyberCopy.tarotTitle(lang),
                     color = GrayCaption,
                     fontSize = 14.sp,
                     fontFamily = HuiwenFontFamily,
@@ -603,7 +613,7 @@ private fun ResultPhase(
                     if (currentPage == 0) {
                         // ── Page 0: Fortune (四字批命) ──
                         Text(
-                            text = "批命",
+                            text = "FORTUNE",
                             color = CyberWhite,
                             fontSize = 22.sp,
                             fontFamily = HuiwenFontFamily,
@@ -627,7 +637,7 @@ private fun ResultPhase(
                         Spacer(modifier = Modifier.height(40.dp))
 
                         Text(
-                            text = uiState.fourCharFortune.ifBlank { "顺势而为" },
+                            text = uiState.fourCharFortune.ifBlank { "Go with the Flow" },
                             color = GrayTitle,
                             fontSize = 32.sp,
                             fontFamily = HuiwenFontFamily,
@@ -638,7 +648,7 @@ private fun ResultPhase(
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
-                            text = uiState.fourCharMeaning.ifBlank { "天时地利，可以有所作为" },
+                            text = uiState.fourCharMeaning.ifBlank { "Time and place align for action" },
                             color = GrayBody,
                             fontSize = 14.sp,
                             fontFamily = WenKaiFontFamily,
@@ -649,7 +659,7 @@ private fun ResultPhase(
                     } else if (currentPage == 1) {
                         // ── Page 1: Spread ──
                         Text(
-                            text = "牌阵",
+                            text = "SPREAD",
                             color = CyberWhite,
                             fontSize = 22.sp,
                             fontFamily = HuiwenFontFamily,
@@ -683,7 +693,7 @@ private fun ResultPhase(
 
                         // Card list
                         uiState.drawnCards.forEach { card ->
-                            val orientation = if (card.isReversed) "逆位" else "正位"
+                            val orientation = if (card.isReversed) CyberCopy.tarotCardReversed(lang) else CyberCopy.tarotCardUpright(lang)
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -716,7 +726,7 @@ private fun ResultPhase(
                     } else if (currentPage == 2) {
                         // ── Page 2: Interpretation ──
                         Text(
-                            text = "解读",
+                            text = "INTERPRETATION",
                             color = CyberWhite,
                             fontSize = 22.sp,
                             fontFamily = HuiwenFontFamily,
@@ -747,7 +757,7 @@ private fun ResultPhase(
 
                         if (cleanInterp.isBlank()) {
                             Text(
-                                text = "赛博先知解读中...",
+                                text = CyberCopy.tarotInterpreting(lang),
                                 color = GrayMuted,
                                 fontSize = 13.sp,
                                 fontFamily = WenKaiFontFamily
@@ -764,7 +774,7 @@ private fun ResultPhase(
                     } else {
                         // ── Page 3: Learning Annotations ──
                         Text(
-                            text = "学习",
+                            text = "LEARNING",
                             color = CyberWhite,
                             fontSize = 22.sp,
                             fontFamily = HuiwenFontFamily,
@@ -836,7 +846,7 @@ private fun ResultPhase(
 
             // Swipe hint
             Text(
-                text = if (currentPage < totalPages - 1) "< 左滑翻页 >" else "< 右滑返回 >",
+                text = if (currentPage < totalPages - 1) "< Swipe >" else "< Back >",
                 color = GrayMuted,
                 fontSize = 10.sp,
                 fontFamily = MonoFontFamily,
@@ -885,7 +895,7 @@ private fun ResultPhase(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        "重新占卜",
+                        if (LocalAppLanguage.current == AppLanguage.BILINGUAL_EN) "Draw Again" else "重新占卜",
                         color = CyberBlack,
                         fontSize = 13.sp,
                         fontFamily = HuiwenFontFamily,
@@ -901,6 +911,7 @@ private fun ResultPhase(
 
 @Composable
 private fun ErrorPhase(message: String, onDismiss: () -> Unit) {
+    val lang = LocalAppLanguage.current
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
@@ -909,7 +920,7 @@ private fun ErrorPhase(message: String, onDismiss: () -> Unit) {
             .padding(32.dp)
     ) {
         Text(
-            text = "错误",
+            text = if (lang == AppLanguage.BILINGUAL_EN) "Error" else "错误",
             color = GrayCaption,
             fontSize = 24.sp,
             fontFamily = HuiwenFontFamily,
@@ -925,7 +936,7 @@ private fun ErrorPhase(message: String, onDismiss: () -> Unit) {
             modifier = Modifier.padding(bottom = 24.dp)
         )
         CyberButton(
-            text = "重新开始",
+            text = CyberCopy.liuyaoRestart(lang),
             onClick = onDismiss
         )
     }

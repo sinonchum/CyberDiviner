@@ -25,6 +25,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.cyberdiviner.ui.shared.TypewriterText
 import com.cyberdiviner.ui.shared.VoiceInputField
 import com.cyberdiviner.ui.shared.SectionHeader
+import com.cyberdiviner.ui.localization.CyberCopy
+import com.cyberdiviner.ui.localization.LocalAppLanguage
 import com.cyberdiviner.ui.theme.*
 
 
@@ -52,6 +54,7 @@ fun OracleScreen(
     val inputText by viewModel.inputText.collectAsState()
     val listState = rememberLazyListState()
     val keyboardController = LocalSoftwareKeyboardController.current
+    val lang = LocalAppLanguage.current
 
     // Auto-scroll to bottom
     LaunchedEffect(messages.size) {
@@ -68,7 +71,7 @@ fun OracleScreen(
             .systemBarsPadding()
             .padding(horizontal = 32.dp, vertical = 32.dp)
     ) {
-        SectionHeader(title = "叩问天机", subtitle = "ROUND $round/${viewModel.maxRounds}")
+        SectionHeader(title = CyberCopy.oracleTitle(lang), subtitle = CyberCopy.oracleRound(lang, round, viewModel.maxRounds))
         Spacer(modifier = Modifier.height(24.dp))
 
         // -- Chat messages ---------------------------------------------------
@@ -134,6 +137,7 @@ private fun AiBubble(text: String) {
 
 @Composable
 private fun LoadingIndicator() {
+    val lang = LocalAppLanguage.current
     val infiniteTransition = rememberInfiniteTransition(label = "loading")
     val dotCount by infiniteTransition.animateValue(
         initialValue = 0,
@@ -160,7 +164,7 @@ private fun LoadingIndicator() {
     )
 
     Text(
-        text = "正在演算 ${symbols[spinIndex]}$dots",
+        text = "${CyberCopy.oracleComputing(lang)} ${symbols[spinIndex]}$dots",
         color = GrayMuted,
         fontSize = 14.sp,
         fontFamily = MonoFontFamily,

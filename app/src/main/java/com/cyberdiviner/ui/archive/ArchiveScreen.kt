@@ -43,6 +43,8 @@ import java.time.Instant
 import java.time.ZoneId
 import com.cyberdiviner.engine.AlmanacEngine
 import com.cyberdiviner.engine.FortuneEngine
+import com.cyberdiviner.ui.localization.CyberCopy
+import com.cyberdiviner.ui.localization.LocalAppLanguage
 
 // ── Data model ─────────────────────────────────────────────────────────────
 
@@ -111,6 +113,7 @@ fun ArchiveScreen(
     var expandedIndex by remember { mutableStateOf<Int?>(null) }
     val context = LocalContext.current
     var sharePreview by remember { mutableStateOf<SharePreview?>(null) }
+    val lang = LocalAppLanguage.current
 
     Box(
         modifier = Modifier
@@ -120,7 +123,7 @@ fun ArchiveScreen(
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             // ── Header ──
-            SectionHeader(title = "因果命簿", subtitle = "CAUSAL LEDGER")
+            SectionHeader(title = CyberCopy.archiveTitle(lang), subtitle = CyberCopy.archiveSubtitle(lang))
             Spacer(modifier = Modifier.height(24.dp))
 
             // ── Learning review card ──
@@ -135,7 +138,7 @@ fun ArchiveScreen(
                 ) {
                     Column {
                         Text(
-                            text = "学习复盘",
+                            text = CyberCopy.archiveLearningReview(lang),
                             color = AccentRed,
                             fontSize = 11.sp,
                             fontFamily = HuiwenFontFamily,
@@ -163,13 +166,13 @@ fun ArchiveScreen(
                             }
                             Column(horizontalAlignment = Alignment.End) {
                                 Text(
-                                    text = "连续 ${stats.currentStreak} 日",
+                                    text = CyberCopy.archiveDayStreak(lang, stats.currentStreak),
                                     color = CyberWhite,
                                     fontSize = 14.sp,
                                     fontFamily = MonoFontFamily
                                 )
                                 Text(
-                                    text = "最佳 ${stats.bestStreak} 日",
+                                    text = CyberCopy.archiveBestStreak(lang, stats.bestStreak),
                                     color = GrayCaption,
                                     fontSize = 12.sp,
                                     fontFamily = MonoFontFamily
@@ -183,7 +186,7 @@ fun ArchiveScreen(
 
             // ── Card stream ─────────────────────────
             if (readings.isEmpty()) {
-                EmptyArchive()
+                EmptyArchive(lang)
             } else {
                 LazyColumn(
                     modifier = Modifier.weight(1f),
@@ -204,19 +207,19 @@ fun ArchiveScreen(
                                     val summary = viewModel.getLiuyaoSummary(reading.id)
                                     title = summary?.title
                                         ?: reading.question.takeIf { it.length in 2..6 }
-                                        ?: "六爻占卜"
-                                    interp = summary?.interpretation ?: "卦象已起，静心体悟天机"
+                                        ?: "I Ching Reading"
+                                    interp = summary?.interpretation ?: "Hexagram cast, contemplate the omens"
                                 }
                                 DivinationType.TAROT -> {
                                     val summary = viewModel.getTarotSummary(reading.id)
                                     title = summary?.title
                                         ?: reading.question.takeIf { it.length <= 8 }
-                                        ?: "塔罗占卜"
+                                        ?: "Tarot Reading"
                                     interp = firstSentence(summary?.interpretation ?: "")
                                 }
                                 DivinationType.VISION -> {
                                     val summary = viewModel.getVisionSummary(reading.id)
-                                    title = summary?.first ?: "面相玄机"
+                                    title = summary?.first ?: "Face Reading"
                                     interp = firstSentence(summary?.second ?: "")
                                 }
                                 else -> {
@@ -241,7 +244,7 @@ fun ArchiveScreen(
                             }
                         }
 
-                        SwipeToDeleteCard(
+                        SwipeToDeleteCard(lang = lang,
                             entry = entry,
                             isExpanded = isExpanded,
                             expandedText = interpState.value,
@@ -271,7 +274,7 @@ fun ArchiveScreen(
                 textContentColor = GrayBody,
                 title = {
                     Text(
-                        text = "因果卡片",
+                        text = CyberCopy.archiveCausalCard(lang),
                         fontFamily = HuiwenFontFamily,
                         color = CyberWhite
                     )
@@ -279,7 +282,7 @@ fun ArchiveScreen(
                 text = {
                     Image(
                         bitmap = preview.bitmap.asImageBitmap(),
-                        contentDescription = "因果卡片预览",
+                        contentDescription = "Causal Card Preview",
                         modifier = Modifier
                             .fillMaxWidth()
                             .aspectRatio(preview.bitmap.width.toFloat() / preview.bitmap.height.toFloat())
@@ -291,7 +294,7 @@ fun ArchiveScreen(
                         ArchiveShareGenerator.share(context, preview.bitmap, preview.entry)
                         sharePreview = null
                     }) {
-                        Text("发送", color = AccentRed, fontFamily = HuiwenFontFamily)
+                        Text(CyberCopy.archiveSend(lang), color = AccentRed, fontFamily = HuiwenFontFamily)
                     }
                 },
                 dismissButton = {
@@ -300,14 +303,14 @@ fun ArchiveScreen(
                             val saved = ArchiveShareGenerator.saveToGallery(context, preview.bitmap)
                             Toast.makeText(
                                 context,
-                                if (saved) "已存入相册" else "保存失败",
+                                if (saved) CyberCopy.archiveSavedGallery(lang) else CyberCopy.archiveSaveFailed(lang),
                                 Toast.LENGTH_SHORT
                             ).show()
                         }) {
-                            Text("保存", color = CyberWhite, fontFamily = HuiwenFontFamily)
+                            Text(CyberCopy.archiveSave(lang), color = CyberWhite, fontFamily = HuiwenFontFamily)
                         }
                         TextButton(onClick = { sharePreview = null }) {
-                            Text("取消", color = GrayCaption, fontFamily = HuiwenFontFamily)
+                            Text(CyberCopy.archiveCancel(lang), color = GrayCaption, fontFamily = HuiwenFontFamily)
                         }
                     }
                 }
@@ -320,6 +323,7 @@ fun ArchiveScreen(
 
 @Composable
 private fun SwipeToDeleteCard(
+    lang: com.cyberdiviner.ui.settings.AppLanguage,
     entry: ArchiveEntry,
     isExpanded: Boolean,
     expandedText: String,
@@ -362,7 +366,7 @@ private fun SwipeToDeleteCard(
                 contentAlignment = Alignment.CenterEnd
             ) {
                 Text(
-                    text = "删除",
+                    text = CyberCopy.archiveDelete(lang),
                     color = AccentRed,
                     fontSize = 14.sp,
                     fontFamily = HuiwenFontFamily,
@@ -456,7 +460,7 @@ private fun SwipeToDeleteCard(
                                 )
                                 Spacer(modifier = Modifier.height(12.dp))
                                 Text(
-                                    text = "完整解读",
+                                    text = CyberCopy.archiveFullInterp(lang),
                                     color = AccentRed,
                                     fontSize = 11.sp,
                                     fontFamily = HuiwenFontFamily,
@@ -473,7 +477,7 @@ private fun SwipeToDeleteCard(
                                 )
                             } else {
                                 Text(
-                                    text = "暂无详细解读",
+                                    text = CyberCopy.archiveNoInterp(lang),
                                     color = GrayMuted,
                                     fontSize = 12.sp,
                                     fontFamily = WenKaiFontFamily
@@ -491,7 +495,7 @@ private fun SwipeToDeleteCard(
                     ) {
                         if (isExpanded) {
                             Text(
-                                text = "分享",
+                                text = CyberCopy.archiveShare(lang),
                                 color = AccentRed,
                                 fontSize = 11.sp,
                                 fontFamily = HuiwenFontFamily,
@@ -534,8 +538,8 @@ private fun DivinationReading.toDisplayEntry(): ArchiveEntry {
             titleText = try {
                 val m = Regex("本卦\\s*\\(Primary\\):\\s*\\S+\\s+(\\S+)").find(resultJson)
                 val name = m?.groupValues?.get(1) ?: ""
-                if (name.isNotEmpty()) name else question.takeIf { it.length <= 6 } ?: "六爻占卜"
-            } catch (e: Exception) { "六爻占卜" }
+                if (name.isNotEmpty()) name else question.takeIf { it.length <= 6 } ?: "I Ching Reading"
+            } catch (e: Exception) { "I Ching Reading" }
             interpretationText = try {
                 val m = Regex("卦象:\\s*(.+)").find(resultJson)
                 m?.groupValues?.get(1)?.take(60) ?: ""
@@ -553,16 +557,16 @@ private fun DivinationReading.toDisplayEntry(): ArchiveEntry {
             } catch (e: Exception) { "" to false }
             titleText = if (firstCard.first.isNotBlank()) {
                 FortuneEngine.tarotFortune(firstCard.first, firstCard.second)
-            } else "塔罗占卜"
+            } else "Tarot Reading"
             interpretationText = if (firstCard.first.isNotBlank()) {
                 FortuneEngine.tarotMeaning(firstCard.first, firstCard.second)
-            } else "牌面已归档，静候复盘。"
+            } else "Cards archived, awaiting review."
         }
         DivinationType.VISION -> {
             titleText = try {
                 val m = Regex("\"fortune\"\\s*:\\s*\"([^\"]+)\"").find(resultJson)
-                m?.groupValues?.get(1) ?: question.ifBlank { "面相分析" }
-            } catch (e: Exception) { question.ifBlank { "面相分析" } }
+                m?.groupValues?.get(1) ?: question.ifBlank { "Face Analysis" }
+            } catch (e: Exception) { question.ifBlank { "Face Analysis" } }
             interpretationText = FortuneEngine.visionMeaning(titleText)
         }
         else -> {
@@ -598,20 +602,20 @@ private fun DivinationReading.toDisplayEntry(): ArchiveEntry {
         solarDate = solarDateStr,
         type = type.displayName,
         title = titleText.ifEmpty { type.displayName },
-        interpretation = interpretationText.ifEmpty { notes.ifEmpty { "暂无解读" } },
+        interpretation = interpretationText.ifEmpty { notes.ifEmpty { "No reading" } },
         hash = String.format("0x%08X", id.hashCode())
     )
 }
 
 @Composable
-private fun EmptyArchive() {
+private fun EmptyArchive(lang: com.cyberdiviner.ui.settings.AppLanguage) {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "因果链为空",
+            text = CyberCopy.archiveEmpty(lang),
             color = GrayCaption,
             fontFamily = HuiwenFontFamily,
             fontSize = 18.sp,
