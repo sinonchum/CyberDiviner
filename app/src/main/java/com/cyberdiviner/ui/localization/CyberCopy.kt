@@ -51,7 +51,7 @@ object CyberCopy {
     }
 
     fun navArchive(lang: AppLanguage): String = when (lang) {
-        AppLanguage.BILINGUAL_EN -> "Causal Ledger 因果命簿"
+        AppLanguage.BILINGUAL_EN -> "Ledger"
         AppLanguage.ZH_CN -> "因果命簿"
     }
 
@@ -68,7 +68,7 @@ object CyberCopy {
     }
 
     fun homeArchive(lang: AppLanguage): String = when (lang) {
-        AppLanguage.BILINGUAL_EN -> "Causal Ledger 因果命簿"
+        AppLanguage.BILINGUAL_EN -> "Ledger"
         AppLanguage.ZH_CN -> "因果命簿"
     }
 
