@@ -12,6 +12,7 @@
 		2E17DDFF2223389852FA84F3 /* GearSettingsIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 970F97A1B2D86C85CF9AFF60 /* GearSettingsIcon.swift */; };
 		3EF13BCE4DF24631EF61AEAE /* Persistence in Frameworks */ = {isa = PBXBuildFile; productRef = BA1A3F447729A1F33C1B184E /* Persistence */; };
 		598446FFD063A2FF360B68EA /* Oracle in Frameworks */ = {isa = PBXBuildFile; productRef = A4210024748757F56812E05B /* Oracle */; };
+		5E45F8B24821262433E8F4F6 /* RitualsMenuScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = C43FC812307E1AEB9E2DEB78 /* RitualsMenuScreen.swift */; };
 		6603B8820604AF2932D03190 /* Liuyao in Frameworks */ = {isa = PBXBuildFile; productRef = E9B67EC6D24604C235561419 /* Liuyao */; };
 		77682E290200C96891D78ECF /* SplashScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = D467DFEEA86DD6C7B8CD8E75 /* SplashScreen.swift */; };
 		7DFA4DC1086F07A5398D0942 /* Settings in Frameworks */ = {isa = PBXBuildFile; productRef = 5D2C2FC7C8E2709424A2CC0E /* Settings */; };
@@ -36,6 +37,7 @@
 		4E62EB3AD83D2795D4881443 /* huiwen_mingchao.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = huiwen_mingchao.ttf; sourceTree = "<group>"; };
 		578CE8C737EB2D19A2A8E9BF /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		970F97A1B2D86C85CF9AFF60 /* GearSettingsIcon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GearSettingsIcon.swift; sourceTree = "<group>"; };
+		C43FC812307E1AEB9E2DEB78 /* RitualsMenuScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RitualsMenuScreen.swift; sourceTree = "<group>"; };
 		D467DFEEA86DD6C7B8CD8E75 /* SplashScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashScreen.swift; sourceTree = "<group>"; };
 		EB41DFC9EBDED09AEBEB8F9F /* EpiphanyScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EpiphanyScreen.swift; sourceTree = "<group>"; };
 		FA0C5FAC29C3BBD7F80BF049 /* CyberDivinerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CyberDivinerApp.swift; sourceTree = "<group>"; };
@@ -98,6 +100,7 @@
 				FA0C5FAC29C3BBD7F80BF049 /* CyberDivinerApp.swift */,
 				EB41DFC9EBDED09AEBEB8F9F /* EpiphanyScreen.swift */,
 				970F97A1B2D86C85CF9AFF60 /* GearSettingsIcon.swift */,
+				C43FC812307E1AEB9E2DEB78 /* RitualsMenuScreen.swift */,
 				D467DFEEA86DD6C7B8CD8E75 /* SplashScreen.swift */,
 				41E2EB1649F3E338825ADEB3 /* Resources */,
 			);
@@ -209,6 +212,7 @@
 				FA13F70997F1D753F2E5791D /* CyberDivinerApp.swift in Sources */,
 				B5F1E1473CC6E6637EE3F56E /* EpiphanyScreen.swift in Sources */,
 				2E17DDFF2223389852FA84F3 /* GearSettingsIcon.swift in Sources */,
+				5E45F8B24821262433E8F4F6 /* RitualsMenuScreen.swift in Sources */,
 				77682E290200C96891D78ECF /* SplashScreen.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

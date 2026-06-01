@@ -5,10 +5,11 @@ import DivinationCore
 /// SplashScreen — 每日道字开屏
 ///
 /// Matches Android SplashScreen.kt exactly.
-/// Layout: black background → solar date → Dao word (96sp hero) → Ganzhi line →
+/// Layout: black background → mountain image → gradient overlay →
+///         solar date → Dao word (96sp hero) → Ganzhi line →
 ///         solar term → subtitle → CYBERDIVINER → TOUCH TO ENTER
-/// Font: HuiwenMingChao (HuiwenFontFamily).
-/// Interaction: tap anywhere to enter, or auto-timeout after 6 seconds.
+/// Font: Huiwen-mincho (HuiwenFontFamily).
+/// Interaction: tap anywhere to enter, or wait 6 seconds auto-timeout.
 public struct SplashScreen: View {
     let onEnter: () -> Void
 
@@ -60,9 +61,17 @@ public struct SplashScreen: View {
         return SolarTermHelper.currentSolarTerm(year: y, month: m, day: d)
     }
 
+    // MARK: - Proportional spacer weights (matching Android weight())
+    // Android weights: 0.06, 0.08, 0.15, 0.12
+    private static let weightTop: CGFloat = 0.06
+    private static let weightDateToWord: CGFloat = 0.08
+    private static let weightGanzhiToContent: CGFloat = 0.15
+    private static let weightContentToBottom: CGFloat = 0.12
+    private static let weightTotal: CGFloat = 0.06 + 0.08 + 0.15 + 0.12 // 0.41
+
     public var body: some View {
         ZStack {
-            // Mountain background image
+            // ── Mountain background ──────────────────────────────────
             Image("splash_mountain", bundle: nil)
                 .resizable()
                 .aspectRatio(contentMode: .fill)
@@ -70,7 +79,7 @@ public struct SplashScreen: View {
                 .blendMode(.lighten)
                 .ignoresSafeArea()
 
-            // Bottom gradient overlay
+            // ── Gradient overlay ─────────────────────────────────────
             LinearGradient(
                 stops: [
                     .init(color: Color.black.opacity(0.0), location: 0.0),
@@ -83,79 +92,92 @@ public struct SplashScreen: View {
             )
             .ignoresSafeArea()
 
-            // Main content
-            VStack(spacing: 0) {
-                Spacer().frame(maxHeight: .infinity)
+            // ── Main content ────────────────────────────────────────
+            GeometryReader { geo in
+                let h = geo.size.height
+                let spTop = h * Self.weightTop
+                let spDateWord = h * Self.weightDateToWord
+                let spGanzhiContent = h * Self.weightGanzhiToContent
+                let spContentBottom = h * Self.weightContentToBottom
 
-                // Solar date
-                Text(solarDateString)
-                    .font(CyberTypography.monoSmall)
-                    .foregroundStyle(CyberColors.grayBody)
-                    .kerning(6)
-                    .opacity(showDate ? 1 : 0)
-                    .animation(.easeOut(duration: 0.7), value: showDate)
+                VStack(spacing: 0) {
+                    Spacer(minLength: 0)
+                        .frame(height: spTop)
 
-                Spacer().frame(height: 32)
+                    // ── Solar date ──────────────────────────────────
+                    Text(solarDateString)
+                        .font(.custom("JetBrainsMono-Regular", size: 13))
+                        .foregroundStyle(CyberColors.grayBody)
+                        .kerning(6)
+                        .opacity(showDate ? 1 : 0)
+                        .animation(.easeOut(duration: 0.7), value: showDate)
 
-                // Dao word (hero)
-                Text(dailyWord)
-                    .font(.custom("HuiwenMingChao", size: 96))
-                    .foregroundStyle(CyberColors.cyberWhite)
-                    .opacity(showWord ? 1 : 0)
-                    .animation(.easeOut(duration: 0.9), value: showWord)
+                    Spacer(minLength: 0)
+                        .frame(height: spDateWord)
 
-                Spacer().frame(height: 12)
+                    // ── Dao word (hero) ─────────────────────────────
+                    Text(dailyWord)
+                        .font(.custom("Huiwen-mincho", size: 96))
+                        .foregroundStyle(CyberColors.cyberWhite)
+                        .opacity(showWord ? 1 : 0)
+                        .animation(.easeOut(duration: 0.9), value: showWord)
 
-                // Ganzhi line
-                Text("\(ganzhiDate.yearGanzhi)年  \(ganzhiDate.monthGanzhi)月  \(ganzhiDate.dayGanzhi)日")
-                    .font(.custom("HuiwenMingChao", size: 18))
-                    .foregroundStyle(CyberColors.cyberWhite)
-                    .kerning(4)
-                    .opacity(showGanzhi ? 1 : 0)
-                    .animation(.easeOut(duration: 0.7), value: showGanzhi)
+                    Spacer().frame(height: 12)
 
-                Spacer().frame(height: 60)
-
-                // Solar term
-                if let term = solarTermString {
-                    Text("[ \(term) ]")
-                        .font(CyberTypography.monoSmall)
+                    // ── Ganzhi line ─────────────────────────────────
+                    Text("\(ganzhiDate.yearGanzhi)年  \(ganzhiDate.monthGanzhi)月  \(ganzhiDate.dayGanzhi)日")
+                        .font(.custom("Huiwen-mincho", size: 18))
                         .foregroundStyle(CyberColors.cyberWhite)
                         .kerning(4)
-                        .opacity(showSolarTerm ? 1 : 0)
-                        .animation(.easeOut(duration: 0.7), value: showSolarTerm)
-                    Spacer().frame(height: 12)
-                }
+                        .opacity(showGanzhi ? 1 : 0)
+                        .animation(.easeOut(duration: 0.7), value: showGanzhi)
 
-                // Subtitle
-                Text("萬物共歸道，演算法虛靈。")
-                    .font(.custom("HuiwenMingChao", size: 13))
-                    .foregroundStyle(CyberColors.cyberWhite)
-                    .kerning(3)
-                    .opacity(showSubtitle ? 1 : 0)
-                    .animation(.easeOut(duration: 0.7), value: showSubtitle)
+                    Spacer(minLength: 0)
+                        .frame(height: spGanzhiContent)
 
-                Spacer().frame(maxHeight: .infinity)
+                    // ── Solar term ──────────────────────────────────
+                    if let term = solarTermString {
+                        Text("[ \(term) ]")
+                            .font(.custom("JetBrainsMono-Regular", size: 13))
+                            .foregroundStyle(CyberColors.cyberWhite)
+                            .kerning(4)
+                            .opacity(showBottom ? 1 : 0)
+                            .animation(.easeOut(duration: 0.7), value: showBottom)
+                        Spacer().frame(height: 12)
+                    }
 
-                // Bottom section
-                VStack(spacing: 10) {
-                    Text("CYBERDIVINER")
-                        .font(CyberTypography.monoMedium)
-                        .foregroundStyle(CyberColors.grayBody)
-                        .kerning(8)
-                        .opacity(showBottom ? 1 : 0)
-                        .animation(.easeOut(duration: 0.7), value: showBottom)
-
-                    Text("[ TOUCH TO ENTER ]")
-                        .font(CyberTypography.monoSmall)
-                        .foregroundStyle(CyberColors.grayCaption)
+                    // ── Subtitle ────────────────────────────────────
+                    Text("萬物共歸道，演算法虛靈。")
+                        .font(.custom("Huiwen-mincho", size: 13))
+                        .foregroundStyle(CyberColors.cyberWhite)
                         .kerning(3)
                         .opacity(showBottom ? 1 : 0)
                         .animation(.easeOut(duration: 0.7), value: showBottom)
+
+                    Spacer(minLength: 0)
+                        .frame(height: spContentBottom)
+
+                    // ── Bottom section ──────────────────────────────
+                    VStack(spacing: 10) {
+                        Text("CYBERDIVINER")
+                            .font(.custom("JetBrainsMono-Regular", size: 10))
+                            .foregroundStyle(CyberColors.grayBody)
+                            .kerning(8)
+                            .opacity(showBottom ? 1 : 0)
+                            .animation(.easeOut(duration: 0.7), value: showBottom)
+
+                        Text("[ TOUCH TO ENTER ]")
+                            .font(.custom("JetBrainsMono-Regular", size: 11))
+                            .foregroundStyle(CyberColors.grayCaption)
+                            .kerning(3)
+                            .opacity(showBottom ? 1 : 0)
+                            .animation(.easeOut(duration: 0.7), value: showBottom)
+                    }
+                    .padding(.bottom, 48)
                 }
-                .padding(.bottom, 48)
+                .frame(width: geo.size.width, height: geo.size.height)
+                .padding(.horizontal, 32)
             }
-            .padding(.horizontal, 32)
         }
         .opacity(dissolving ? 0 : 1)
         .animation(.easeOut(duration: 0.5), value: dissolving)
@@ -168,7 +190,7 @@ public struct SplashScreen: View {
             }
         }
         .onAppear {
-            // Sequential fade-in
+            // Sequential fade-in (matching Android timing)
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { showDate = true }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { showWord = true }
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.1) { showGanzhi = true }

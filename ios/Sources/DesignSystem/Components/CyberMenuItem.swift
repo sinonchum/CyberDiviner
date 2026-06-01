@@ -3,13 +3,15 @@ import SwiftUI
 public struct CyberMenuItem: View {
     let title: String
     let subtitle: String
+    let description: String
     let action: () -> Void
 
     @State private var isPressed = false
 
-    public init(title: String, subtitle: String, action: @escaping () -> Void) {
+    public init(title: String, subtitle: String, description: String = "", action: @escaping () -> Void) {
         self.title = title
         self.subtitle = subtitle
+        self.description = description
         self.action = action
     }
 
@@ -27,6 +29,11 @@ public struct CyberMenuItem: View {
                 Text(subtitle)
                     .font(CyberTypography.bodySmall)
                     .foregroundStyle(CyberColors.grayCaption)
+                if !description.isEmpty {
+                    Text(description)
+                        .font(CyberTypography.bodySmall)
+                        .foregroundStyle(CyberColors.grayMuted)
+                }
             }
             .padding(.horizontal, CyberSpacing.sm)
             .padding(.vertical, CyberSpacing.xs)

@@ -6,7 +6,7 @@ import DivinationCore
 ///
 /// Matches Android EpiphanyScreen.kt exactly.
 /// Background: black placeholder (mountain image).
-/// Font: HuiwenMingChao.
+/// Font: Huiwen-mincho.
 /// Text: Traditional Chinese.
 /// Interaction: tap anywhere to dissolve into main interface.
 public struct EpiphanyScreen: View {
@@ -73,7 +73,7 @@ public struct EpiphanyScreen: View {
 
                     // Year
                     Text("\(ganzhi.yearStem)\(ganzhi.yearBranch)年")
-                        .font(.custom("HuiwenMingChao", size: 42))
+                        .font(.custom("Huiwen-mincho", size: 42))
                         .foregroundStyle(CyberColors.cyberWhite)
                         .kerning(10)
                         .opacity(showYear ? 1 : 0)
@@ -87,7 +87,7 @@ public struct EpiphanyScreen: View {
 
                     // Month
                     Text("\(ganzhi.monthStem)\(ganzhi.monthBranch)月")
-                        .font(.custom("HuiwenMingChao", size: 42))
+                        .font(.custom("Huiwen-mincho", size: 42))
                         .foregroundStyle(CyberColors.cyberWhite)
                         .kerning(10)
                         .opacity(showMonth ? 1 : 0)
@@ -101,7 +101,7 @@ public struct EpiphanyScreen: View {
 
                     // Day (hero size)
                     Text("\(ganzhi.dayStem)\(ganzhi.dayBranch)日")
-                        .font(.custom("HuiwenMingChao", size: 58))
+                        .font(.custom("Huiwen-mincho", size: 58))
                         .foregroundStyle(CyberColors.cyberWhite)
                         .kerning(14)
                         .opacity(showDay ? 1 : 0)

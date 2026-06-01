@@ -1,8 +1,6 @@
 import SwiftUI
 import DesignSystem
 import Oracle
-import Liuyao
-import Tarot
 import Archive
 import Settings
 
@@ -118,14 +116,14 @@ struct ContentView: View {
                 appearance.stackedLayoutAppearance.normal.iconColor = UIColor(CyberColors.grayCaption)
                 appearance.stackedLayoutAppearance.normal.titleTextAttributes = [
                     .foregroundColor: UIColor(CyberColors.grayCaption),
-                    .font: UIFont(name: "HuiwenMingChao", size: 11) ?? UIFont.systemFont(ofSize: 11)
+                    .font: UIFont(name: "Huiwen-mincho", size: 11) ?? UIFont.systemFont(ofSize: 11)
                 ]
 
                 // Selected
                 appearance.stackedLayoutAppearance.selected.iconColor = .white
                 appearance.stackedLayoutAppearance.selected.titleTextAttributes = [
                     .foregroundColor: UIColor.white,
-                    .font: UIFont(name: "HuiwenMingChao", size: 11) ?? UIFont.systemFont(ofSize: 11)
+                    .font: UIFont(name: "Huiwen-mincho", size: 11) ?? UIFont.systemFont(ofSize: 11)
                 ]
 
                 UITabBar.appearance().standardAppearance = appearance
@@ -204,7 +202,7 @@ struct OracleTabLabel: View {
             .frame(width: 24, height: 24)
 
             Text("叩问天机")
-                .font(.custom("HuiwenMingChao", size: 11))
+                .font(.custom("Huiwen-mincho", size: 11))
         }
     }
 }
@@ -260,7 +258,7 @@ struct TrigramTabLabel: View {
             .frame(width: 24, height: 24)
 
             Text("术数推演")
-                .font(.custom("HuiwenMingChao", size: 11))
+                .font(.custom("Huiwen-mincho", size: 11))
         }
     }
 }
@@ -322,7 +320,7 @@ struct LearnTabLabel: View {
             .frame(width: 24, height: 24)
 
             Text("修习之路")
-                .font(.custom("HuiwenMingChao", size: 11))
+                .font(.custom("Huiwen-mincho", size: 11))
         }
     }
 }
@@ -388,80 +386,8 @@ struct ScrollTabLabel: View {
             .frame(width: 24, height: 24)
 
             Text("因果命簿")
-                .font(.custom("HuiwenMingChao", size: 11))
+                .font(.custom("Huiwen-mincho", size: 11))
         }
-    }
-}
-
-// MARK: - Rituals Menu (Liuyao + Tarot entry)
-
-struct RitualsMenuView: View {
-    var body: some View {
-        ZStack {
-            CyberColors.cyberBlack
-                .ignoresSafeArea()
-
-            VStack(alignment: .leading, spacing: 0) {
-                SectionHeader(chineseTitle: "术数推演", englishSubtitle: "RITUALS")
-
-                Spacer().frame(height: 48)
-
-                NavigationLink {
-                    LiuyaoScreen()
-                } label: {
-                    RitualMenuItem(
-                        title: "周易六爻",
-                        subtitle: "I CHING · LIUYAO",
-                        icon: "line.3.horizontal"
-                    )
-                }
-
-                Spacer().frame(height: 48)
-
-                NavigationLink {
-                    TarotScreen()
-                } label: {
-                    RitualMenuItem(
-                        title: "赛博塔罗",
-                        subtitle: "CYBER TAROT",
-                        icon: "rectangle.on.rectangle"
-                    )
-                }
-
-                Spacer()
-            }
-            .padding(.horizontal, 48)
-            .padding(.top, 32)
-        }
-        .navigationTitle("术数推演")
-    }
-}
-
-struct RitualMenuItem: View {
-    let title: String
-    let subtitle: String
-    let icon: String
-
-    var body: some View {
-        HStack(spacing: 16) {
-            Image(systemName: icon)
-                .font(.system(size: 20))
-                .foregroundStyle(CyberColors.grayCaption)
-                .frame(width: 24)
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title)
-                    .font(.system(size: 20, weight: .medium))
-                    .foregroundStyle(CyberColors.cyberWhite)
-
-                Text(subtitle)
-                    .font(.system(size: 11, design: .monospaced))
-                    .foregroundStyle(CyberColors.grayCaption)
-            }
-
-            Spacer()
-        }
-        .padding(.vertical, 8)
     }
 }
 
@@ -477,7 +403,7 @@ struct LearnPlaceholderView: View {
                 Spacer()
 
                 Text("修习之路")
-                    .font(.custom("HuiwenMingChao", size: 32))
+                    .font(.custom("Huiwen-mincho", size: 32))
                     .foregroundStyle(CyberColors.grayMuted)
 
                 Text("LEARNING PATH")

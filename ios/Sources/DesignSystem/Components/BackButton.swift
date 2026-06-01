@@ -11,7 +11,7 @@ public struct BackButton: View {
     public var body: some View {
         Button(action: action) {
             Text("< 返回")
-                .font(.custom("HuiwenMingChao", size: 13))
+                .font(.custom("Huiwen-mincho", size: 13))
                 .foregroundColor(CyberColors.grayCaption)
         }
     }
