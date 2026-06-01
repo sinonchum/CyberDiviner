@@ -21,6 +21,7 @@ import com.cyberdiviner.ui.theme.GrayCaption
 import com.cyberdiviner.ui.shared.*
 import com.cyberdiviner.ui.localization.CyberCopy
 import com.cyberdiviner.ui.localization.LocalAppLanguage
+import com.cyberdiviner.ui.settings.AppLanguage
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 
@@ -66,8 +67,8 @@ fun HomeScreen(
 
             StaggeredItem(index = 0) {
                 CyberMenuItem(
-                    title = CyberCopy.homeOracle(lang),
-                    subtitle = "",
+                    title = if (lang == AppLanguage.BILINGUAL_EN) "Oracle" else "叩问天机",
+                    subtitle = if (lang == AppLanguage.BILINGUAL_EN) "叩问天机" else "",
                     description = "",
                     onClick = onOracle
                 )
@@ -76,8 +77,8 @@ fun HomeScreen(
 
             StaggeredItem(index = 1) {
                 CyberMenuItem(
-                    title = CyberCopy.homeRituals(lang),
-                    subtitle = "",
+                    title = if (lang == AppLanguage.BILINGUAL_EN) "Rituals" else "术数推演",
+                    subtitle = if (lang == AppLanguage.BILINGUAL_EN) "术数推演" else "",
                     description = "",
                     onClick = onRituals
                 )
@@ -86,8 +87,8 @@ fun HomeScreen(
 
             StaggeredItem(index = 2) {
                 CyberMenuItem(
-                    title = CyberCopy.homeArchive(lang),
-                    subtitle = "",
+                    title = if (lang == AppLanguage.BILINGUAL_EN) "Causal Ledger" else "因果命簿",
+                    subtitle = if (lang == AppLanguage.BILINGUAL_EN) "因果命簿" else "",
                     description = "",
                     onClick = onArchive
                 )
