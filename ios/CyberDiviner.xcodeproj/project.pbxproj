@@ -1,0 +1,397 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		126540083F93B9669C698781 /* ShareKit in Frameworks */ = {isa = PBXBuildFile; productRef = 0B880BDABC221BD7AC671E34 /* ShareKit */; };
+		2A925B821C138550342F0791 /* DesignSystem in Frameworks */ = {isa = PBXBuildFile; productRef = 6AFFE849E03E7C526F234C26 /* DesignSystem */; };
+		3EF13BCE4DF24631EF61AEAE /* Persistence in Frameworks */ = {isa = PBXBuildFile; productRef = BA1A3F447729A1F33C1B184E /* Persistence */; };
+		598446FFD063A2FF360B68EA /* Oracle in Frameworks */ = {isa = PBXBuildFile; productRef = A4210024748757F56812E05B /* Oracle */; };
+		6603B8820604AF2932D03190 /* Liuyao in Frameworks */ = {isa = PBXBuildFile; productRef = E9B67EC6D24604C235561419 /* Liuyao */; };
+		7DFA4DC1086F07A5398D0942 /* Settings in Frameworks */ = {isa = PBXBuildFile; productRef = 5D2C2FC7C8E2709424A2CC0E /* Settings */; };
+		946EEA66E251D2F54D664C0F /* DivinationCore in Frameworks */ = {isa = PBXBuildFile; productRef = 194E4E1237FA1DC9B26C7F4C /* DivinationCore */; };
+		A19A57966EDE7CF7DC8439D0 /* Archive in Frameworks */ = {isa = PBXBuildFile; productRef = EA45A8B903413E496665BC40 /* Archive */; };
+		C0E711C9B767ECB773B92CAC /* Tarot in Frameworks */ = {isa = PBXBuildFile; productRef = 16C743D44F40F50118251EA0 /* Tarot */; };
+		D1A4AE02BB75D729F5507419 /* AI in Frameworks */ = {isa = PBXBuildFile; productRef = 313F1F2D21869F2713B638CF /* AI */; };
+		FA13F70997F1D753F2E5791D /* CyberDivinerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0C5FAC29C3BBD7F80BF049 /* CyberDivinerApp.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		3F44EC94B63A7C741AED31F4 /* CyberDivinerApp.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = CyberDivinerApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		FA0C5FAC29C3BBD7F80BF049 /* CyberDivinerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CyberDivinerApp.swift; sourceTree = "<group>"; };
+		FB9ACFD340E05C748308EED6 /* ios */ = {isa = PBXFileReference; lastKnownFileType = folder; name = ios; path = .; sourceTree = SOURCE_ROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		8E4530B691DA63E3BBBAFDDB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2A925B821C138550342F0791 /* DesignSystem in Frameworks */,
+				946EEA66E251D2F54D664C0F /* DivinationCore in Frameworks */,
+				D1A4AE02BB75D729F5507419 /* AI in Frameworks */,
+				3EF13BCE4DF24631EF61AEAE /* Persistence in Frameworks */,
+				598446FFD063A2FF360B68EA /* Oracle in Frameworks */,
+				6603B8820604AF2932D03190 /* Liuyao in Frameworks */,
+				C0E711C9B767ECB773B92CAC /* Tarot in Frameworks */,
+				A19A57966EDE7CF7DC8439D0 /* Archive in Frameworks */,
+				7DFA4DC1086F07A5398D0942 /* Settings in Frameworks */,
+				126540083F93B9669C698781 /* ShareKit in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		13C15A74ECB24E67FCD9EECC = {
+			isa = PBXGroup;
+			children = (
+				D4D7DDAE28ABA5D1A03755D6 /* CyberDivinerApp */,
+				FD87DE36F46E98F14A0D946D /* Packages */,
+				EC29E327179880EF5078F342 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		D4D7DDAE28ABA5D1A03755D6 /* CyberDivinerApp */ = {
+			isa = PBXGroup;
+			children = (
+				FA0C5FAC29C3BBD7F80BF049 /* CyberDivinerApp.swift */,
+			);
+			name = CyberDivinerApp;
+			path = Sources/CyberDivinerApp;
+			sourceTree = "<group>";
+		};
+		EC29E327179880EF5078F342 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				3F44EC94B63A7C741AED31F4 /* CyberDivinerApp.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		FD87DE36F46E98F14A0D946D /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				FB9ACFD340E05C748308EED6 /* ios */,
+			);
+			name = Packages;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		075EB7D6B42548BAF673B4F4 /* CyberDivinerApp */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 34C9C8447222BC51173B2901 /* Build configuration list for PBXNativeTarget "CyberDivinerApp" */;
+			buildPhases = (
+				379DEACBFAA088F4A64C698E /* Sources */,
+				8E4530B691DA63E3BBBAFDDB /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = CyberDivinerApp;
+			packageProductDependencies = (
+				6AFFE849E03E7C526F234C26 /* DesignSystem */,
+				194E4E1237FA1DC9B26C7F4C /* DivinationCore */,
+				313F1F2D21869F2713B638CF /* AI */,
+				BA1A3F447729A1F33C1B184E /* Persistence */,
+				A4210024748757F56812E05B /* Oracle */,
+				E9B67EC6D24604C235561419 /* Liuyao */,
+				16C743D44F40F50118251EA0 /* Tarot */,
+				EA45A8B903413E496665BC40 /* Archive */,
+				5D2C2FC7C8E2709424A2CC0E /* Settings */,
+				0B880BDABC221BD7AC671E34 /* ShareKit */,
+			);
+			productName = CyberDivinerApp;
+			productReference = 3F44EC94B63A7C741AED31F4 /* CyberDivinerApp.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		5449C391C0F30B306A5F4C07 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 2600;
+				TargetAttributes = {
+				};
+			};
+			buildConfigurationList = 9F5D0310C579D674025639DE /* Build configuration list for PBXProject "CyberDiviner" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 13C15A74ECB24E67FCD9EECC;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				C152307006EE476B183748F5 /* XCLocalSwiftPackageReference "." */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = EC29E327179880EF5078F342 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				075EB7D6B42548BAF673B4F4 /* CyberDivinerApp */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		379DEACBFAA088F4A64C698E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FA13F70997F1D753F2E5791D /* CyberDivinerApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		550BCD8233A4502D874CF669 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UIUserInterfaceStyle = Dark;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.cyberdiviner.CyberDivinerApp;
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		82F3CF54624DD77C40908F2E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UIUserInterfaceStyle = Dark;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.cyberdiviner.CyberDivinerApp;
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		ABE684BA446C4BB61B55158B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		F5E3B6AB857A49C7AE321DD7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		34C9C8447222BC51173B2901 /* Build configuration list for PBXNativeTarget "CyberDivinerApp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				550BCD8233A4502D874CF669 /* Debug */,
+				82F3CF54624DD77C40908F2E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		9F5D0310C579D674025639DE /* Build configuration list for PBXProject "CyberDiviner" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F5E3B6AB857A49C7AE321DD7 /* Debug */,
+				ABE684BA446C4BB61B55158B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		C152307006EE476B183748F5 /* XCLocalSwiftPackageReference "." */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = .;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		0B880BDABC221BD7AC671E34 /* ShareKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = ShareKit;
+		};
+		16C743D44F40F50118251EA0 /* Tarot */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Tarot;
+		};
+		194E4E1237FA1DC9B26C7F4C /* DivinationCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = DivinationCore;
+		};
+		313F1F2D21869F2713B638CF /* AI */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = AI;
+		};
+		5D2C2FC7C8E2709424A2CC0E /* Settings */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Settings;
+		};
+		6AFFE849E03E7C526F234C26 /* DesignSystem */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = DesignSystem;
+		};
+		A4210024748757F56812E05B /* Oracle */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Oracle;
+		};
+		BA1A3F447729A1F33C1B184E /* Persistence */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Persistence;
+		};
+		E9B67EC6D24604C235561419 /* Liuyao */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Liuyao;
+		};
+		EA45A8B903413E496665BC40 /* Archive */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Archive;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 5449C391C0F30B306A5F4C07 /* Project object */;
+}
