@@ -25,6 +25,8 @@ import androidx.compose.ui.unit.sp
 import com.cyberdiviner.ui.theme.CyberBlack
 import com.cyberdiviner.ui.theme.CyberWhite
 import com.cyberdiviner.ui.theme.GrayMuted
+import com.cyberdiviner.ui.localization.LocalAppLanguage
+import com.cyberdiviner.ui.settings.AppLanguage
 import kotlinx.coroutines.flow.collectLatest
 
 /**
@@ -41,7 +43,8 @@ fun CyberMenuItem(
     subtitle: String,
     description: String,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    lang: AppLanguage = LocalAppLanguage.current
 ) {
     var isPressed by remember { mutableStateOf(false) }
     val interactionSource = remember { MutableInteractionSource() }
@@ -102,7 +105,7 @@ fun CyberMenuItem(
             Text(
                 text = title,
                 color = titleColor,
-                fontFamily = HuiwenFontFamily,
+                fontFamily = if (lang == AppLanguage.BILINGUAL_EN) MonoFontFamily else HuiwenFontFamily,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Normal,
                 letterSpacing = 2.sp,
@@ -110,12 +113,12 @@ fun CyberMenuItem(
                 overflow = TextOverflow.Ellipsis
             )
 
-            // 英文副标题
+            // 副标题
             if (subtitle.isNotEmpty()) {
                 Text(
                     text = subtitle,
                     color = GrayMuted,
-                    fontFamily = MonoFontFamily,
+                    fontFamily = if (lang == AppLanguage.BILINGUAL_EN) HuiwenFontFamily else MonoFontFamily,
                     fontSize = 11.sp,
                     letterSpacing = 1.sp,
                     maxLines = 1,
@@ -128,7 +131,7 @@ fun CyberMenuItem(
                 Text(
                     text = description,
                     color = GrayMuted,
-                    fontFamily = WenKaiFontFamily,
+                    fontFamily = if (lang == AppLanguage.BILINGUAL_EN) MonoFontFamily else WenKaiFontFamily,
                     fontSize = 11.sp,
                     lineHeight = 16.sp,
                     maxLines = 3,

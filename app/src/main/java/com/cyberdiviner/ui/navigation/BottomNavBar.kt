@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.sp
 import com.cyberdiviner.ui.theme.*
 import com.cyberdiviner.ui.localization.CyberCopy
 import com.cyberdiviner.ui.localization.LocalAppLanguage
+import com.cyberdiviner.ui.settings.AppLanguage
 
 sealed class BottomNavItem(
     val route: String,
@@ -169,7 +170,7 @@ fun BottomNavBar(
                 label = {
                     Text(
                         text = item.label(lang),
-                        fontFamily = HuiwenFontFamily,
+                        fontFamily = if (lang == AppLanguage.BILINGUAL_EN) MonoFontFamily else HuiwenFontFamily,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Normal
                     )

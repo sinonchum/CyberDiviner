@@ -68,7 +68,7 @@ fun HomeScreen(
             StaggeredItem(index = 0) {
                 CyberMenuItem(
                     title = if (lang == AppLanguage.BILINGUAL_EN) "Oracle" else "叩问天机",
-                    subtitle = if (lang == AppLanguage.BILINGUAL_EN) "叩问天机" else "",
+                    subtitle = "",
                     description = "",
                     onClick = onOracle
                 )
@@ -78,7 +78,7 @@ fun HomeScreen(
             StaggeredItem(index = 1) {
                 CyberMenuItem(
                     title = if (lang == AppLanguage.BILINGUAL_EN) "Rituals" else "术数推演",
-                    subtitle = if (lang == AppLanguage.BILINGUAL_EN) "术数推演" else "",
+                    subtitle = "",
                     description = "",
                     onClick = onRituals
                 )
@@ -87,8 +87,8 @@ fun HomeScreen(
 
             StaggeredItem(index = 2) {
                 CyberMenuItem(
-                    title = if (lang == AppLanguage.BILINGUAL_EN) "Causal Ledger" else "因果命簿",
-                    subtitle = if (lang == AppLanguage.BILINGUAL_EN) "因果命簿" else "",
+                    title = if (lang == AppLanguage.BILINGUAL_EN) "Ledger" else "因果命簿",
+                    subtitle = "",
                     description = "",
                     onClick = onArchive
                 )

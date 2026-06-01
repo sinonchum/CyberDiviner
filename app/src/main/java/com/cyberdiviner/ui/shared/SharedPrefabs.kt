@@ -32,6 +32,8 @@ import com.cyberdiviner.ui.theme.GrayCaption
 import com.cyberdiviner.ui.theme.HuiwenFontFamily
 import com.cyberdiviner.ui.theme.MonoFontFamily
 import com.cyberdiviner.ui.theme.GrayMuted
+import com.cyberdiviner.ui.localization.LocalAppLanguage
+import com.cyberdiviner.ui.settings.AppLanguage
 
 object DesignTokens {
     val ScreenHorizontalPadding = 32.dp
@@ -52,10 +54,11 @@ fun SectionHeader(
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier) {
+        val lang = LocalAppLanguage.current
         Text(
             text = title,
             color = GrayCaption,
-            fontFamily = HuiwenFontFamily,
+            fontFamily = if (lang == AppLanguage.BILINGUAL_EN) MonoFontFamily else HuiwenFontFamily,
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
             letterSpacing = 3.sp
@@ -78,7 +81,7 @@ fun SectionHeader(
                 text = subtitle,
                 color = GrayCaption,
                 fontSize = 11.sp,
-                fontFamily = MonoFontFamily,
+                fontFamily = if (lang == AppLanguage.BILINGUAL_EN) HuiwenFontFamily else MonoFontFamily,
                 letterSpacing = 2.sp
             )
         }

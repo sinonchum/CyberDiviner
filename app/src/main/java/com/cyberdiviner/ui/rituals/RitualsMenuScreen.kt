@@ -43,13 +43,13 @@ fun RitualsMenuScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.Start
         ) {
-            SectionHeader(title = CyberCopy.ritualsTitle(lang), subtitle = CyberCopy.ritualsSubtitle(lang))
+            SectionHeader(title = if (lang == AppLanguage.BILINGUAL_EN) "RITUAL EXECUTION" else "术数推演", subtitle = if (lang == AppLanguage.BILINGUAL_EN) "术数推演" else "RITUAL EXECUTION")
             Spacer(modifier = Modifier.height(48.dp))
 
             StaggeredItem(index = 0) {
                 CyberMenuItem(
-                    title = if (lang == AppLanguage.BILINGUAL_EN) "I Ching" else "周易六爻",
-                    subtitle = if (lang == AppLanguage.BILINGUAL_EN) "六爻" else "I-CHING",
+                    title = if (lang == AppLanguage.BILINGUAL_EN) "I-CHING" else "周易六爻",
+                    subtitle = if (lang == AppLanguage.BILINGUAL_EN) "周易六爻" else "I-CHING",
                     description = CyberCopy.ritualIChingDesc(lang),
                     onClick = onIChing
                 )
@@ -58,7 +58,7 @@ fun RitualsMenuScreen(
 
             StaggeredItem(index = 1) {
                 CyberMenuItem(
-                    title = if (lang == AppLanguage.BILINGUAL_EN) "Cyber Tarot" else "赛博塔罗",
+                    title = if (lang == AppLanguage.BILINGUAL_EN) "CYBER TAROT" else "赛博塔罗",
                     subtitle = if (lang == AppLanguage.BILINGUAL_EN) "赛博塔罗" else "CYBER TAROT",
                     description = CyberCopy.ritualTarotDesc(lang),
                     onClick = onTarot
@@ -68,7 +68,7 @@ fun RitualsMenuScreen(
 
             StaggeredItem(index = 2) {
                 CyberMenuItem(
-                    title = if (lang == AppLanguage.BILINGUAL_EN) "Face Reading" else "视界摸骨",
+                    title = if (lang == AppLanguage.BILINGUAL_EN) "FACE SCAN" else "视界摸骨",
                     subtitle = if (lang == AppLanguage.BILINGUAL_EN) "视界摸骨" else "FACE SCAN",
                     description = CyberCopy.ritualVisionDesc(lang),
                     onClick = onVision
@@ -78,7 +78,7 @@ fun RitualsMenuScreen(
 
             StaggeredItem(index = 3) {
                 CyberMenuItem(
-                    title = if (lang == AppLanguage.BILINGUAL_EN) "Singing Bowl" else "电子颂钵",
+                    title = if (lang == AppLanguage.BILINGUAL_EN) "SINGING BOWL" else "电子颂钵",
                     subtitle = if (lang == AppLanguage.BILINGUAL_EN) "电子颂钵" else "SINGING BOWL",
                     description = CyberCopy.ritualBowlDesc(lang),
                     onClick = onMuyu
@@ -88,7 +88,7 @@ fun RitualsMenuScreen(
 
             StaggeredItem(index = 4) {
                 CyberMenuItem(
-                    title = if (lang == AppLanguage.BILINGUAL_EN) "Daily Almanac" else "赛博黄历",
+                    title = if (lang == AppLanguage.BILINGUAL_EN) "ALMANAC" else "赛博黄历",
                     subtitle = if (lang == AppLanguage.BILINGUAL_EN) "赛博黄历" else "ALMANAC",
                     description = CyberCopy.ritualAlmanacDesc(lang),
                     onClick = onAlmanac
