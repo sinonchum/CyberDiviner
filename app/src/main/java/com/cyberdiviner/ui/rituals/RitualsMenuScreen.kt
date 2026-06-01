@@ -48,7 +48,7 @@ fun RitualsMenuScreen(
             StaggeredItem(index = 0) {
                 CyberMenuItem(
                     title = CyberCopy.ritualIChing(lang),
-                    subtitle = "I-CHING",
+                    subtitle = "",
                     description = CyberCopy.ritualIChingDesc(lang),
                     onClick = onIChing
                 )
@@ -58,7 +58,7 @@ fun RitualsMenuScreen(
             StaggeredItem(index = 1) {
                 CyberMenuItem(
                     title = CyberCopy.ritualTarot(lang),
-                    subtitle = "CYBER TAROT",
+                    subtitle = "",
                     description = CyberCopy.ritualTarotDesc(lang),
                     onClick = onTarot
                 )
@@ -68,7 +68,7 @@ fun RitualsMenuScreen(
             StaggeredItem(index = 2) {
                 CyberMenuItem(
                     title = CyberCopy.ritualVision(lang),
-                    subtitle = "FACE SCAN",
+                    subtitle = "",
                     description = CyberCopy.ritualVisionDesc(lang),
                     onClick = onVision
                 )
@@ -78,7 +78,7 @@ fun RitualsMenuScreen(
             StaggeredItem(index = 3) {
                 CyberMenuItem(
                     title = CyberCopy.ritualBowl(lang),
-                    subtitle = "SINGING BOWL",
+                    subtitle = "",
                     description = CyberCopy.ritualBowlDesc(lang),
                     onClick = onMuyu
                 )
@@ -88,7 +88,7 @@ fun RitualsMenuScreen(
             StaggeredItem(index = 4) {
                 CyberMenuItem(
                     title = CyberCopy.ritualAlmanac(lang),
-                    subtitle = "ALMANAC",
+                    subtitle = "",
                     description = CyberCopy.ritualAlmanacDesc(lang),
                     onClick = onAlmanac
                 )
