@@ -5,7 +5,7 @@ import SwiftUI
 
 /// Protocol defining CRUD operations for reading persistence.
 /// Designed so a SwiftData implementation can be swapped in later when built with Xcode.
-protocol ReadingStoreProtocol {
+public protocol ReadingStoreProtocol {
     func getAll() -> [SavedReading]
     func save(_ reading: SavedReading)
     func delete(id: UUID)
@@ -18,7 +18,7 @@ protocol ReadingStoreProtocol {
 /// A concrete `ReadingStoreProtocol` that persists readings as JSON in UserDefaults.
 /// This is the default implementation used when SwiftData is unavailable (e.g. non-Xcode builds).
 @Observable
-final class UserDefaultsReadingStore: ReadingStoreProtocol {
+public final class UserDefaultsReadingStore: ReadingStoreProtocol {
 
     // MARK: Storage key
 
@@ -28,21 +28,21 @@ final class UserDefaultsReadingStore: ReadingStoreProtocol {
 
     /// All readings, kept in-memory and synced to UserDefaults.
     /// SwiftUI views observing this property will re-render on changes.
-    private(set) var readings: [SavedReading] = []
+    public private(set) var readings: [SavedReading] = []
 
     // MARK: Lifecycle
 
-    init() {
+    public init() {
         loadFromDisk()
     }
 
     // MARK: ReadingStoreProtocol
 
-    func getAll() -> [SavedReading] {
+    public func getAll() -> [SavedReading] {
         readings.sorted { $0.createdAt > $1.createdAt }
     }
 
-    func save(_ reading: SavedReading) {
+    public func save(_ reading: SavedReading) {
         // Upsert: replace existing or append
         if let idx = readings.firstIndex(where: { $0.id == reading.id }) {
             readings[idx] = reading
@@ -52,18 +52,18 @@ final class UserDefaultsReadingStore: ReadingStoreProtocol {
         persistToDisk()
     }
 
-    func delete(id: UUID) {
+    public func delete(id: UUID) {
         readings.removeAll { $0.id == id }
         persistToDisk()
     }
 
-    func getByType(_ type: DivinationType) -> [SavedReading] {
+    public func getByType(_ type: DivinationType) -> [SavedReading] {
         readings
             .filter { $0.type == type }
             .sorted { $0.createdAt > $1.createdAt }
     }
 
-    func search(query: String) -> [SavedReading] {
+    public func search(query: String) -> [SavedReading] {
         let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return getAll() }
         let lowered = trimmed.lowercased()

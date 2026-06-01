@@ -1,62 +1,41 @@
 import Foundation
 
-// MARK: - Divination Type
+// MARK: - DivinationType
 
-/// Matches the Android DivinationType enum
-enum DivinationType: String, Codable, CaseIterable, Identifiable {
-    case oracle   // 灵签 oracle divination
-    case liuyao   // 六爻 Liu Yao / I Ching hexagram
-    case tarot    // Tarot card reading
+public enum DivinationType: String, Codable, CaseIterable {
+    case oracle
+    case liuyao
+    case tarot
 
-    var id: String { rawValue }
-
-    var displayName: String {
+    public var displayName: String {
         switch self {
-        case .oracle: return "灵签"
-        case .liuyao: return "六爻"
-        case .tarot:  return "塔罗"
+        case .oracle: "叩问天机"
+        case .liuyao: "周易六爻"
+        case .tarot: "赛博塔罗"
         }
     }
 
-    var icon: String {
+    public var icon: String {
         switch self {
-        case .oracle: return "scroll"
-        case .liuyao: return "hexagon"
-        case .tarot:  return "suit.spade"
+        case .oracle: "签"
+        case .liuyao: "爻"
+        case .tarot: "牌"
         }
     }
 }
 
-// MARK: - Saved Reading
+// MARK: - SavedReading
 
-/// Core data model for a persisted divination reading.
-/// Identifiable for SwiftUI lists, Codable for JSON serialization.
-struct SavedReading: Identifiable, Codable, Equatable {
-    /// Unique identifier
-    let id: UUID
+public struct SavedReading: Identifiable, Codable, Equatable {
+    public let id: UUID
+    public let type: DivinationType
+    public let title: String
+    public let question: String
+    public let resultText: String
+    public let metadata: String
+    public let createdAt: Date
 
-    /// Type of divination performed
-    let type: DivinationType
-
-    /// Short 4-character fortune title (e.g. "上上签", "大吉", "命运之")
-    let title: String
-
-    /// The user's original question
-    let question: String
-
-    /// Full result text / interpretation
-    let resultText: String
-
-    /// JSON-encoded string holding type-specific metadata
-    /// (e.g. hexagram lines, tarot spread positions, verse number)
-    let metadata: String
-
-    /// When the reading was created
-    let createdAt: Date
-
-    // MARK: Initializer
-
-    init(
+    public init(
         id: UUID = UUID(),
         type: DivinationType,
         title: String,
@@ -74,20 +53,16 @@ struct SavedReading: Identifiable, Codable, Equatable {
         self.createdAt = createdAt
     }
 
-    // MARK: Convenience
-
-    /// Formatted creation date
-    var formattedDate: String {
+    public var formattedDate: String {
         let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        formatter.timeStyle = .short
+        formatter.dateFormat = "yyyy-MM-dd HH:mm"
         return formatter.string(from: createdAt)
     }
 
-    /// Short preview of the result text (first 80 chars)
-    var preview: String {
-        if resultText.count <= 80 { return resultText }
-        let end = resultText.index(resultText.startIndex, offsetBy: 80)
-        return String(resultText[..<end]) + "…"
-    }
+    public static let preview = SavedReading(
+        type: .oracle,
+        title: "春风化雨",
+        question: "近期事业如何？",
+        resultText: "[ 载入签文 ]\n春风化雨润无声，柳暗花明又一程。\n\n[ 逻辑解析 ]\n当前局势正在悄然变化...\n\n[ 最终断语 ]\n保持耐心，时机将至。"
+    )
 }

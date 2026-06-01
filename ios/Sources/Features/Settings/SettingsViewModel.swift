@@ -1,8 +1,10 @@
 import Foundation
+import SwiftUI
 import DesignSystem
+import AI
 
 @Observable
-final class SettingsViewModel {
+final public class SettingsViewModel {
     @ObservationIgnored
     @AppStorage("llm_provider") var provider: String = "openai_compatible"
 

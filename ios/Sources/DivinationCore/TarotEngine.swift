@@ -2,38 +2,49 @@ import Foundation
 
 // MARK: - Tarot Card
 
-struct TarotCard: Identifiable, Sendable {
-    let id: Int
-    let number: Int           // 0-21 for Major, 1-14 for Minor per suit
-    let nameCN: String
-    let nameEN: String
-    let suit: String          // "大阿卡纳", "权杖", "圣杯", "宝剑", "星币"
-    let arcanaType: ArcanaType
-    let uprightMeaning: String
-    let reversedMeaning: String
+public struct TarotCard: Identifiable, Sendable {
+    public let id: Int
+    public let number: Int           // 0-21 for Major, 1-14 for Minor per suit
+    public let nameCN: String
+    public let nameEN: String
+    public let suit: String          // "大阿卡纳", "权杖", "圣杯", "宝剑", "星币"
+    public let arcanaType: ArcanaType
+    public let uprightMeaning: String
+    public let reversedMeaning: String
 
-    enum ArcanaType: String, Sendable {
+    public init(id: Int, number: Int, nameCN: String, nameEN: String, suit: String, arcanaType: ArcanaType, uprightMeaning: String, reversedMeaning: String) {
+        self.id = id
+        self.number = number
+        self.nameCN = nameCN
+        self.nameEN = nameEN
+        self.suit = suit
+        self.arcanaType = arcanaType
+        self.uprightMeaning = uprightMeaning
+        self.reversedMeaning = reversedMeaning
+    }
+
+    public enum ArcanaType: String, Sendable {
         case major = "大阿卡纳"
         case minor = "小阿卡纳"
     }
 
-    func displayName(isReversed: Bool) -> String {
+    public func displayName(isReversed: Bool) -> String {
         let position = isReversed ? "[逆位]" : "[正位]"
         return "\(nameCN) (\(nameEN)) \(position)"
     }
 
-    func currentMeaning(isReversed: Bool) -> String {
+    public func currentMeaning(isReversed: Bool) -> String {
         isReversed ? reversedMeaning : uprightMeaning
     }
 }
 
 // MARK: - Spread Type
 
-enum SpreadType: Int, Sendable {
+public enum SpreadType: Int, Sendable {
     case single    = 1
     case threeCard = 3
 
-    var positionNames: [String] {
+    public var positionNames: [String] {
         switch self {
         case .single:    return ["指引"]
         case .threeCard: return ["过去", "现在", "未来"]
@@ -43,19 +54,25 @@ enum SpreadType: Int, Sendable {
 
 // MARK: - Draw Result
 
-struct TarotDrawResult: Sendable {
-    let card: TarotCard
-    let position: String      // Position name in spread
-    let isReversed: Bool
+public struct TarotDrawResult: Sendable {
+    public let card: TarotCard
+    public let position: String      // Position name in spread
+    public let isReversed: Bool
+
+    public init(card: TarotCard, position: String, isReversed: Bool) {
+        self.card = card
+        self.position = position
+        self.isReversed = isReversed
+    }
 }
 
 // MARK: - Tarot Engine
 
-enum TarotEngine {
+public enum TarotEngine {
 
     // MARK: - Major Arcana (大阿卡纳)
 
-    static let majorArcana: [TarotCard] = [
+    public static let majorArcana: [TarotCard] = [
         TarotCard(id: 0, number: 0, nameCN: "愚者", nameEN: "The Fool", suit: "大阿卡纳", arcanaType: .major,
             uprightMeaning: "新的开始、冒险、自由、天真",
             reversedMeaning: "鲁莽、犹豫不决、冒不必要的风险"),
@@ -159,7 +176,7 @@ enum TarotEngine {
         "国王": (upright: "权威、领导、掌控", reversed: "专制、控制欲强"),
     ]
 
-    static let minorArcana: [TarotCard] = {
+    public static let minorArcana: [TarotCard] = {
         var cards: [TarotCard] = []
         var id = 22
 
@@ -203,12 +220,12 @@ enum TarotEngine {
 
     // MARK: - Full Deck
 
-    static let fullDeck: [TarotCard] = majorArcana + minorArcana
+    public static let fullDeck: [TarotCard] = majorArcana + minorArcana
 
     // MARK: - Shuffle & Draw
 
     /// Shuffle the deck and draw cards for a given spread type.
-    static func shuffleAndDraw(count: Int, spreadType: SpreadType) -> [TarotDrawResult] {
+    public static func shuffleAndDraw(count: Int, spreadType: SpreadType) -> [TarotDrawResult] {
         let shuffled = fullDeck.shuffled()
         let positions = spreadType.positionNames
         let drawCount = min(count, shuffled.count)
@@ -224,11 +241,11 @@ enum TarotEngine {
 
     // MARK: - Lookup
 
-    static func findCard(byId id: Int) -> TarotCard? {
+    public static func findCard(byId id: Int) -> TarotCard? {
         fullDeck.first { $0.id == id }
     }
 
-    static func findCard(byName name: String) -> TarotCard? {
+    public static func findCard(byName name: String) -> TarotCard? {
         fullDeck.first {
             $0.nameEN.caseInsensitiveCompare(name) == .orderedSame ||
             $0.nameCN.contains(name)

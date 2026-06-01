@@ -6,22 +6,22 @@ import SwiftUI
 /// High-level convenience layer over `ReadingStoreProtocol` for saving
 /// results from each divination module with type-specific metadata.
 @Observable
-final class ArchiveManager {
+public final class ArchiveManager {
 
     // MARK: Properties
 
-    let store: any ReadingStoreProtocol
+    public let store: any ReadingStoreProtocol
 
     // MARK: Lifecycle
 
-    init(store: any ReadingStoreProtocol = UserDefaultsReadingStore()) {
+    public init(store: any ReadingStoreProtocol = UserDefaultsReadingStore()) {
         self.store = store
     }
 
     // MARK: - Oracle (灵签)
 
     /// Save an oracle / 灵签 result.
-    func saveOracleResult(
+    public func saveOracleResult(
         question: String,
         verse: String,
         analysis: String,
@@ -59,7 +59,7 @@ final class ArchiveManager {
     // MARK: - Liuyao (六爻)
 
     /// Save a 六爻 hexagram result.
-    func saveLiuyaoResult(
+    public func saveLiuyaoResult(
         question: String,
         hexagramName: String,
         interpretation: String
@@ -92,7 +92,7 @@ final class ArchiveManager {
     // MARK: - Tarot (塔罗)
 
     /// Save a tarot card reading result.
-    func saveTarotResult(
+    public func saveTarotResult(
         question: String,
         cardNames: [String],
         interpretation: String
@@ -128,7 +128,7 @@ final class ArchiveManager {
 
     /// Generate a 4-character summary title for a reading.
     /// Extracts meaningful characters from the reading's type-specific content.
-    func generateFortuneTitle(for reading: SavedReading) -> String {
+    public func generateFortuneTitle(for reading: SavedReading) -> String {
         // If title is already exactly 4 chars, return it
         if reading.title.count == 4 {
             return reading.title

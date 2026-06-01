@@ -1,10 +1,14 @@
 import SwiftUI
 import DesignSystem
+import DivinationCore
 
-struct TarotScreen: View {
+public struct TarotScreen: View {
+
+    public init() {}
+
     @State private var vm = TarotViewModel()
 
-    var body: some View {
+    public var body: some View {
         VStack(spacing: 0) {
             SectionHeader(chineseTitle: "赛博塔罗", englishSubtitle: "CYBER TAROT")
                 .padding(.horizontal, CyberSpacing.sm)
@@ -114,7 +118,7 @@ private struct TarotCardView: View {
     let drawResult: TarotDrawResult
     let isRevealed: Bool
 
-    var body: some View {
+    public var body: some View {
         VStack(spacing: 4) {
             if isRevealed {
                 Text("\(drawResult.card.number)")

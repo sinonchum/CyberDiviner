@@ -1,10 +1,13 @@
 import SwiftUI
 import DesignSystem
 
-struct SettingsScreen: View {
+public struct SettingsScreen: View {
+
+    public init() {}
+
     @State private var vm = SettingsViewModel()
 
-    var body: some View {
+    public var body: some View {
         VStack(spacing: 0) {
             SectionHeader(chineseTitle: "设置", englishSubtitle: "SETTINGS")
                 .padding(.horizontal, CyberSpacing.sm)

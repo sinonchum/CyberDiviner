@@ -1,8 +1,11 @@
 import Foundation
 import DesignSystem
+import DivinationCore
+import AI
+import Persistence
 
 @Observable
-final class LiuyaoViewModel {
+final public class LiuyaoViewModel {
     enum Phase { case question, casting, result }
 
     var phase: Phase = .question

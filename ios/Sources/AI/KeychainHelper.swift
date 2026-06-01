@@ -5,6 +5,8 @@ import Security
 
 /// Secure storage helper using iOS Keychain for API keys and sensitive data.
 public struct KeychainHelper {
+
+    public init() {}
     
     // MARK: - Errors
     
@@ -121,6 +123,8 @@ public struct KeychainHelper {
 
 /// Configuration for keychain access.
 public struct KeychainConfiguration {
+
+    public init() {}
     /// Service identifier for the keychain items.
     public static let service = "com.cyberdiviner.keychain"
     

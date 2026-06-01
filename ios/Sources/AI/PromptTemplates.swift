@@ -12,7 +12,9 @@ import Foundation
 ///   let system = templates.resolveSystem(feature: "tarot", personaName: "The Noir Oracle")
 ///   let user = templates.resolveUser(feature: "tarot", variables: ["cards": "The Fool, The Tower"])
 public struct PromptTemplates {
-    
+
+    public init() {}
+
     // MARK: - System Prompt Templates
     
     private let systemTemplates: [String: String] = [

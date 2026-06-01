@@ -3,7 +3,7 @@ import Foundation
 // MARK: - Fortune Engine (四字批命)
 
 /// Generates concise 4-character fortune summaries for all divination types.
-enum FortuneEngine {
+public enum FortuneEngine {
 
     // MARK: - Liuyao Fortune (六十四卦 → 四字)
 
@@ -33,7 +33,7 @@ enum FortuneEngine {
     ]
 
     /// Generate 4-char fortune from a Hexagram.
-    static func liuyaoFortune(hexagram: Hexagram) -> String {
+    public static func liuyaoFortune(hexagram: Hexagram) -> String {
         if let fortune = hexagramFortunes[hexagram.chineseName] {
             return fortune
         }
@@ -45,7 +45,7 @@ enum FortuneEngine {
     }
 
     /// One-line meaning for a liuyao fortune title.
-    static func liuyaoMeaning(_ title: String) -> String {
+    public static func liuyaoMeaning(_ title: String) -> String {
         let meanings: [String: String] = [
             "自强不息": "天行健，君子以自强不息，运势昂扬向上",
             "厚德载物": "地势坤，以厚德承载万物，宜稳扎稳打",
@@ -148,7 +148,7 @@ enum FortuneEngine {
     ]
 
     /// Generate 4-char fortune from tarot draw results.
-    static func tarotFortune(cards: [TarotDrawResult]) -> String {
+    public static func tarotFortune(cards: [TarotDrawResult]) -> String {
         guard let first = cards.first else { return "天机莫测" }
         let isReversed = first.isReversed
         let name = first.card.nameCN
@@ -189,7 +189,7 @@ enum FortuneEngine {
     ]
 
     /// Generate 4-char fortune from oracle text.
-    static func oracleFortune(from text: String) -> String {
+    public static func oracleFortune(from text: String) -> String {
         guard !text.isEmpty else { return "天机莫测" }
 
         let scored = topicKeywords.map { topic -> (String, Int) in

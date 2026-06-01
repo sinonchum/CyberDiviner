@@ -1,12 +1,16 @@
 import SwiftUI
 import DesignSystem
+import DivinationCore
 
-struct OracleScreen: View {
+public struct OracleScreen: View {
+
+    public init() {}
+
     @State private var vm = OracleViewModel()
     @State private var inputText = ""
     @State private var messages: [ChatMessage] = []
 
-    var body: some View {
+    public var body: some View {
         VStack(spacing: 0) {
             // Header
             SectionHeader(chineseTitle: "叩问天机", englishSubtitle: "CYBER ORACLE")
@@ -117,7 +121,7 @@ struct ChatMessage: Identifiable {
 struct MessageBubble: View {
     let message: ChatMessage
 
-    var body: some View {
+    public var body: some View {
         HStack {
             if message.role == .user { Spacer(minLength: 48) }
 

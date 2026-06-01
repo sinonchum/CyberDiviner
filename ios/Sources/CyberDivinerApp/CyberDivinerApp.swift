@@ -76,7 +76,7 @@ struct RitualsMenuView: View {
                 .ignoresSafeArea()
 
             VStack(alignment: .leading, spacing: 0) {
-                SectionHeader(title: "术数推演", subtitle: "RITUALS")
+                SectionHeader(chineseTitle: "术数推演", englishSubtitle: "RITUALS")
 
                 Spacer().frame(height: 48)
 

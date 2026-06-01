@@ -1,8 +1,11 @@
 import Foundation
 import DesignSystem
+import DivinationCore
+import AI
+import Persistence
 
 @Observable
-final class OracleViewModel {
+final public class OracleViewModel {
     var isLoading = false
     var lastResult: OracleResult?
 

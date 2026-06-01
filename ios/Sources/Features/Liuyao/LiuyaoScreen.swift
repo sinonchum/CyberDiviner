@@ -1,10 +1,14 @@
 import SwiftUI
 import DesignSystem
+import DivinationCore
 
-struct LiuyaoScreen: View {
+public struct LiuyaoScreen: View {
+
+    public init() {}
+
     @State private var vm = LiuyaoViewModel()
 
-    var body: some View {
+    public var body: some View {
         VStack(spacing: 0) {
             SectionHeader(chineseTitle: "六爻起卦", englishSubtitle: "LIUYAO DIVINATION")
                 .padding(.horizontal, CyberSpacing.sm)
@@ -160,7 +164,7 @@ private struct LineDisplay: View {
     var yaoLine: YaoLine? = nil
     var spirit: SixSpirit? = nil
 
-    var body: some View {
+    public var body: some View {
         HStack(spacing: CyberSpacing.xs) {
             Text("\(lineIndex + 1)")
                 .font(CyberTypography.monoSmall)
@@ -209,7 +213,7 @@ private struct ResultRow: View {
     let label: String
     let value: String
 
-    var body: some View {
+    public var body: some View {
         HStack(alignment: .top) {
             Text(label)
                 .font(CyberTypography.monoMedium)

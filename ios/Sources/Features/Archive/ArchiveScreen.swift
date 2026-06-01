@@ -1,11 +1,15 @@
 import SwiftUI
 import DesignSystem
+import Persistence
 
-struct ArchiveScreen: View {
+public struct ArchiveScreen: View {
+
+    public init() {}
+
     @State private var vm = ArchiveViewModel()
     @State private var expandedId: UUID?
 
-    var body: some View {
+    public var body: some View {
         VStack(spacing: 0) {
             SectionHeader(chineseTitle: "因果命簿", englishSubtitle: "KARMA ARCHIVE")
                 .padding(.horizontal, CyberSpacing.sm)
@@ -86,7 +90,7 @@ private struct ArchiveRow: View {
     let reading: SavedReading
     let isExpanded: Bool
 
-    var body: some View {
+    public var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Text(typeIcon)
@@ -140,7 +144,7 @@ private struct FilterChip: View {
     let isActive: Bool
     let action: () -> Void
 
-    var body: some View {
+    public var body: some View {
         Text(label)
             .font(CyberTypography.monoSmall)
             .foregroundStyle(isActive ? CyberColors.cyberBlack : CyberColors.grayCaption)

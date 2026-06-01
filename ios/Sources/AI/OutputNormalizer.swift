@@ -4,6 +4,8 @@ import Foundation
 
 /// Cleans and normalizes LLM output, removing artifacts and extracting structured content.
 public struct OutputNormalizer {
+
+    public init() {}
     
     // MARK: - Regex Patterns (ported from Android PersonaEngine)
     

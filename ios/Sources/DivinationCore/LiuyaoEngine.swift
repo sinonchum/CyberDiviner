@@ -4,7 +4,7 @@ import Foundation
 
 /// Complete Six Lines (Liuyao) divination engine.
 /// Ports the full workflow: coin toss → hexagram → NaJia → Six Relations → Six Spirits → analysis.
-struct LiuyaoEngine {
+public struct LiuyaoEngine {
 
     // MARK: - World/Response Line Positions (八宫)
 
@@ -21,41 +21,68 @@ struct LiuyaoEngine {
 
     // MARK: - Coin Toss
 
-    struct CoinToss: Sendable {
-        let coins: [Int]    // 3 coins: 2=字(yang), 1=花(yin)
-        let sum: Int
-        let lineState: LineState
+    public struct CoinToss: Sendable {
+        public let coins: [Int]    // 3 coins: 2=字(yang), 1=花(yin)
+        public let sum: Int
+        public let lineState: LineState
+
+        public init(coins: [Int], sum: Int, lineState: LineState) {
+            self.coins = coins
+            self.sum = sum
+            self.lineState = lineState
+        }
     }
 
     // MARK: - Analysis
 
-    struct Analysis: Sendable {
-        let usefulGod: String
-        let strength: String
-        let interpretation: String
-        let advice: String
+    public struct Analysis: Sendable {
+        public let usefulGod: String
+        public let strength: String
+        public let interpretation: String
+        public let advice: String
+
+        public init(usefulGod: String, strength: String, interpretation: String, advice: String) {
+            self.usefulGod = usefulGod
+            self.strength = strength
+            self.interpretation = interpretation
+            self.advice = advice
+        }
     }
 
     // MARK: - Divination Result
 
-    struct DivinationResult: Sendable {
-        let question: String
-        let timestamp: TimeInterval
-        let tosses: [CoinToss]
-        let primaryHexagram: Hexagram
-        let changedHexagram: Hexagram
-        let lines: [YaoLine]
-        let worldLine: Int          // 0-indexed
-        let responseLine: Int       // 0-indexed
-        let spirits: [SixSpirit]
-        let hiddenLines: [YaoLine]
-        let analysis: Analysis
+    public struct DivinationResult: Sendable {
+        public let question: String
+        public let timestamp: TimeInterval
+        public let tosses: [CoinToss]
+        public let primaryHexagram: Hexagram
+        public let changedHexagram: Hexagram
+        public let lines: [YaoLine]
+        public let worldLine: Int          // 0-indexed
+        public let responseLine: Int       // 0-indexed
+        public let spirits: [SixSpirit]
+        public let hiddenLines: [YaoLine]
+        public let analysis: Analysis
 
-        var hasChangingLines: Bool {
+        public init(question: String, timestamp: TimeInterval, tosses: [CoinToss], primaryHexagram: Hexagram, changedHexagram: Hexagram, lines: [YaoLine], worldLine: Int, responseLine: Int, spirits: [SixSpirit], hiddenLines: [YaoLine], analysis: Analysis) {
+            self.question = question
+            self.timestamp = timestamp
+            self.tosses = tosses
+            self.primaryHexagram = primaryHexagram
+            self.changedHexagram = changedHexagram
+            self.lines = lines
+            self.worldLine = worldLine
+            self.responseLine = responseLine
+            self.spirits = spirits
+            self.hiddenLines = hiddenLines
+            self.analysis = analysis
+        }
+
+        public var hasChangingLines: Bool {
             tosses.contains { $0.lineState.isChanging }
         }
 
-        func summary() -> String {
+        public func summary() -> String {
             var s = ""
             s += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
             s += "六爻占卜 — Liuyao Divination\n"
@@ -104,7 +131,7 @@ struct LiuyaoEngine {
     // MARK: - Core Divination
 
     /// Perform a full Liuyao divination from 6 line values (3=老阳, 4=少阴, 5=少阳, 6=老阴).
-    static func castHexagram(from lineValues: [Int], question: String = "", dayStemIndex: Int? = nil) -> DivinationResult {
+    public static func castHexagram(from lineValues: [Int], question: String = "", dayStemIndex: Int? = nil) -> DivinationResult {
         let tosses = lineValues.map { value -> CoinToss in
             let state: LineState
             switch value {
@@ -120,7 +147,7 @@ struct LiuyaoEngine {
     }
 
     /// Perform a full Liuyao divination by throwing coins (random).
-    static func divine(question: String = "", dayStemIndex: Int? = nil) -> DivinationResult {
+    public static func divine(question: String = "", dayStemIndex: Int? = nil) -> DivinationResult {
         let tosses = (0..<6).map { _ in throwCoins() }
         return buildResult(tosses: tosses, question: question, dayStemIndex: dayStemIndex)
     }
@@ -130,7 +157,7 @@ struct LiuyaoEngine {
     /// Simulate 3-coin toss (三钱法).
     /// 2 = yang side (字), 1 = yin side (花).
     /// Sum: 3=老阳, 4=少阴, 5=少阳, 6=老阴
-    static func throwCoins() -> CoinToss {
+    public static func throwCoins() -> CoinToss {
         let coins = (0..<3).map { _ in Bool.random() ? 2 : 1 }
         let sum = coins.reduce(0, +)
         let state: LineState

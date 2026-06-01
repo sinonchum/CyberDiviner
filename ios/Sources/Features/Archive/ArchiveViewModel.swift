@@ -1,8 +1,9 @@
 import Foundation
 import DesignSystem
+import Persistence
 
 @Observable
-final class ArchiveViewModel {
+final public class ArchiveViewModel {
     var filterType: DivinationType?
     var allReadings: [SavedReading] = []
 

@@ -3,7 +3,7 @@ import Foundation
 // MARK: - Trigram (八卦)
 
 /// The eight trigrams of the I Ching.
-enum Trigram: Int, CaseIterable, Sendable {
+public enum Trigram: Int, CaseIterable, Sendable {
     case qian  = 0 // ☰ 乾 Heaven
     case dui   = 1 // ☱ 兑 Lake
     case li    = 2 // ☲ 离 Fire
@@ -13,7 +13,7 @@ enum Trigram: Int, CaseIterable, Sendable {
     case gen   = 6 // ☶ 艮 Mountain
     case kun   = 7 // ☷ 坤 Earth
 
-    var chineseName: String {
+    public var chineseName: String {
         switch self {
         case .qian: return "乾"
         case .dui:  return "兑"
@@ -26,7 +26,7 @@ enum Trigram: Int, CaseIterable, Sendable {
         }
     }
 
-    var englishName: String {
+    public var englishName: String {
         switch self {
         case .qian: return "Heaven"
         case .dui:  return "Lake"
@@ -39,7 +39,7 @@ enum Trigram: Int, CaseIterable, Sendable {
         }
     }
 
-    var symbol: String {
+    public var symbol: String {
         switch self {
         case .qian: return "☰"
         case .dui:  return "☱"
@@ -52,7 +52,7 @@ enum Trigram: Int, CaseIterable, Sendable {
         }
     }
 
-    var wuXing: WuXing {
+    public var wuXing: WuXing {
         switch self {
         case .qian, .dui:  return .metal
         case .li:          return .fire
@@ -62,7 +62,7 @@ enum Trigram: Int, CaseIterable, Sendable {
         }
     }
 
-    var nature: String {
+    public var nature: String {
         switch self {
         case .qian: return "天"
         case .dui:  return "泽"
@@ -75,7 +75,7 @@ enum Trigram: Int, CaseIterable, Sendable {
         }
     }
 
-    var family: String {
+    public var family: String {
         switch self {
         case .qian: return "父"
         case .kun:  return "母"
@@ -88,7 +88,7 @@ enum Trigram: Int, CaseIterable, Sendable {
         }
     }
 
-    var direction: String {
+    public var direction: String {
         switch self {
         case .qian: return "西北"
         case .kun:  return "西南"
@@ -102,7 +102,7 @@ enum Trigram: Int, CaseIterable, Sendable {
     }
 
     /// Bottom → top line values (3 lines). `true` = yang.
-    var lines: [Bool] {
+    public var lines: [Bool] {
         switch self {
         case .qian: return [true, true, true]
         case .kun:  return [false, false, false]
@@ -116,7 +116,7 @@ enum Trigram: Int, CaseIterable, Sendable {
     }
 
     /// 3-bit binary representation (bottom line = LSB).
-    var binaryCode: Int {
+    public var binaryCode: Int {
         switch self {
         case .qian: return 0b111
         case .kun:  return 0b000
@@ -133,27 +133,27 @@ enum Trigram: Int, CaseIterable, Sendable {
 // MARK: - Line State (爻象)
 
 /// The state of a single hexagram line.
-enum LineState: Int, Sendable {
+public enum LineState: Int, Sendable {
     case youngYang = 1  // 少阳 — static yang  ━━━
     case youngYin  = 2  // 少阴 — static yin   ━ ━
     case oldYang   = 3  // 老阳 — changing yang ━━━ → ━ ━
     case oldYin    = 0  // 老阴 — changing yin  ━ ━ → ━━━
 
-    var isYang: Bool {
+    public var isYang: Bool {
         switch self {
         case .youngYang, .oldYang: return true
         case .youngYin, .oldYin:   return false
         }
     }
 
-    var isChanging: Bool {
+    public var isChanging: Bool {
         switch self {
         case .oldYang, .oldYin: return true
         case .youngYang, .youngYin: return false
         }
     }
 
-    var description: String {
+    public var description: String {
         switch self {
         case .youngYang: return "少阳 —"
         case .youngYin:  return "少阴 - -"
@@ -165,16 +165,16 @@ enum LineState: Int, Sendable {
 
 // MARK: - Five Elements (五行)
 
-enum WuXing: String, CaseIterable, Sendable {
+public enum WuXing: String, CaseIterable, Sendable {
     case wood  = "木"
     case fire  = "火"
     case earth = "土"
     case metal = "金"
     case water = "水"
 
-    var chinese: String { rawValue }
+    public var chinese: String { rawValue }
 
-    var english: String {
+    public var english: String {
         switch self {
         case .wood:  return "Wood"
         case .fire:  return "Fire"
@@ -185,7 +185,7 @@ enum WuXing: String, CaseIterable, Sendable {
     }
 
     /// `self` produces (生) `other`.  木→火→土→金→水→木
-    func generates(_ other: WuXing) -> Bool {
+    public func generates(_ other: WuXing) -> Bool {
         switch self {
         case .wood:  return other == .fire
         case .fire:  return other == .earth
@@ -196,7 +196,7 @@ enum WuXing: String, CaseIterable, Sendable {
     }
 
     /// `self` overcomes (克) `other`.  木→土→水→火→金→木
-    func overcomes(_ other: WuXing) -> Bool {
+    public func overcomes(_ other: WuXing) -> Bool {
         switch self {
         case .wood:  return other == .earth
         case .fire:  return other == .metal
@@ -207,13 +207,13 @@ enum WuXing: String, CaseIterable, Sendable {
     }
 
     /// Compatible: same, generates, or is-generated-by.
-    func isCompatible(with other: WuXing) -> Bool {
+    public func isCompatible(with other: WuXing) -> Bool {
         self == other || generates(other) || other.generates(self)
     }
 }
 
 /// Convert an English element name to WuXing.
-func wuXingFrom(element: String) -> WuXing {
+public func wuXingFrom(element: String) -> WuXing {
     switch element {
     case "Wood":  return .wood
     case "Fire":  return .fire
@@ -226,16 +226,16 @@ func wuXingFrom(element: String) -> WuXing {
 
 // MARK: - Six Relations (六亲)
 
-enum SixRelation: String, CaseIterable, Sendable {
+public enum SixRelation: String, CaseIterable, Sendable {
     case self_    = "兄弟"
     case parent   = "父母"
     case offspring = "子孙"
     case officer  = "官鬼"
     case wealth   = "妻财"
 
-    var chinese: String { rawValue }
+    public var chinese: String { rawValue }
 
-    var meaning: String {
+    public var meaning: String {
         switch self {
         case .self_:     return "Siblings / Peers"
         case .parent:    return "Parents / Documents"
@@ -247,7 +247,7 @@ enum SixRelation: String, CaseIterable, Sendable {
 }
 
 /// Derive the Six Relation between subject element and target element.
-func relationFrom(subject: WuXing, target: WuXing) -> SixRelation {
+public func relationFrom(subject: WuXing, target: WuXing) -> SixRelation {
     if subject == target               { return .self_ }
     if subject.generates(target)       { return .offspring }
     if target.generates(subject)       { return .parent }
@@ -258,7 +258,7 @@ func relationFrom(subject: WuXing, target: WuXing) -> SixRelation {
 
 // MARK: - Six Spirits (六神)
 
-enum SixSpirit: String, CaseIterable, Sendable {
+public enum SixSpirit: String, CaseIterable, Sendable {
     case qinglong = "青龙"
     case zhuque   = "朱雀"
     case gouchen  = "勾陈"
@@ -266,9 +266,9 @@ enum SixSpirit: String, CaseIterable, Sendable {
     case baihu    = "白虎"
     case xuanwu   = "玄武"
 
-    var chinese: String { rawValue }
+    public var chinese: String { rawValue }
 
-    var animal: String {
+    public var animal: String {
         switch self {
         case .qinglong: return "Azure Dragon"
         case .zhuque:   return "Vermillion Bird"
@@ -282,44 +282,68 @@ enum SixSpirit: String, CaseIterable, Sendable {
 
 // MARK: - Yao Line (爻)
 
-struct YaoLine: Sendable {
-    let position: Int           // 0–5 (bottom → top)
-    let isYang: Bool
-    let state: LineState
-    let branch: String          // 地支 (Earthly Branch)
-    let relation: SixRelation?
-    let isHidden: Bool          // 伏神
+public struct YaoLine: Sendable {
+    public let position: Int           // 0–5 (bottom → top)
+    public let isYang: Bool
+    public let state: LineState
+    public let branch: String          // 地支 (Earthly Branch)
+    public let relation: SixRelation?
+    public let isHidden: Bool          // 伏神
+
+    public init(position: Int, isYang: Bool, state: LineState, branch: String, relation: SixRelation?, isHidden: Bool) {
+        self.position = position
+        self.isYang = isYang
+        self.state = state
+        self.branch = branch
+        self.relation = relation
+        self.isHidden = isHidden
+    }
 }
 
 // MARK: - Hexagram (卦)
 
-struct Hexagram: Sendable {
-    let number: Int             // King Wen order 1–64
-    let chineseName: String
-    let pinyin: String
-    let englishName: String
-    let judgment: String        // 卦辞
-    let image: String           // 象辞
-    let binary: [Bool]          // 6 lines bottom→top (true = yang)
-    let upperTrigram: Trigram
-    let lowerTrigram: Trigram
-    let element: String         // "Wood", "Fire", etc.
-    let lineTexts: [String]     // 爻辞 × 6
-    let lineJudgments: [String] // 爻占断 × 6
+public struct Hexagram: Sendable {
+    public let number: Int             // King Wen order 1–64
+    public let chineseName: String
+    public let pinyin: String
+    public let englishName: String
+    public let judgment: String        // 卦辞
+    public let image: String           // 象辞
+    public let binary: [Bool]          // 6 lines bottom→top (true = yang)
+    public let upperTrigram: Trigram
+    public let lowerTrigram: Trigram
+    public let element: String         // "Wood", "Fire", etc.
+    public let lineTexts: [String]     // 爻辞 × 6
+    public let lineJudgments: [String] // 爻占断 × 6
+
+    public init(number: Int, chineseName: String, pinyin: String, englishName: String, judgment: String, image: String, binary: [Bool], upperTrigram: Trigram, lowerTrigram: Trigram, element: String, lineTexts: [String], lineJudgments: [String]) {
+        self.number = number
+        self.chineseName = chineseName
+        self.pinyin = pinyin
+        self.englishName = englishName
+        self.judgment = judgment
+        self.image = image
+        self.binary = binary
+        self.upperTrigram = upperTrigram
+        self.lowerTrigram = lowerTrigram
+        self.element = element
+        self.lineTexts = lineTexts
+        self.lineJudgments = lineJudgments
+    }
 
     /// Trigram code: upper 3 bits + lower 3 bits.
-    var trigramCode: Int {
+    public var trigramCode: Int {
         (upperTrigram.binaryCode << 3) | lowerTrigram.binaryCode
     }
 }
 
 // MARK: - Earthly Branches (地支)
 
-let earthlyBranches: [String] = [
+public let earthlyBranches: [String] = [
     "子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"
 ]
 
-let branchToWuXing: [String: WuXing] = [
+public let branchToWuXing: [String: WuXing] = [
     "子": .water, "丑": .earth,
     "寅": .wood,  "卯": .wood,
     "辰": .earth, "巳": .fire,
@@ -332,7 +356,7 @@ let branchToWuXing: [String: WuXing] = [
 
 /// Traditional NaJia mapping: each trigram gets 6 branches.
 /// Lower trigram uses indices 0-2, upper uses indices 3-5.
-let trigramBranches: [Trigram: [String]] = [
+public let trigramBranches: [Trigram: [String]] = [
     .qian: ["子", "寅", "辰", "午", "申", "戌"],  // 乾纳甲壬
     .kun:  ["未", "巳", "卯", "丑", "亥", "酉"],  // 坤纳乙癸
     .zhen: ["子", "寅", "辰", "午", "申", "戌"],  // 震纳庚
@@ -346,7 +370,7 @@ let trigramBranches: [Trigram: [String]] = [
 // MARK: - Hexagram Lookup Tables
 
 /// All 64 hexagrams in King Wen order.
-let allHexagrams: [Hexagram] = [
+public let allHexagrams: [Hexagram] = [
     Hexagram(number: 1, chineseName: "乾", pinyin: "Qián", englishName: "The Creative",
         judgment: "元亨利贞。", image: "天行健，君子以自强不息。",
         binary: [true,true,true,true,true,true],
@@ -751,25 +775,30 @@ private let hexagramsByTrigrams: [TrigramPair: Hexagram] = Dictionary(
     uniqueKeysWithValues: allHexagrams.map { (TrigramPair(upper: $0.upperTrigram, lower: $0.lowerTrigram), $0) }
 )
 
-struct TrigramPair: Hashable {
-    let upper: Trigram
-    let lower: Trigram
+public struct TrigramPair: Hashable {
+    public let upper: Trigram
+    public let lower: Trigram
+
+    public init(upper: Trigram, lower: Trigram) {
+        self.upper = upper
+        self.lower = lower
+    }
 }
 
-func hexagramByNumber(_ n: Int) -> Hexagram {
+public func hexagramByNumber(_ n: Int) -> Hexagram {
     hexagramsByNumber[n] ?? allHexagrams[0]
 }
 
-func hexagramByBinary(_ pattern: [Bool]) -> Hexagram? {
+public func hexagramByBinary(_ pattern: [Bool]) -> Hexagram? {
     hexagramsByBinary[pattern]
 }
 
-func hexagramByTrigrams(upper: Trigram, lower: Trigram) -> Hexagram? {
+public func hexagramByTrigrams(upper: Trigram, lower: Trigram) -> Hexagram? {
     hexagramsByTrigrams[TrigramPair(upper: upper, lower: lower)]
 }
 
 /// Given 6 line states, produce primary and changed hexagrams.
-func interpretLines(_ states: [LineState]) -> (primary: Hexagram, changed: Hexagram) {
+public func interpretLines(_ states: [LineState]) -> (primary: Hexagram, changed: Hexagram) {
     let primaryPattern = states.map { $0.isYang }
     let changedPattern = states.map { state -> Bool in
         switch state {

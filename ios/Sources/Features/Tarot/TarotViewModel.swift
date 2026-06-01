@@ -1,8 +1,11 @@
 import Foundation
 import DesignSystem
+import DivinationCore
+import AI
+import Persistence
 
 @Observable
-final class TarotViewModel {
+final public class TarotViewModel {
     enum Phase { case spreadSelection, drawing, interpretation }
 
     var phase: Phase = .spreadSelection

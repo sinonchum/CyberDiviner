@@ -2,17 +2,24 @@ import Foundation
 
 // MARK: - Oracle Result
 
-struct OracleResult: Sendable {
-    let verse: String       // 签文 (the poem/verse)
-    let analysis: String    // 逻辑解析
-    let verdict: String     // 最终断语
-    let rawText: String
+public struct OracleResult: Sendable {
+    public let verse: String       // 签文 (the poem/verse)
+    public let analysis: String    // 逻辑解析
+    public let verdict: String     // 最终断语
+    public let rawText: String
+
+    public init(verse: String, analysis: String, verdict: String, rawText: String) {
+        self.verse = verse
+        self.analysis = analysis
+        self.verdict = verdict
+        self.rawText = rawText
+    }
 }
 
 // MARK: - Oracle Formatter
 
 /// Parses and normalizes LLM oracle (签) output.
-enum OracleFormatter {
+public enum OracleFormatter {
 
     // MARK: - Section Markers
 
@@ -23,7 +30,7 @@ enum OracleFormatter {
     // MARK: - Parse Oracle Output
 
     /// Parse raw LLM output into structured OracleResult.
-    static func parseOracleOutput(_ text: String) -> OracleResult {
+    public static func parseOracleOutput(_ text: String) -> OracleResult {
         let cleaned = cleanText(text)
         let sections = splitIntoSections(cleaned)
 
@@ -38,7 +45,7 @@ enum OracleFormatter {
     // MARK: - Section Splitting
 
     /// Split text by [载入签文], [逻辑解析], [最终断语] markers.
-    static func splitIntoSections(_ text: String) -> [String: String] {
+    public static func splitIntoSections(_ text: String) -> [String: String] {
         var result: [String: String] = [:]
 
         // Try bracket markers first
@@ -87,7 +94,7 @@ enum OracleFormatter {
     // MARK: - Text Cleaning
 
     /// Full cleaning pipeline: emoji, action descriptions, markdown, special tokens.
-    static func cleanText(_ text: String) -> String {
+    public static func cleanText(_ text: String) -> String {
         var result = text
 
         // Remove emoji
@@ -190,7 +197,7 @@ enum OracleFormatter {
     // MARK: - Clean Offline Model Output
 
     /// Clean output from offline/local models (garbled encoding + markdown).
-    static func cleanOfflineOutput(_ text: String) -> String {
+    public static func cleanOfflineOutput(_ text: String) -> String {
         var result = text
 
         // Garbled encoding
@@ -220,7 +227,7 @@ enum OracleFormatter {
     // MARK: - Strip Action Descriptions (from PersonaEngine)
 
     /// Strip character action/expression descriptions from LLM output.
-    static func stripActionDescriptions(_ text: String) -> String {
+    public static func stripActionDescriptions(_ text: String) -> String {
         cleanText(text)
     }
 }
