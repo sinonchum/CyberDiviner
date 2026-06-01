@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 import DesignSystem
 import DivinationCore
 import AI
@@ -6,7 +7,7 @@ import Persistence
 
 @Observable
 final public class LiuyaoViewModel {
-    enum Phase { case question, casting, result }
+    enum Phase { case question, casting, computing, result }
 
     var phase: Phase = .question
     var question = ""
@@ -34,7 +35,12 @@ final public class LiuyaoViewModel {
         currentLine += 1
 
         if currentLine == 6 {
-            buildResult()
+            // Show computing phase briefly before result
+            phase = .computing
+            Task {
+                try? await Task.sleep(nanoseconds: 1_500_000_000) // 1.5s
+                buildResult()
+            }
         }
     }
 

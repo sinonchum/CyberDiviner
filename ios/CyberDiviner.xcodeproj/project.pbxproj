@@ -9,12 +9,15 @@
 /* Begin PBXBuildFile section */
 		126540083F93B9669C698781 /* ShareKit in Frameworks */ = {isa = PBXBuildFile; productRef = 0B880BDABC221BD7AC671E34 /* ShareKit */; };
 		2A925B821C138550342F0791 /* DesignSystem in Frameworks */ = {isa = PBXBuildFile; productRef = 6AFFE849E03E7C526F234C26 /* DesignSystem */; };
+		2E17DDFF2223389852FA84F3 /* GearSettingsIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 970F97A1B2D86C85CF9AFF60 /* GearSettingsIcon.swift */; };
 		3EF13BCE4DF24631EF61AEAE /* Persistence in Frameworks */ = {isa = PBXBuildFile; productRef = BA1A3F447729A1F33C1B184E /* Persistence */; };
 		598446FFD063A2FF360B68EA /* Oracle in Frameworks */ = {isa = PBXBuildFile; productRef = A4210024748757F56812E05B /* Oracle */; };
 		6603B8820604AF2932D03190 /* Liuyao in Frameworks */ = {isa = PBXBuildFile; productRef = E9B67EC6D24604C235561419 /* Liuyao */; };
+		77682E290200C96891D78ECF /* SplashScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = D467DFEEA86DD6C7B8CD8E75 /* SplashScreen.swift */; };
 		7DFA4DC1086F07A5398D0942 /* Settings in Frameworks */ = {isa = PBXBuildFile; productRef = 5D2C2FC7C8E2709424A2CC0E /* Settings */; };
 		946EEA66E251D2F54D664C0F /* DivinationCore in Frameworks */ = {isa = PBXBuildFile; productRef = 194E4E1237FA1DC9B26C7F4C /* DivinationCore */; };
 		A19A57966EDE7CF7DC8439D0 /* Archive in Frameworks */ = {isa = PBXBuildFile; productRef = EA45A8B903413E496665BC40 /* Archive */; };
+		B5F1E1473CC6E6637EE3F56E /* EpiphanyScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB41DFC9EBDED09AEBEB8F9F /* EpiphanyScreen.swift */; };
 		C0E711C9B767ECB773B92CAC /* Tarot in Frameworks */ = {isa = PBXBuildFile; productRef = 16C743D44F40F50118251EA0 /* Tarot */; };
 		D1A4AE02BB75D729F5507419 /* AI in Frameworks */ = {isa = PBXBuildFile; productRef = 313F1F2D21869F2713B638CF /* AI */; };
 		FA13F70997F1D753F2E5791D /* CyberDivinerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0C5FAC29C3BBD7F80BF049 /* CyberDivinerApp.swift */; };
@@ -22,6 +25,9 @@
 
 /* Begin PBXFileReference section */
 		3F44EC94B63A7C741AED31F4 /* CyberDivinerApp.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = CyberDivinerApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		970F97A1B2D86C85CF9AFF60 /* GearSettingsIcon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GearSettingsIcon.swift; sourceTree = "<group>"; };
+		D467DFEEA86DD6C7B8CD8E75 /* SplashScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashScreen.swift; sourceTree = "<group>"; };
+		EB41DFC9EBDED09AEBEB8F9F /* EpiphanyScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EpiphanyScreen.swift; sourceTree = "<group>"; };
 		FA0C5FAC29C3BBD7F80BF049 /* CyberDivinerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CyberDivinerApp.swift; sourceTree = "<group>"; };
 		FB9ACFD340E05C748308EED6 /* ios */ = {isa = PBXFileReference; lastKnownFileType = folder; name = ios; path = .; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
@@ -60,6 +66,9 @@
 			isa = PBXGroup;
 			children = (
 				FA0C5FAC29C3BBD7F80BF049 /* CyberDivinerApp.swift */,
+				EB41DFC9EBDED09AEBEB8F9F /* EpiphanyScreen.swift */,
+				970F97A1B2D86C85CF9AFF60 /* GearSettingsIcon.swift */,
+				D467DFEEA86DD6C7B8CD8E75 /* SplashScreen.swift */,
 			);
 			name = CyberDivinerApp;
 			path = Sources/CyberDivinerApp;
@@ -151,6 +160,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				FA13F70997F1D753F2E5791D /* CyberDivinerApp.swift in Sources */,
+				B5F1E1473CC6E6637EE3F56E /* EpiphanyScreen.swift in Sources */,
+				2E17DDFF2223389852FA84F3 /* GearSettingsIcon.swift in Sources */,
+				77682E290200C96891D78ECF /* SplashScreen.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

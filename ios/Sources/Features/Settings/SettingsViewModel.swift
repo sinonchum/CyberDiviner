@@ -18,6 +18,7 @@ final public class SettingsViewModel {
     @AppStorage("inference_mode") var inferenceMode: String = "auto"
 
     var apiKey: String = ""
+    var showAPIKey: Bool = false
 
     init() {
         // Load API key from Keychain for current provider

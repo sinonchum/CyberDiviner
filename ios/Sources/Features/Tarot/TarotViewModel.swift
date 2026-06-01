@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 import DesignSystem
 import DivinationCore
 import AI
@@ -6,13 +7,17 @@ import Persistence
 
 @Observable
 final public class TarotViewModel {
-    enum Phase { case spreadSelection, drawing, interpretation }
+    enum Phase { case spreadSelection, shuffling, drawing, interpretation, result }
 
     var phase: Phase = .spreadSelection
+    var question: String = ""
     var drawnCards: [TarotDrawResult] = []
     var revealedCards: Set<Int> = []
     var isInterpreting = false
     var aiInterpretation: String?
+    var selectedSpread: SpreadType = .single
+
+    let availableSpreads: [SpreadType] = [.single, .threeCard]
 
     private let archiveManager = ArchiveManager()
     private let templates = PromptTemplates()
@@ -21,9 +26,20 @@ final public class TarotViewModel {
         !drawnCards.isEmpty && revealedCards.count == drawnCards.count
     }
 
-    func drawCards(count: Int) {
-        let spreadType: SpreadType = count == 1 ? .single : .threeCard
-        drawnCards = TarotEngine.shuffleAndDraw(count: count, spreadType: spreadType)
+    func selectSpread(_ spread: SpreadType) {
+        selectedSpread = spread
+    }
+
+    func startReading() {
+        guard !question.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        phase = .shuffling
+    }
+
+    func performShuffle() {
+        drawnCards = TarotEngine.shuffleAndDraw(
+            count: selectedSpread.rawValue,
+            spreadType: selectedSpread
+        )
         revealedCards = []
         phase = .drawing
     }
@@ -38,6 +54,15 @@ final public class TarotViewModel {
         Task {
             await interpretWithAI()
         }
+    }
+
+    func resetForNewReading() {
+        phase = .spreadSelection
+        drawnCards = []
+        revealedCards = []
+        aiInterpretation = nil
+        question = ""
+        selectedSpread = .single
     }
 
     private func interpretWithAI() async {
@@ -55,7 +80,7 @@ final public class TarotViewModel {
                 feature: "tarot",
                 variables: [
                     "spread": cardDescriptions,
-                    "question": "",
+                    "question": question,
                 ]
             )
 
@@ -64,14 +89,17 @@ final public class TarotViewModel {
             let normalized = OutputNormalizer.cleanOutput(completion.text)
             aiInterpretation = normalized
 
+            phase = .result
+
             let cardNames = drawnCards.map { $0.card.nameCN }
             archiveManager.saveTarotResult(
-                question: "",
+                question: question,
                 cardNames: cardNames,
                 interpretation: normalized
             )
         } catch {
             print("[TarotVM] AI Error: \(error)")
+            phase = .result // Still show result even without AI interpretation
         }
     }
 

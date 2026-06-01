@@ -11,59 +11,35 @@ public struct ArchiveScreen: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            SectionHeader(chineseTitle: "因果命簿", englishSubtitle: "KARMA ARCHIVE")
-                .padding(.horizontal, CyberSpacing.sm)
-                .padding(.top, CyberSpacing.xs)
+            // Header
+            SectionHeader(chineseTitle: "因果命簿", englishSubtitle: "CAUSAL LEDGER")
+                .padding(.horizontal, CyberSpacing.lg)
+                .padding(.top, CyberSpacing.lg)
 
-            DividerLine()
-
-            // Filter chips
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: CyberSpacing.xs) {
-                    FilterChip(label: "全部", isActive: vm.filterType == nil) {
-                        vm.filterType = nil
-                    }
-                    FilterChip(label: "叩问", isActive: vm.filterType == .oracle) {
-                        vm.filterType = .oracle
-                    }
-                    FilterChip(label: "六爻", isActive: vm.filterType == .liuyao) {
-                        vm.filterType = .liuyao
-                    }
-                    FilterChip(label: "塔罗", isActive: vm.filterType == .tarot) {
-                        vm.filterType = .tarot
-                    }
-                }
-                .padding(.horizontal, CyberSpacing.sm)
-                .padding(.vertical, CyberSpacing.xs)
-            }
+            Spacer().frame(height: CyberSpacing.sm)
 
             DividerLine()
 
             if vm.filteredReadings.isEmpty {
                 emptyState
             } else {
-                List {
-                    ForEach(vm.filteredReadings) { reading in
-                        ArchiveRow(
-                            reading: reading,
-                            isExpanded: expandedId == reading.id
-                        )
-                        .onTapGesture {
-                            withAnimation(.easeInOut(duration: 0.2)) {
-                                expandedId = expandedId == reading.id ? nil : reading.id
-                            }
-                        }
-                        .listRowBackground(CyberColors.cyberBlack)
-                        .swipeActions(edge: .trailing) {
-                            Button(role: .destructive) {
-                                vm.delete(reading)
-                            } label: {
-                                Label("删除", systemImage: "trash")
-                            }
+                ScrollView {
+                    LazyVStack(spacing: 0) {
+                        ForEach(vm.filteredReadings) { reading in
+                            ArchiveCard(
+                                reading: reading,
+                                isExpanded: expandedId == reading.id,
+                                onDelete: { vm.delete(reading) },
+                                onToggle: {
+                                    withAnimation(.easeInOut(duration: 0.2)) {
+                                        expandedId = expandedId == reading.id ? nil : reading.id
+                                    }
+                                }
+                            )
+                            DividerLine()
                         }
                     }
                 }
-                .listStyle(.plain)
             }
         }
         .background(CyberColors.cyberBlack)
@@ -84,78 +60,169 @@ public struct ArchiveScreen: View {
     }
 }
 
-// MARK: - Archive Row
+// MARK: - Archive Card
 
-private struct ArchiveRow: View {
+private struct ArchiveCard: View {
     let reading: SavedReading
     let isExpanded: Bool
+    let onDelete: () -> Void
+    let onToggle: () -> Void
 
-    public var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack {
-                Text(typeIcon)
-                    .font(CyberTypography.bodyMedium)
+    @State private var showDeleteConfirm = false
+    @State private var dragOffset: CGFloat = 0
+
+    var body: some View {
+        ZStack(alignment: .trailing) {
+            // Delete reveal (red background)
+            if dragOffset < -20 {
+                HStack {
+                    Spacer()
+                    Button(action: onDelete) {
+                        Text("删除")
+                            .font(CyberTypography.monoSmall)
+                            .foregroundStyle(CyberColors.cyberWhite)
+                            .frame(width: 80)
+                            .frame(maxHeight: .infinity)
+                            .background(CyberColors.accentRed)
+                    }
+                }
+            }
+
+            // Card content
+            VStack(alignment: .leading, spacing: 8) {
+                // Top row: Ganzhi date + solar date | type badge
+                HStack(alignment: .top) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        // Ganzhi date (simplified: use formatted date)
+                        Text(ganzhiDate)
+                            .font(CyberTypography.bodySmall) // Huiwen 14sp Bold
+                            .fontWeight(.bold)
+                            .foregroundStyle(CyberColors.grayTitle)
+
+                        // Solar date
+                        Text(solarDate)
+                            .font(CyberTypography.monoCaption) // Mono 10sp
+                            .foregroundStyle(CyberColors.grayMuted)
+                    }
+
+                    Spacer()
+
+                    // Type badge
+                    Text(typeBadge)
+                        .font(CyberTypography.monoCaption) // Mono 11sp
+                        .foregroundStyle(CyberColors.accentRed)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .overlay(
+                            Rectangle()
+                                .stroke(CyberColors.accentRed, lineWidth: 1)
+                        )
+                }
+
+                // Title
                 Text(reading.title)
-                    .font(CyberTypography.bodyMedium)
-                    .foregroundStyle(CyberColors.grayTitle)
-                Spacer()
-                Text(dateString)
-                    .font(CyberTypography.monoCaption)
-                    .foregroundStyle(CyberColors.grayMuted)
-            }
+                    .font(CyberTypography.titleLarge) // Huiwen 32sp Bold
+                    .fontWeight(.bold)
+                    .foregroundStyle(CyberColors.cyberWhite)
+                    .tracking(6) // letterSpacing 6
 
-            if !reading.question.isEmpty {
-                Text(reading.question)
-                    .font(CyberTypography.bodySmall)
-                    .foregroundStyle(CyberColors.grayCaption)
-                    .lineLimit(1)
-            }
-
-            if isExpanded {
-                DividerLine()
-                Text(reading.resultText)
-                    .font(CyberTypography.bodySmall)
+                // Interpretation preview
+                Text(isExpanded ? reading.resultText : reading.resultText)
+                    .font(CyberTypography.bodySmall) // WenKai 14sp
                     .foregroundStyle(CyberColors.grayBody)
-                    .textSelection(.enabled)
+                    .lineSpacing(4) // lineHeight 24 ≈ 14sp + 10
+                    .lineLimit(isExpanded ? nil : 3)
+
+                // Bottom row: share + expand hint
+                if isExpanded {
+                    HStack {
+                        Spacer()
+                        Button(action: shareReading) {
+                            Text("分享")
+                                .font(CyberTypography.monoSmall)
+                                .foregroundStyle(CyberColors.grayCaption)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .overlay(
+                                    Rectangle()
+                                        .stroke(CyberColors.grayBorder, lineWidth: 1)
+                                )
+                        }
+                    }
+                    .padding(.top, 4)
+                }
             }
-        }
-        .padding(.vertical, 4)
-    }
-
-    private var typeIcon: String {
-        switch reading.type {
-        case .oracle: return "签"
-        case .liuyao: return "爻"
-        case .tarot:  return "牌"
-        }
-    }
-
-    private var dateString: String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MM/dd HH:mm"
-        return formatter.string(from: reading.createdAt)
-    }
-}
-
-// MARK: - Filter Chip
-
-private struct FilterChip: View {
-    let label: String
-    let isActive: Bool
-    let action: () -> Void
-
-    public var body: some View {
-        Text(label)
-            .font(CyberTypography.monoSmall)
-            .foregroundStyle(isActive ? CyberColors.cyberBlack : CyberColors.grayCaption)
-            .padding(.horizontal, CyberSpacing.xs)
-            .padding(.vertical, 4)
-            .background(isActive ? CyberColors.cyberWhite : .clear)
-            .overlay(
-                Rectangle()
-                    .stroke(CyberColors.grayBorder, lineWidth: 1)
+            .padding(.horizontal, CyberSpacing.lg)
+            .padding(.vertical, 12)
+            .background(CyberColors.cyberBlack)
+            .offset(x: dragOffset)
+            .gesture(
+                DragGesture(minimumDistance: 30)
+                    .onChanged { value in
+                        let dx = value.translation.width
+                        dragOffset = dx < 0 ? max(dx, -100) : 0
+                    }
+                    .onEnded { value in
+                        withAnimation(.easeOut(duration: 0.2)) {
+                            if value.translation.width < -60 {
+                                showDeleteConfirm = true
+                                dragOffset = -80
+                            } else {
+                                dragOffset = 0
+                            }
+                        }
+                    }
             )
             .contentShape(Rectangle())
-            .onTapGesture { action() }
+            .onTapGesture {
+                onToggle()
+            }
+        }
+        .confirmationDialog("确认删除？", isPresented: $showDeleteConfirm, titleVisibility: .visible) {
+            Button("删除", role: .destructive) {
+                onDelete()
+            }
+            Button("取消", role: .cancel) {
+                withAnimation { dragOffset = 0 }
+            }
+        }
+    }
+
+    // MARK: - Date formatting
+
+    private var ganzhiDate: String {
+        // Simplified Ganzhi: use the reading's date with Chinese calendar elements
+        let formatter = DateFormatter()
+        formatter.dateFormat = "M月d日"
+        let solarStr = formatter.string(from: reading.createdAt)
+
+        // Basic Ganzhi approximation using day of year
+        let dayOfYear = Calendar.current.ordinality(of: .day, in: .year, for: reading.createdAt) ?? 1
+        let stems = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"]
+        let branches = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"]
+        let stemIdx = (dayOfYear - 1) % 10
+        let branchIdx = (dayOfYear - 1) % 12
+        return "\(stems[stemIdx])\(branches[branchIdx])日 · \(solarStr)"
+    }
+
+    private var solarDate: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd HH:mm"
+        return formatter.string(from: reading.createdAt)
+    }
+
+    private var typeBadge: String {
+        reading.type.icon
+    }
+
+    // MARK: - Share
+
+    private func shareReading() {
+        let text = "\(reading.title)\n\n\(reading.resultText)"
+        let av = UIActivityViewController(activityItems: [text], applicationActivities: nil)
+        if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let root = scene.windows.first?.rootViewController {
+            root.present(av, animated: true)
+        }
     }
 }

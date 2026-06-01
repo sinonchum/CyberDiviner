@@ -6,117 +6,178 @@ public struct SettingsScreen: View {
     public init() {}
 
     @State private var vm = SettingsViewModel()
+    @Environment(\.dismiss) private var dismiss
 
     public var body: some View {
         VStack(spacing: 0) {
-            SectionHeader(chineseTitle: "设置", englishSubtitle: "SETTINGS")
-                .padding(.horizontal, CyberSpacing.sm)
-                .padding(.top, CyberSpacing.xs)
-
-            DividerLine()
-
             ScrollView {
-                VStack(alignment: .leading, spacing: CyberSpacing.md) {
-                    // Provider
-                    settingGroup("服务提供者") {
-                        Picker("Provider", selection: $vm.provider) {
-                            Text("OpenAI-Compatible").tag("openai_compatible")
-                            Text("OpenAI").tag("openai")
-                            Text("Anthropic").tag("anthropic")
-                            Text("Ollama").tag("ollama")
+                VStack(alignment: .leading, spacing: 0) {
+                    // CONFIG header
+                    Text("CONFIG")
+                        .font(CyberTypography.monoMedium) // Mono 14sp
+                        .foregroundStyle(CyberColors.grayCaption)
+                        .tracking(4) // letterSpacing 4
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, 18)
+                        .padding(.top, 16)
+
+                    // API KEY
+                    fieldLabel("API KEY")
+                        .padding(.horizontal, 20)
+
+                    apiKeyField
+                        .padding(.horizontal, 20)
+
+                    Spacer().frame(height: 14)
+
+                    // BASE URL
+                    fieldLabel("BASE URL")
+                        .padding(.horizontal, 20)
+
+                    baseField
+                        .padding(.horizontal, 20)
+
+                    Spacer().frame(height: 14)
+
+                    // MODEL ID
+                    fieldLabel("MODEL ID")
+                        .padding(.horizontal, 20)
+
+                    modelField
+                        .padding(.horizontal, 20)
+
+                    Spacer().frame(height: 14)
+
+                    // INFERENCE MODE
+                    fieldLabel("INFERENCE MODE")
+                        .padding(.horizontal, 20)
+
+                    modeDropdown
+                        .padding(.horizontal, 20)
+
+                    Spacer().frame(height: 32)
+
+                    // Bottom buttons
+                    HStack(spacing: 12) {
+                        CyberButton("SAVE") {
+                            vm.save()
                         }
-                        .pickerStyle(.segmented)
-                        .colorScheme(.dark)
-                    }
 
-                    // API Key
-                    settingGroup("API Key") {
-                        SecureField("sk-...", text: $vm.apiKey)
-                            .font(CyberTypography.monoSmall)
-                            .foregroundStyle(CyberColors.cyberWhite)
-                            .textFieldStyle(.plain)
-                            .padding(CyberSpacing.xs)
-                            .background(CyberColors.graySurface)
-                            .overlay(
-                                Rectangle()
-                                    .stroke(CyberColors.grayBorder, lineWidth: 1)
-                            )
-                    }
-
-                    // Base URL
-                    settingGroup("Base URL") {
-                        TextField("https://api.openai.com/v1", text: $vm.baseURL)
-                            .font(CyberTypography.monoSmall)
-                            .foregroundStyle(CyberColors.cyberWhite)
-                            .textFieldStyle(.plain)
-                            .padding(CyberSpacing.xs)
-                            .background(CyberColors.graySurface)
-                            .overlay(
-                                Rectangle()
-                                    .stroke(CyberColors.grayBorder, lineWidth: 1)
-                            )
-                            .autocapitalization(.none)
-                            .disableAutocorrection(true)
-                    }
-
-                    // Model ID
-                    settingGroup("Model ID") {
-                        TextField("gpt-4o", text: $vm.modelID)
-                            .font(CyberTypography.monoSmall)
-                            .foregroundStyle(CyberColors.cyberWhite)
-                            .textFieldStyle(.plain)
-                            .padding(CyberSpacing.xs)
-                            .background(CyberColors.graySurface)
-                            .overlay(
-                                Rectangle()
-                                    .stroke(CyberColors.grayBorder, lineWidth: 1)
-                            )
-                            .autocapitalization(.none)
-                            .disableAutocorrection(true)
-                    }
-
-                    // Inference Mode
-                    settingGroup("推理模式") {
-                        Picker("Mode", selection: $vm.inferenceMode) {
-                            Text("Auto").tag("auto")
-                            Text("Online").tag("online")
-                            Text("Offline").tag("offline")
+                        CyberButton("BACK") {
+                            dismiss()
                         }
-                        .pickerStyle(.segmented)
-                        .colorScheme(.dark)
                     }
-
-                    // Privacy note
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("隐私声明")
-                            .font(CyberTypography.monoSmall)
-                            .foregroundStyle(CyberColors.grayCaption)
-                        Text("API Key 仅存储于本机 Keychain，不会上传至任何第三方服务器。占卜结果仅保存在本地。")
-                            .font(CyberTypography.bodySmall)
-                            .foregroundStyle(CyberColors.grayMuted)
-                    }
-
-                    // Save
-                    CyberButton("保存设置") {
-                        vm.save()
-                    }
-                    .padding(.top, CyberSpacing.xs)
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 32)
                 }
-                .padding(.horizontal, CyberSpacing.sm)
-                .padding(.vertical, CyberSpacing.sm)
             }
         }
         .background(CyberColors.cyberBlack)
         .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(true)
     }
 
-    @ViewBuilder
-    private func settingGroup(_ label: String, @ViewBuilder content: () -> some View) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(label)
-                .font(CyberTypography.monoSmall)
-                .foregroundStyle(CyberColors.grayCaption)
-            content()
+    // MARK: - Field Label
+
+    private func fieldLabel(_ text: String) -> some View {
+        Text(text)
+            .font(CyberTypography.monoSmall) // Mono 12sp
+            .foregroundStyle(CyberColors.grayBody)
+            .tracking(2) // letterSpacing 2
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.bottom, 8)
+    }
+
+    // MARK: - API Key Field (with SHOW/HIDE toggle)
+
+    private var apiKeyField: some View {
+        ZStack(alignment: .trailing) {
+            Group {
+                if vm.showAPIKey {
+                    TextField("sk-...", text: $vm.apiKey)
+                } else {
+                    SecureField("sk-...", text: $vm.apiKey)
+                }
+            }
+            .font(CyberTypography.monoSmall)
+            .foregroundStyle(CyberColors.cyberWhite)
+            .textFieldStyle(.plain)
+            .padding(CyberSpacing.xs)
+            .background(CyberColors.graySurface)
+            .overlay(
+                Rectangle()
+                    .stroke(CyberColors.grayBorder, lineWidth: 1)
+            )
+
+            Button(action: { vm.showAPIKey.toggle() }) {
+                Text(vm.showAPIKey ? "HIDE" : "SHOW")
+                    .font(CyberTypography.monoCaption) // Mono 10sp
+                    .foregroundStyle(CyberColors.grayCaption)
+                    .tracking(1)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+            }
+        }
+    }
+
+    // MARK: - Base URL Field
+
+    private var baseField: some View {
+        TextField("https://api.openai.com/v1", text: $vm.baseURL)
+            .font(CyberTypography.monoSmall)
+            .foregroundStyle(CyberColors.cyberWhite)
+            .textFieldStyle(.plain)
+            .padding(CyberSpacing.xs)
+            .background(CyberColors.graySurface)
+            .overlay(
+                Rectangle()
+                    .stroke(CyberColors.grayBorder, lineWidth: 1)
+            )
+            .autocapitalization(.none)
+            .disableAutocorrection(true)
+    }
+
+    // MARK: - Model ID Field
+
+    private var modelField: some View {
+        TextField("gpt-4o", text: $vm.modelID)
+            .font(CyberTypography.monoSmall)
+            .foregroundStyle(CyberColors.cyberWhite)
+            .textFieldStyle(.plain)
+            .padding(CyberSpacing.xs)
+            .background(CyberColors.graySurface)
+            .overlay(
+                Rectangle()
+                    .stroke(CyberColors.grayBorder, lineWidth: 1)
+            )
+            .autocapitalization(.none)
+            .disableAutocorrection(true)
+    }
+
+    // MARK: - Mode Dropdown
+
+    private var modeDropdown: some View {
+        Menu {
+            Button("AUTO") { vm.inferenceMode = "auto" }
+            Button("ONLINE") { vm.inferenceMode = "online" }
+            Button("OFFLINE") { vm.inferenceMode = "offline" }
+        } label: {
+            HStack {
+                Text(vm.inferenceMode.uppercased())
+                    .font(CyberTypography.monoSmall)
+                    .foregroundStyle(CyberColors.cyberWhite)
+                Spacer()
+                Image(systemName: "chevron.down")
+                    .font(.system(size: 10))
+                    .foregroundStyle(CyberColors.grayCaption)
+            }
+            .padding(CyberSpacing.xs)
+            .background(CyberColors.graySurface)
+            .overlay(
+                Rectangle()
+                    .stroke(CyberColors.grayBorder, lineWidth: 1)
+            )
         }
     }
 }
