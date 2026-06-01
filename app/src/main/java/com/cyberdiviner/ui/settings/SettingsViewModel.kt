@@ -7,6 +7,7 @@ import com.cyberdiviner.data.model.InferenceMode
 import com.cyberdiviner.data.remote.LlmConfigManager
 import com.cyberdiviner.data.remote.LlmProvider
 import com.cyberdiviner.engine.Persona
+import com.cyberdiviner.engine.offline.GemmaEngine
 import com.cyberdiviner.engine.offline.ModelManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
@@ -46,6 +47,9 @@ class SettingsViewModel @Inject constructor(
     private val _inferenceMode = MutableStateFlow(InferenceMode.AUTO)
     val inferenceMode: StateFlow<InferenceMode> = _inferenceMode
 
+    private val _offlineModelVariant = MutableStateFlow(ModelManager.OfflineModelVariant.BASE_GEMMA_3_1B)
+    val offlineModelVariant: StateFlow<ModelManager.OfflineModelVariant> = _offlineModelVariant
+
     // ── New: Model state ──────────────────────────────────────────────────────
 
     val modelState: StateFlow<ModelManager.ModelState> = modelManager.state
@@ -59,6 +63,9 @@ class SettingsViewModel @Inject constructor(
             configManager.personaId.first().let { _personaId.value = it }
             configManager.inferenceMode.first().let {
                 _inferenceMode.value = InferenceMode.fromName(it)
+            }
+            configManager.offlineModelVariant.first().let {
+                _offlineModelVariant.value = ModelManager.OfflineModelVariant.fromName(it)
             }
         }
     }
@@ -77,6 +84,14 @@ class SettingsViewModel @Inject constructor(
         _inferenceMode.value = mode
         viewModelScope.launch {
             configManager.setInferenceMode(mode.name)
+        }
+    }
+
+    fun setOfflineModelVariant(variant: ModelManager.OfflineModelVariant) {
+        _offlineModelVariant.value = variant
+        viewModelScope.launch {
+            GemmaEngine.forceReleaseActive()
+            modelManager.selectModel(variant)
         }
     }
 
@@ -108,6 +123,7 @@ class SettingsViewModel @Inject constructor(
             configManager.setModelId(_modelId.value)
             configManager.setPersonaId(_personaId.value)
             configManager.setInferenceMode(_inferenceMode.value.name)
+            configManager.setOfflineModelVariant(_offlineModelVariant.value.name)
             _saved.value = true
         }
     }

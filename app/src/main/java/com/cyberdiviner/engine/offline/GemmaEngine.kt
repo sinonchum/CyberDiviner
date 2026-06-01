@@ -3,7 +3,10 @@ package com.cyberdiviner.engine.offline
 import android.app.ActivityManager
 import android.content.Context
 import android.util.Log
+import com.cyberdiviner.data.remote.LlmConfigManager
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -23,7 +26,6 @@ class GemmaEngine(private val context: Context) {
 
     companion object {
         private const val TAG = "GemmaEngine"
-        private const val MODEL_FILENAME = "gemma3_1b_int4.task"
 
         @Volatile
         private var activeInstance: GemmaEngine? = null
@@ -50,7 +52,12 @@ class GemmaEngine(private val context: Context) {
     // ── Model path ────────────────────────────────────────────────────────────
 
     fun getModelPath(): String? {
-        val file = File(context.filesDir, "offline_model/$MODEL_FILENAME")
+        val variant = runBlocking {
+            ModelManager.OfflineModelVariant.fromName(
+                LlmConfigManager(context).offlineModelVariant.first()
+            )
+        }
+        val file = File(context.filesDir, "offline_model/${variant.filename}")
         return if (file.exists() && file.length() > 100_000_000) file.absolutePath else null
     }
 

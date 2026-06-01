@@ -29,6 +29,7 @@ class LlmConfigManager(private val context: Context) {
         private val KEY_PERSONA_ID = stringPreferencesKey("persona_id")
         private val KEY_TEMPERATURE = stringPreferencesKey("temperature")
         private val KEY_INFERENCE_MODE = stringPreferencesKey("inference_mode")
+        private val KEY_OFFLINE_MODEL_VARIANT = stringPreferencesKey("offline_model_variant")
         private val KEY_OFFLINE_MODEL_ENABLED = booleanPreferencesKey("offline_model_enabled")
         private val KEY_VISION_LLM_ENABLED = booleanPreferencesKey("vision_llm_enabled")
     }
@@ -44,6 +45,7 @@ class LlmConfigManager(private val context: Context) {
         it[KEY_TEMPERATURE]?.toDoubleOrNull() ?: 0.7
     }
     val inferenceMode: Flow<String> = context.dataStore.data.map { it[KEY_INFERENCE_MODE] ?: "AUTO" }
+    val offlineModelVariant: Flow<String> = context.dataStore.data.map { it[KEY_OFFLINE_MODEL_VARIANT] ?: "BASE_GEMMA_3_1B" }
     val offlineModelEnabled: Flow<Boolean> = context.dataStore.data.map { it[KEY_OFFLINE_MODEL_ENABLED] ?: false }
     val visionLlmEnabled: Flow<Boolean> = context.dataStore.data.map { it[KEY_VISION_LLM_ENABLED] ?: true }
 
@@ -75,6 +77,10 @@ class LlmConfigManager(private val context: Context) {
 
     suspend fun setInferenceMode(mode: String) {
         context.dataStore.edit { it[KEY_INFERENCE_MODE] = mode }
+    }
+
+    suspend fun setOfflineModelVariant(variant: String) {
+        context.dataStore.edit { it[KEY_OFFLINE_MODEL_VARIANT] = variant }
     }
 
     suspend fun setOfflineModelEnabled(enabled: Boolean) {

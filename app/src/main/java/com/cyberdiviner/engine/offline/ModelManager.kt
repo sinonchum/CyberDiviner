@@ -2,10 +2,13 @@ package com.cyberdiviner.engine.offline
 
 import android.content.Context
 import android.util.Log
+import com.cyberdiviner.data.remote.LlmConfigManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import java.io.BufferedInputStream
 import java.io.File
@@ -30,32 +33,21 @@ class ModelManager(private val context: Context) {
     companion object {
         private const val TAG = "ModelManager"
         private const val MODEL_DIR = "offline_model"
-        private const val MODEL_FILENAME = "gemma3_1b_int4.task"
-        private const val TEMP_FILENAME = "gemma3_1b_int4.task.tmp"
+        private const val LEGACY_MODEL_FILENAME = "gemma3_1b_int4.task"
 
-        const val MODEL_DISPLAY_NAME = "CyberDiviner Gemma 3 1B"
+        const val MODEL_DISPLAY_NAME = "Gemma 3 1B"
         const val MODEL_SIZE_BYTES = 1_025_084_110L // Current dynamic-int8 LiteRT bundle
         const val MODEL_SIZE_DISPLAY = "~978 MB"
 
         // ── Multi-source URLs ──────────────────────────────────────────────
-        private const val REPO_ID = "MiCkSoftware/Gemma3-1B-IT-LiteRT"
-        private const val FILE_PATH = "gemma3-1b-it-int4.task"
-
-        private val SOURCE_HF_MIRROR = ModelSource(
-            name = "hf-mirror（国内镜像）",
-            url = "https://hf-mirror.com/$REPO_ID/resolve/main/$FILE_PATH",
-            requiresAuth = false,
-        )
-        private val SOURCE_HF = ModelSource(
-            name = "HuggingFace",
-            url = "https://huggingface.co/$REPO_ID/resolve/main/$FILE_PATH",
-            requiresAuth = true,
-        )
-        private val SOURCE_MODELSCOPE = ModelSource(
-            name = "ModelScope",
-            url = "https://modelscope.cn/models/$REPO_ID/resolve/main/$FILE_PATH",
-            requiresAuth = false,
-        )
+        private const val BASE_REPO_ID = "MiCkSoftware/Gemma3-1B-IT-LiteRT"
+        private const val BASE_FILE_PATH = "gemma3-1b-it-int4.task"
+        private const val TUNED_REPO_ID = "Sinonchum/cyberdiviner-gemma-3-1b"
+        private const val TUNED_FILE_PATH = "gemma3_1b_int4.task"
+        private const val BASE_MODEL_SIZE_BYTES = 606_000_000L
+        private const val BASE_MODEL_SIZE_DISPLAY = "~578 MB"
+        private const val TUNED_MODEL_SIZE_BYTES = MODEL_SIZE_BYTES
+        private const val TUNED_MODEL_SIZE_DISPLAY = MODEL_SIZE_DISPLAY
 
         /** Quick timezone heuristic — no network needed. */
         private fun isLikelyChinaTimezone(): Boolean {
@@ -103,12 +95,64 @@ class ModelManager(private val context: Context) {
         }
 
         /** Build source list in priority order based on region. */
-        fun buildSources(): List<ModelSource> {
+        fun buildSources(variant: OfflineModelVariant): List<ModelSource> {
+            val sourceHfMirror = ModelSource(
+                name = "hf-mirror（国内镜像）",
+                url = "https://hf-mirror.com/${variant.repoId}/resolve/main/${variant.filePath}",
+                requiresAuth = false,
+            )
+            val sourceHf = ModelSource(
+                name = "HuggingFace",
+                url = "https://huggingface.co/${variant.repoId}/resolve/main/${variant.filePath}",
+                requiresAuth = true,
+            )
+            val sourceModelScope = ModelSource(
+                name = "ModelScope",
+                url = "https://modelscope.cn/models/${variant.repoId}/resolve/main/${variant.filePath}",
+                requiresAuth = false,
+            )
             return if (detectIsChina()) {
-                listOf(SOURCE_HF_MIRROR, SOURCE_MODELSCOPE, SOURCE_HF)
+                listOf(sourceHfMirror, sourceModelScope, sourceHf)
             } else {
-                listOf(SOURCE_HF, SOURCE_HF_MIRROR, SOURCE_MODELSCOPE)
+                listOf(sourceHf, sourceHfMirror, sourceModelScope)
             }
+        }
+    }
+
+    enum class OfflineModelVariant(
+        val displayName: String,
+        val description: String,
+        val filename: String,
+        val tempFilename: String,
+        val repoId: String,
+        val filePath: String,
+        val sizeBytes: Long,
+        val sizeDisplay: String,
+    ) {
+        BASE_GEMMA_3_1B(
+            displayName = "Gemma 3 1B",
+            description = "Google 原版 LiteRT 模型，体积更小，适合通用离线推理",
+            filename = LEGACY_MODEL_FILENAME,
+            tempFilename = "$LEGACY_MODEL_FILENAME.tmp",
+            repoId = BASE_REPO_ID,
+            filePath = BASE_FILE_PATH,
+            sizeBytes = BASE_MODEL_SIZE_BYTES,
+            sizeDisplay = BASE_MODEL_SIZE_DISPLAY,
+        ),
+        CYBERDIVINER_GEMMA_3_1B(
+            displayName = "CyberDiviner Gemma 3 1B",
+            description = "面向签文、解卦、牌义输出优化的 CyberDiviner 端侧模型",
+            filename = "cyberdiviner_gemma3_1b_int4.task",
+            tempFilename = "cyberdiviner_gemma3_1b_int4.task.tmp",
+            repoId = TUNED_REPO_ID,
+            filePath = TUNED_FILE_PATH,
+            sizeBytes = TUNED_MODEL_SIZE_BYTES,
+            sizeDisplay = TUNED_MODEL_SIZE_DISPLAY,
+        );
+
+        companion object {
+            fun fromName(name: String): OfflineModelVariant =
+                entries.firstOrNull { it.name == name } ?: BASE_GEMMA_3_1B
         }
     }
 
@@ -131,6 +175,8 @@ class ModelManager(private val context: Context) {
         data class Error(val message: String) : ModelState()
     }
 
+    private val configManager = LlmConfigManager(context)
+
     private val _state = MutableStateFlow<ModelState>(checkInitialState())
     val state: StateFlow<ModelState> = _state.asStateFlow()
 
@@ -142,11 +188,15 @@ class ModelManager(private val context: Context) {
     private val modelDir: File
         get() = File(context.filesDir, MODEL_DIR)
 
+    private fun selectedVariant(): OfflineModelVariant = runBlocking {
+        OfflineModelVariant.fromName(configManager.offlineModelVariant.first())
+    }
+
     private val modelFile: File
-        get() = File(modelDir, MODEL_FILENAME)
+        get() = File(modelDir, selectedVariant().filename)
 
     private val tempFile: File
-        get() = File(modelDir, TEMP_FILENAME)
+        get() = File(modelDir, selectedVariant().tempFilename)
 
     // ── State check ───────────────────────────────────────────────────────
 
@@ -160,6 +210,11 @@ class ModelManager(private val context: Context) {
 
     fun isReady(): Boolean = modelFile.exists() && modelFile.length() > 100_000_000
 
+    suspend fun selectModel(variant: OfflineModelVariant) = withContext(Dispatchers.IO) {
+        configManager.setOfflineModelVariant(variant.name)
+        _state.value = checkInitialState()
+    }
+
     // ── Multi-source download with fallback ───────────────────────────────
 
     suspend fun download(hfToken: String? = null) = withContext(Dispatchers.IO) {
@@ -171,7 +226,8 @@ class ModelManager(private val context: Context) {
         modelDir.mkdirs()
         cancelled = false
 
-        val sources = buildSources()
+        val variant = selectedVariant()
+        val sources = buildSources(variant)
         val errors = mutableListOf<String>()
 
         for ((index, source) in sources.withIndex()) {
@@ -181,14 +237,14 @@ class ModelManager(private val context: Context) {
             _state.value = ModelState.Downloading(
                 percent = 0,
                 bytesDownloaded = if (tempFile.exists()) tempFile.length() else 0L,
-                totalBytes = MODEL_SIZE_BYTES,
-                sourceName = source.name,
+                totalBytes = variant.sizeBytes,
+                sourceName = "${variant.displayName} · ${source.name}",
             )
 
             try {
                 downloadFromSource(source, hfToken)
                 _state.value = ModelState.Ready
-                Log.d(TAG, "Model download complete from ${source.name}")
+                Log.d(TAG, "${variant.displayName} download complete from ${source.name}")
                 return@withContext
             } catch (e: Exception) {
                 val msg = "${source.name}: ${e.message}"
@@ -230,11 +286,12 @@ class ModelManager(private val context: Context) {
             throw Exception("HTTP $responseCode: ${connection.responseMessage}")
         }
 
+        val variant = selectedVariant()
         val totalBytes = if (responseCode == 206) {
             val contentRange = connection.getHeaderField("Content-Range")
-            contentRange?.substringAfter("/")?.toLongOrNull() ?: MODEL_SIZE_BYTES
+            contentRange?.substringAfter("/")?.toLongOrNull() ?: variant.sizeBytes
         } else {
-            connection.contentLengthLong.takeIf { it > 0 } ?: MODEL_SIZE_BYTES
+            connection.contentLengthLong.takeIf { it > 0 } ?: variant.sizeBytes
         }
 
         val inputStream = BufferedInputStream(connection.inputStream, 8192)

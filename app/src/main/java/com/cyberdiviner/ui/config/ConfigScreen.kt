@@ -8,6 +8,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -23,6 +25,7 @@ import com.cyberdiviner.ui.shared.CyberButton
 import kotlinx.coroutines.launch
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.clickable
 import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -38,6 +41,7 @@ fun ConfigScreen(onBack: () -> Unit) {
     val savedApiKey by configManager.apiKey.collectAsState(initial = "")
     val savedBaseUrl by configManager.baseUrl.collectAsState(initial = "")
     val savedInferenceMode by configManager.inferenceMode.collectAsState(initial = "AUTO")
+    val savedOfflineModelVariant by configManager.offlineModelVariant.collectAsState(initial = "BASE_GEMMA_3_1B")
     val savedOfflineModelEnabled by configManager.offlineModelEnabled.collectAsState(initial = false)
     val modelState by modelManager.state.collectAsState()
 
@@ -45,6 +49,9 @@ fun ConfigScreen(onBack: () -> Unit) {
     var baseUrl by remember(savedBaseUrl) { mutableStateOf(savedBaseUrl) }
     var saved by remember { mutableStateOf(false) }
     var inferenceMode by remember(savedInferenceMode) { mutableStateOf(InferenceMode.fromName(savedInferenceMode)) }
+    var offlineModelVariant by remember(savedOfflineModelVariant) {
+        mutableStateOf(ModelManager.OfflineModelVariant.fromName(savedOfflineModelVariant))
+    }
     var offlineModelEnabled by remember(savedOfflineModelEnabled) { mutableStateOf(savedOfflineModelEnabled) }
 
     // SAF launcher for manual .task import
@@ -64,11 +71,12 @@ fun ConfigScreen(onBack: () -> Unit) {
         modifier = Modifier
             .fillMaxSize()
             .background(CyberBlack)
-            .padding(24.dp)
+            .padding(horizontal = 20.dp, vertical = 16.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .padding(bottom = 78.dp)
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
@@ -82,7 +90,7 @@ fun ConfigScreen(onBack: () -> Unit) {
                 letterSpacing = 4.sp,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 32.dp)
+                    .padding(bottom = 18.dp)
             )
 
             // API Key field
@@ -146,7 +154,7 @@ fun ConfigScreen(onBack: () -> Unit) {
                 )
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
             // Base URL field
             Text(
@@ -177,7 +185,7 @@ fun ConfigScreen(onBack: () -> Unit) {
                 )
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
             // ── Inference Mode ──────────────────────────────────────────
             Text(
@@ -241,7 +249,7 @@ fun ConfigScreen(onBack: () -> Unit) {
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
             // ── Offline Model ───────────────────────────────────────────
             Text(
@@ -268,13 +276,13 @@ fun ConfigScreen(onBack: () -> Unit) {
                         text = "离线模型",
                         color = CyberWhite,
                         fontFamily = MonoFontFamily,
-                        fontSize = 14.sp
+                        fontSize = 13.sp
                     )
                     Text(
-                        text = "启用后可离线使用，关闭可释放约1.5GB内存",
+                        text = "关闭时释放内存",
                         color = GrayCaption,
                         fontFamily = MonoFontFamily,
-                        fontSize = 11.sp
+                        fontSize = 10.sp
                     )
                 }
                 Switch(
@@ -297,25 +305,110 @@ fun ConfigScreen(onBack: () -> Unit) {
                 )
             }
 
-            // Model info
             Text(
-                text = "${ModelManager.MODEL_DISPLAY_NAME} · ${ModelManager.MODEL_SIZE_DISPLAY}",
-                color = CyberWhite,
+                text = "离线模型来源",
+                color = GrayBody,
                 fontFamily = MonoFontFamily,
-                fontSize = 14.sp,
+                fontSize = 12.sp,
+                letterSpacing = 2.sp,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 4.dp)
+                    .padding(top = 4.dp, bottom = 6.dp)
+            )
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                ModelManager.OfflineModelVariant.entries.forEach { variant ->
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (offlineModelVariant == variant) {
+                                GraySurface.copy(alpha = 0.95f)
+                            } else {
+                                CyberBlack
+                            }
+                        )
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 8.dp, vertical = 6.dp),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalAlignment = Alignment.Top
+                        ) {
+                            RadioButton(
+                                selected = offlineModelVariant == variant,
+                                onClick = {
+                                    offlineModelVariant = variant
+                                    scope.launch {
+                                        GemmaEngine.forceReleaseActive()
+                                        modelManager.selectModel(variant)
+                                    }
+                                },
+                                colors = RadioButtonDefaults.colors(
+                                    selectedColor = CyberWhite,
+                                    unselectedColor = GrayCaption
+                                )
+                            )
+                            Column(
+                                modifier = Modifier.weight(1f),
+                                verticalArrangement = Arrangement.spacedBy(3.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = variant.displayName,
+                                        color = CyberWhite,
+                                        fontFamily = MonoFontFamily,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 12.sp
+                                    )
+                                    Text(
+                                        text = variant.sizeDisplay,
+                                        color = GrayCaption,
+                                        fontFamily = MonoFontFamily,
+                                        fontSize = 10.sp
+                                    )
+                                }
+                                Text(
+                                    text = variant.description,
+                                    color = GrayCaption,
+                                    fontFamily = MonoFontFamily,
+                                    fontSize = 9.sp,
+                                    lineHeight = 13.sp
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Model info
+            Text(
+                text = "当前加载目标：${offlineModelVariant.displayName}",
+                color = CyberWhite,
+                fontFamily = MonoFontFamily,
+                fontSize = 12.sp,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 2.dp)
             )
 
             Text(
-                text = "无网络时提供基础离线推理",
+                text = "${offlineModelVariant.sizeDisplay} · 无网络时提供基础离线推理",
                 color = GrayCaption,
                 fontFamily = MonoFontFamily,
-                fontSize = 11.sp,
+                fontSize = 10.sp,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 12.dp)
+                    .padding(bottom = 8.dp)
             )
 
             // Model status and actions
@@ -389,7 +482,7 @@ fun ConfigScreen(onBack: () -> Unit) {
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         Text(
-                            text = "READY · ${ModelManager.MODEL_SIZE_DISPLAY}",
+                            text = "READY · ${offlineModelVariant.sizeDisplay}",
                             color = CyberWhite,
                             fontFamily = MonoFontFamily,
                             fontSize = 12.sp,
@@ -457,10 +550,18 @@ fun ConfigScreen(onBack: () -> Unit) {
                 )
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(8.dp))
+        }
 
-            // Save button
-            CyberButton(
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .background(CyberBlack)
+                .padding(top = 4.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            CompactConfigButton(
                 text = "SAVE",
                 onClick = {
                     scope.launch {
@@ -469,16 +570,38 @@ fun ConfigScreen(onBack: () -> Unit) {
                         configManager.setInferenceMode(inferenceMode.name)
                         saved = true
                     }
-                },
-                modifier = Modifier.padding(bottom = 12.dp)
+                }
             )
 
-            // Back button
-            CyberButton(
+            CompactConfigButton(
                 text = "BACK",
                 onClick = onBack
             )
         }
+    }
+}
+
+@Composable
+private fun CompactConfigButton(
+    text: String,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(CyberBlack)
+            .semantics { contentDescription = text }
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = text,
+            color = CyberWhite,
+            fontFamily = HuiwenFontFamily,
+            fontSize = 13.sp,
+            letterSpacing = 2.sp
+        )
     }
 }
 

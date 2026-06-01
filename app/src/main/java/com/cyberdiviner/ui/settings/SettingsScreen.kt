@@ -38,6 +38,7 @@ fun SettingsScreen(
     val personaId by viewModel.personaId.collectAsState()
     val saved by viewModel.saved.collectAsState()
     val inferenceMode by viewModel.inferenceMode.collectAsState()
+    val offlineModelVariant by viewModel.offlineModelVariant.collectAsState()
     val modelState by viewModel.modelState.collectAsState()
 
     var showApiKey by remember { mutableStateOf(false) }
@@ -335,9 +336,42 @@ fun SettingsScreen(
                     modifier = Modifier.padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
+                    ModelManager.OfflineModelVariant.entries.forEach { variant ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            RadioButton(
+                                selected = offlineModelVariant == variant,
+                                onClick = { viewModel.setOfflineModelVariant(variant) },
+                                colors = RadioButtonDefaults.colors(
+                                    selectedColor = CyberWhite,
+                                    unselectedColor = GrayMuted
+                                )
+                            )
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    variant.displayName,
+                                    color = CyberWhite,
+                                    fontSize = 13.sp,
+                                    fontFamily = MonoFontFamily,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Text(
+                                    variant.description,
+                                    color = GrayMuted,
+                                    fontSize = 11.sp,
+                                    lineHeight = 16.sp,
+                                    fontFamily = MonoFontFamily
+                                )
+                            }
+                        }
+                    }
+
                     // Model info
                     Text(
-                        "${ModelManager.MODEL_DISPLAY_NAME} · ${ModelManager.MODEL_SIZE_DISPLAY}",
+                        "${offlineModelVariant.displayName} · ${offlineModelVariant.sizeDisplay}",
                         color = CyberWhite,
                         fontSize = 14.sp,
                         fontFamily = MonoFontFamily,
