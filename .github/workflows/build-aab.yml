@@ -30,7 +30,10 @@ jobs:
           fi
 
       - name: Build release AAB
-        run: ./gradlew bundleRelease --no-daemon
+        run: |
+          # Remove Mac-specific JAVA_HOME from gradle.properties
+          sed -i '/org.gradle.java.home/d' gradle.properties
+          ./gradlew bundleRelease --no-daemon
 
       - name: Upload AAB artifact
         uses: actions/upload-artifact@v4
