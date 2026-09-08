@@ -102,9 +102,9 @@ graph TB
 
 Requirements:
 
-- Android Studio Ladybug or later
+- Android Studio Narwhal 3 Feature Drop or later
 - JDK 17
-- Android SDK 35
+- Android SDK 36
 - Android device or emulator running Android 8.0+
 
 ```bash

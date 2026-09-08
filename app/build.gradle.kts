@@ -7,14 +7,19 @@ plugins {
     id("com.google.devtools.ksp")
 }
 
+val releaseStoreFile = providers.environmentVariable("CYBERDIVINER_STORE_FILE").orNull
+val releaseStorePassword = providers.environmentVariable("CYBERDIVINER_STORE_PASSWORD").orNull
+val releaseKeyAlias = providers.environmentVariable("CYBERDIVINER_KEY_ALIAS").orNull
+val releaseKeyPassword = providers.environmentVariable("CYBERDIVINER_KEY_PASSWORD").orNull
+
 android {
     namespace = "com.cyberdiviner"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.cyberdiviner"
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 124
         versionName = "12.3.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -22,10 +27,10 @@ android {
 
     signingConfigs {
         create("release") {
-            storeFile = file("cyberdiviner-release.jks")
-            storePassword = "cyberdiviner"
-            keyAlias = "cyberdiviner"
-            keyPassword = "cyberdiviner"
+            storeFile = releaseStoreFile?.let(::file)
+            storePassword = releaseStorePassword
+            keyAlias = releaseKeyAlias
+            keyPassword = releaseKeyPassword
         }
     }
 
