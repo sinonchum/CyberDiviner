@@ -15,13 +15,14 @@ val releaseKeyPassword = providers.environmentVariable("CYBERDIVINER_KEY_PASSWOR
 android {
     namespace = "com.cyberdiviner"
     compileSdk = 36
+    ndkVersion = "27.1.12297006"
 
     defaultConfig {
         applicationId = "com.cyberdiviner"
         minSdk = 26
         targetSdk = 36
-        versionCode = 126
-        versionName = "12.3.3"
+        versionCode = 127
+        versionName = "12.3.4"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -38,6 +39,9 @@ android {
         release {
             isMinifyEnabled = true
             signingConfig = signingConfigs.getByName("release")
+            ndk {
+                debugSymbolLevel = "SYMBOL_TABLE"
+            }
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

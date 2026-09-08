@@ -18,6 +18,12 @@ jobs:
           java-version: "17"
           distribution: "temurin"
 
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install NDK
+        run: sdkmanager "ndk;27.1.12297006"
+
       - name: Decode keystore
         env:
           KEYSTORE_BASE64: ${{ secrets.CYBERDIVINER_KEYSTORE_B64 }}
@@ -43,6 +49,16 @@ jobs:
             fi
           done
           ./gradlew bundleRelease --no-daemon
+
+      - name: Verify embedded native debug symbols
+        run: |
+          AAB="$(find app/build/outputs/bundle/release -name '*.aab' -print -quit)"
+          if ! unzip -Z1 "$AAB" | grep -q '^BUNDLE-METADATA/com.android.tools.build.debugsymbols/.*\.sym$'; then
+            echo "::error::Native debug symbols are missing from the App Bundle"
+            exit 1
+          fi
+          echo "Embedded native debug symbols:"
+          unzip -Z1 "$AAB" | grep '^BUNDLE-METADATA/com.android.tools.build.debugsymbols/.*\.sym$'
 
       - name: Upload AAB artifact
         uses: actions/upload-artifact@v4
