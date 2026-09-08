@@ -22,17 +22,26 @@ jobs:
         env:
           KEYSTORE_BASE64: ${{ secrets.CYBERDIVINER_KEYSTORE_B64 }}
         run: |
-          if [ -n "$KEYSTORE_BASE64" ]; then
-            echo "$KEYSTORE_BASE64" | base64 -d > app/cyberdiviner-release.jks
-            echo "Keystore decoded ($(wc -c < app/cyberdiviner-release.jks) bytes)"
-          else
-            echo "WARNING: CYBERDIVINER_KEYSTORE_B64 secret not set — signing will fail"
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "::error::CYBERDIVINER_KEYSTORE_B64 secret is not set"
+            exit 1
           fi
+          echo "$KEYSTORE_BASE64" | base64 -d > app/cyberdiviner-release.jks
+          echo "Keystore decoded ($(wc -c < app/cyberdiviner-release.jks) bytes)"
 
       - name: Build release AAB
+        env:
+          CYBERDIVINER_STORE_FILE: cyberdiviner-release.jks
+          CYBERDIVINER_STORE_PASSWORD: ${{ secrets.CYBERDIVINER_STORE_PASSWORD }}
+          CYBERDIVINER_KEY_ALIAS: ${{ secrets.CYBERDIVINER_KEY_ALIAS }}
+          CYBERDIVINER_KEY_PASSWORD: ${{ secrets.CYBERDIVINER_KEY_PASSWORD }}
         run: |
-          # Remove Mac-specific JAVA_HOME from gradle.properties
-          sed -i '/org.gradle.java.home/d' gradle.properties
+          for name in CYBERDIVINER_STORE_PASSWORD CYBERDIVINER_KEY_ALIAS CYBERDIVINER_KEY_PASSWORD; do
+            if [ -z "${!name}" ]; then
+              echo "::error::$name secret is not set"
+              exit 1
+            fi
+          done
           ./gradlew bundleRelease --no-daemon
 
       - name: Upload AAB artifact
