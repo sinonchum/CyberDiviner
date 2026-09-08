@@ -18,6 +18,12 @@ jobs:
           java-version: "17"
           distribution: "temurin"
 
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install NDK
+        run: sdkmanager "ndk;27.1.12297006"
+
       - name: Decode keystore
         env:
           KEYSTORE_BASE64: ${{ secrets.CYBERDIVINER_KEYSTORE_B64 }}
