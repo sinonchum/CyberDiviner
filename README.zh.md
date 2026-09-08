@@ -102,9 +102,9 @@ graph TB
 
 环境要求：
 
-- Android Studio Ladybug 或更高版本
+- Android Studio Narwhal 3 Feature Drop 或更高版本
 - JDK 17
-- Android SDK 35
+- Android SDK 36
 - Android 8.0 及以上真机或模拟器
 
 ```bash
